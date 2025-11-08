@@ -185,6 +185,71 @@
             let zip = null;
             let isExtracting = false;
 
+            // FPSを推定する関数
+            function estimateFps(video) {
+                return new Promise(resolve => {
+                    const frameTimes = [];
+                    let frameCount = 0;
+                    const sampleSize = 30; // サンプルするフレーム数
+
+                    // 一時的に動画をミュートし、再生準備
+                    const originalMuted = video.muted;
+                    video.muted = true;
+                    video.currentTime = 0;
+
+                    const callback = (now, metadata) => {
+                        // 最初のフレーム時間は基準点として記録
+                        if (frameCount > 0) {
+                            const lastTime = frameTimes[frameTimes.length - 1];
+                            // タイムスタンプが前回と同じフレームは無視
+                            if (metadata.mediaTime > lastTime) {
+                                frameTimes.push(metadata.mediaTime);
+                            }
+                        } else {
+                            frameTimes.push(metadata.mediaTime);
+                        }
+                        
+                        frameCount++;
+
+                        // 十分なサンプルが集まったか、動画の終わりに達したら計算
+                        if (frameCount >= sampleSize || video.currentTime >= video.duration) {
+                            video.pause();
+                            video.removeEventListener('timeupdate', onTimeUpdate); // 不要なリスナーを削除
+                            
+                            const first = frameTimes[0];
+                            const last = frameTimes[frameTimes.length - 1];
+                            const duration = last - first;
+                            
+                            let avgFps = 24; // デフォルト値
+                            if (duration > 0 && frameTimes.length > 1) {
+                                avgFps = (frameTimes.length - 1) / duration;
+                            }
+                            
+                            // 状態を元に戻す
+                            video.currentTime = 0;
+                            video.muted = originalMuted;
+                            resolve(avgFps);
+                            return; // コールバックチェーンを終了
+                        }
+                        
+                        // 次のフレームを要求
+                        video.requestVideoFrameCallback(callback);
+                    };
+
+                    const onTimeUpdate = () => {
+                        // 再生が始まったら最初のコールバックを要求
+                        video.requestVideoFrameCallback(callback);
+                    };
+                    
+                    video.addEventListener('timeupdate', onTimeUpdate, { once: true });
+                    video.play().catch(e => {
+                        console.error("FPS推定のための再生に失敗:", e);
+                        video.muted = originalMuted; // エラー時もミュート状態を戻す
+                        resolve(null); // エラーの場合はnullを返す
+                    });
+                });
+            }
+
             // ファイル選択時の処理
             fileInput.addEventListener('change', (event) => {
                 videoFile = event.target.files[0];
@@ -192,11 +257,19 @@
                     const url = URL.createObjectURL(videoFile);
                     videoPlayer.src = url;
                     
-                    videoPlayer.addEventListener('loadedmetadata', () => {
+                    videoPlayer.addEventListener('loadedmetadata', async () => {
                         videoInfo.textContent = `解像度: ${videoPlayer.videoWidth}x${videoPlayer.videoHeight}, 長さ: ${videoPlayer.duration.toFixed(2)}秒`;
                         endTimeInput.value = videoPlayer.duration.toFixed(2);
                         endTimeInput.max = videoPlayer.duration.toFixed(2);
                         startTimeInput.max = videoPlayer.duration.toFixed(2);
+
+                        // FPSを推定してデフォルト値に設定
+                        const estimatedFps = await estimateFps(videoPlayer);
+                        if (estimatedFps) {
+                            fpsInput.value = Math.round(estimatedFps);
+                            videoInfo.textContent += `, FPS: ~${Math.round(estimatedFps)}`;
+                        }
+
                     }, { once: true });
 
                     previewCard.style.display = 'block';
