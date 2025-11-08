@@ -31,10 +31,20 @@ const PROFILE_DATA = {
     bio: "AIで音楽や映像を作っています。" 
 };
 
-// --- 2. YouTube動画の設定 ---
+// --- 2. Toolsデータ ---
+const TOOLS_DATA = [
+    {
+        name: "MP4 Frame Extractor",
+        description: "MP4動画からフレーム画像を抽出します。",
+        url: "frame-extractor.html",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0112.071 3 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
+    }
+];
+
+// --- 3. YouTube動画の設定 ---
 const YOUTUBE_VIDEO_ID = "KKagquvsqBE";
 
-// --- 3. リンクデータの管理 ---
+// --- 4. リンクデータの管理 ---
 const links = [
     {
         name: "YouTube",
@@ -80,16 +90,21 @@ const links = [
     },
 ];
 
-// --- 4. ページを組み立て・アニメーションを実行する処理 ---
+// --- 5. ページ全体の初期化処理 ---
 document.addEventListener("DOMContentLoaded", () => {
+    // --- 要素の取得 ---
     const footerUsernameElement = document.getElementById("footer-username");
     const youtubeContainer = document.getElementById("youtube-container");
     const listElement = document.getElementById("links-list");
+    const toolsListElement = document.getElementById("tools-list");
     const profileAvatar = document.getElementById('profile-avatar');
     const profileName = document.getElementById('profile-name');
     const profileBio = document.getElementById('profile-bio');
+    const gradientBackground = document.querySelector('.animated-gradient');
 
-    // プロフィール情報の設定
+    // --- 機能の実行 ---
+
+    // 1. プロフィール情報の設定
     if (profileName) profileName.textContent = PROFILE_DATA.name;
     if (profileBio) profileBio.textContent = PROFILE_DATA.bio;
     if (footerUsernameElement) footerUsernameElement.textContent = PROFILE_DATA.name;
@@ -105,15 +120,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         profileAvatar.src = data.avatar_url;
                     }
                 })
-                .catch(() => {
-                    profileAvatar.style.display = 'none';
-                });
+                .catch(() => { profileAvatar.style.display = 'none'; });
         } else {
             profileAvatar.style.display = 'none';
         }
     }
 
-    // YouTube動画を埋め込み
+    // 2. YouTube動画を埋め込み
     if (youtubeContainer && YOUTUBE_VIDEO_ID) {
         const iframe = document.createElement('iframe');
         iframe.src = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?origin=https://yohaku-0to1.github.io`;
@@ -124,12 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
         youtubeContainer.appendChild(iframe);
     }
     
-    // リンクボタンを生成
+    // 3. リンクボタンを生成
     if (links && links.length > 0 && listElement) {
         links.forEach(link => {
             const li = document.createElement('li');
             li.className = 'opacity-0';
-            
             const linkHtml = `
                 <a 
                     href="${link.url}" 
@@ -156,42 +168,53 @@ document.addEventListener("DOMContentLoaded", () => {
         listElement.innerHTML = "<p class='text-gray-400'>リンクはまだありません。</p>";
     }
 
-    // --- アニメーションの実行 ---
+    // 4. ツール一覧を生成
+    if (TOOLS_DATA && TOOLS_DATA.length > 0 && toolsListElement) {
+        TOOLS_DATA.forEach(tool => {
+            const li = document.createElement('li');
+            const toolHtml = `
+                <a href="${tool.url}" class="flex items-center w-full p-4 rounded-lg text-white transition-all duration-300 ease-in-out transform hover:scale-105 bg-gray-700/50 hover:bg-gray-700/80 backdrop-blur-sm border border-white/20">
+                    <span class="mr-4 flex-shrink-0">${tool.icon}</span>
+                    <div>
+                        <p class="font-semibold">${tool.name}</p>
+                        <p class="text-sm text-gray-400">${tool.description}</p>
+                    </div>
+                </a>
+            `;
+            li.innerHTML = toolHtml;
+            toolsListElement.appendChild(li);
+        });
+    }
+
+    // 5. アニメーションの実行
     const header = document.getElementById('page-header');
     const footer = document.getElementById('page-footer');
     const linkItems = listElement.querySelectorAll('li');
+    const toolsSection = document.getElementById('tools-section');
 
-    const elementsToAnimate = [header, youtubeContainer, ...linkItems, footer];
+    const elementsToAnimate = [header, youtubeContainer, ...linkItems, toolsSection, footer];
     
     elementsToAnimate.forEach((el, index) => {
-        if (!el || (el.id === 'youtube-container' && !YOUTUBE_VIDEO_ID)) return;
+        if (!el || (el.id === 'youtube-container' && !YOUTUBE_VIDEO_ID) || (el.id === 'tools-section' && (!TOOLS_DATA || TOOLS_DATA.length === 0))) return;
         
         setTimeout(() => {
             el.classList.remove('opacity-0');
             el.classList.add('animate-fade-in-up');
         }, index * 100); 
     });
-});
 
-// --- 5. マウス追従パララックスエフェクト ---
-document.addEventListener('DOMContentLoaded', () => {
-    const gradientBackground = document.querySelector('.animated-gradient');
-    if (!gradientBackground) return;
-
-    document.addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 768) { // パフォーマンスのためモバイルでは無効化
-            gradientBackground.style.transform = 'translate(0, 0)';
-            return;
-        }
-
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-
-        // マウス位置を -1 から 1 の範囲に正規化
-        const xPercent = (clientX / innerWidth - 0.5) * 2;
-        const yPercent = (clientY / innerHeight - 0.5) * 2;
-
-        // 背景を少しだけ動かす
-        gradientBackground.style.transform = `translate(${xPercent * 15}px, ${yPercent * 15}px)`;
-    });
+    // 6. マウス追従パララックスエフェクト
+    if (gradientBackground) {
+        document.addEventListener('mousemove', (e) => {
+            if (window.innerWidth < 768) {
+                gradientBackground.style.transform = 'translate(0, 0)';
+                return;
+            }
+            const { clientX, clientY } = e;
+            const { innerWidth, innerHeight } = window;
+            const xPercent = (clientX / innerWidth - 0.5) * 2;
+            const yPercent = (clientY / innerHeight - 0.5) * 2;
+            gradientBackground.style.transform = `translate(${xPercent * 15}px, ${yPercent * 15}px)`;
+        });
+    }
 });

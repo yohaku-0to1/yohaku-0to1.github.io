@@ -1,0 +1,182 @@
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM要素の取得
+            const fileInput = document.getElementById('fileInput');
+            const previewCard = document.getElementById('previewCard');
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoInfo = document.getElementById('videoInfo');
+            const settingsCard = document.getElementById('settingsCard');
+            const controlCard = document.getElementById('controlCard');
+            const extractButton = document.getElementById('extractButton');
+            const statusArea = document.getElementById('statusArea');
+            const statusText = document.getElementById('statusText');
+            const progressText = document.getElementById('progressText');
+            const downloadCard = document.getElementById('downloadCard');
+            const downloadArea = document.getElementById('downloadArea');
+            
+            const fpsInput = document.getElementById('fpsInput');
+            const formatInput = document.getElementById('formatInput');
+            const startTimeInput = document.getElementById('startTimeInput');
+            const endTimeInput = document.getElementById('endTimeInput');
+
+            let videoFile = null;
+            let canvas = null;
+            let ctx = null;
+            let zip = null;
+            let isExtracting = false;
+
+            // ファイル選択時の処理
+            fileInput.addEventListener('change', (event) => {
+                videoFile = event.target.files[0];
+                if (videoFile) {
+                    const url = URL.createObjectURL(videoFile);
+                    videoPlayer.src = url;
+                    
+                    videoPlayer.addEventListener('loadedmetadata', () => {
+                        videoInfo.textContent = `解像度: ${videoPlayer.videoWidth}x${videoPlayer.videoHeight}, 長さ: ${videoPlayer.duration.toFixed(2)}秒`;
+                        endTimeInput.value = videoPlayer.duration.toFixed(2);
+                        endTimeInput.max = videoPlayer.duration.toFixed(2);
+                        startTimeInput.max = videoPlayer.duration.toFixed(2);
+                    }, { once: true });
+
+                    previewCard.style.display = 'block';
+                    settingsCard.style.display = 'block';
+                    controlCard.style.display = 'block';
+                    downloadCard.style.display = 'none';
+                    downloadArea.innerHTML = '';
+                    extractButton.disabled = false;
+                    extractButton.innerText = '抽出開始';
+                }
+            });
+
+            // 抽出ボタンクリック時の処理
+            extractButton.addEventListener('click', async () => {
+                if (!videoFile) {
+                    alert('まず動画ファイルを選択してください。');
+                    return;
+                }
+                if (isExtracting) {
+                    isExtracting = false;
+                    statusText.innerText = '処理を停止しています...';
+                    extractButton.disabled = true;
+                    return;
+                }
+
+                isExtracting = true;
+                zip = new JSZip();
+                
+                const fps = parseFloat(fpsInput.value);
+                const startTime = parseFloat(startTimeInput.value);
+                let endTime = parseFloat(endTimeInput.value);
+                const imageFormat = formatInput.value;
+                const imageExtension = imageFormat === 'image/jpeg' ? 'jpg' : 'png';
+
+                if (endTime <= 0 || endTime > videoPlayer.duration) {
+                    endTime = videoPlayer.duration;
+                }
+
+                if (startTime >= endTime) {
+                    alert('開始時間は終了時間より前に設定してください。');
+                    isExtracting = false;
+                    return;
+                }
+
+                extractButton.innerText = '停止';
+                statusArea.style.display = 'block';
+                statusText.innerText = 'フレーム抽出中...';
+                
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                }
+                canvas.width = videoPlayer.videoWidth;
+                canvas.height = videoPlayer.videoHeight;
+                ctx = canvas.getContext('2d');
+
+                const interval = 1 / fps;
+                let currentTime = startTime;
+                let frameCount = 0;
+                const totalFrames = Math.floor((endTime - startTime) / interval);
+
+                async function captureFrame() {
+                    if (!isExtracting || currentTime > endTime) {
+                        finishExtraction(frameCount);
+                        return;
+                    }
+
+                    progressText.innerText = `フレーム ${frameCount + 1} / ${totalFrames}`;
+                    
+                    videoPlayer.currentTime = currentTime;
+
+                    await new Promise(resolve => {
+                        videoPlayer.addEventListener('seeked', () => resolve(), { once: true });
+                    });
+
+                    ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, imageFormat, 0.9));
+                    
+                    if(isExtracting) {
+                        const fileName = `frame_${String(frameCount + 1).padStart(6, '0')}.${imageExtension}`;
+                        zip.file(fileName, blob);
+
+                        frameCount++;
+                        currentTime += interval;
+                        
+                        requestAnimationFrame(captureFrame);
+                    } else {
+                        finishExtraction(frameCount);
+                    }
+                }
+
+                captureFrame();
+            });
+
+            // 抽出完了処理
+            function finishExtraction(extractedFrames) {
+                if (!isExtracting && extractedFrames === 0) { // 抽出前に停止した場合
+                    statusArea.style.display = 'none';
+                    extractButton.innerText = '抽出開始';
+                    extractButton.disabled = false;
+                    return;
+                }
+                
+                isExtracting = false;
+                statusText.innerText = 'ZIPファイルを生成中...';
+
+                if (extractedFrames === 0) {
+                    statusArea.style.display = 'none';
+                    extractButton.innerText = '再度抽出する';
+                    extractButton.disabled = false;
+                    return;
+                }
+
+                zip.generateAsync({ type: 'blob' }, (metadata) => {
+                    statusText.innerText = `ZIP圧縮中: ${Math.round(metadata.percent)}%`;
+                })
+                .then((content) => {
+                    const zipUrl = URL.createObjectURL(content);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = zipUrl;
+                    
+                    const baseName = videoFile.name.split('.').slice(0, -1).join('.') || 'video';
+                    downloadLink.download = `${baseName}_frames.zip`;
+                    
+                    downloadLink.innerText = `ダウンロード: ${baseName}_frames.zip (${extractedFrames} フレーム)`;
+                    downloadLink.className = 'text-emerald-400 hover:text-emerald-300 font-medium underline';
+                    
+                    downloadArea.innerHTML = '';
+                    downloadArea.appendChild(downloadLink);
+                    
+                    statusArea.style.display = 'none';
+                    downloadCard.style.display = 'block';
+                    extractButton.disabled = false;
+                    extractButton.innerText = '再度抽出する';
+                })
+                .catch((err) => {
+                    console.error(err);
+                    statusText.innerText = `エラーが発生しました: ${err.message}`;
+                    extractButton.disabled = false;
+                    extractButton.innerText = '再試行';
+                });
+            }
+        });
+    </script>
