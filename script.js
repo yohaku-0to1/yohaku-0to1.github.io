@@ -20,7 +20,7 @@ tailwind.config = {
 
 // --- 1. プロフィールデータ ---
 const PROFILE_DATA = {
-    // あなたのGitHubユーザー名を入力してください
+    // あなたのGitHubユーザー名を入力してください。
     githubUsername: "yohaku-0to1", 
     // アバター画像をカスタムしたい場合は、ここにURLを入力してください。
     // 空欄のままにすると、GitHubのプロフィール画像が自動で設定されます。
