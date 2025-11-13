@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-<body class="font-sans bg-gray-900 text-white overflow-hidden">
+<body class="font-sans bg-gray-900 text-white overflow-hidden flex flex-col h-screen">
 
     <!-- Animated Gradient Background -->
     <div class="fixed inset-0 -z-10">
@@ -41,13 +41,16 @@
     </div>
 
     <!-- Header -->
-    <header class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-black/10 backdrop-blur-sm z-50">
+    <header class="p-4 flex justify-between items-center bg-black/10 backdrop-blur-sm z-50 flex-shrink-0">
         <h1 class="text-xl font-bold">Clipboard Hub</h1>
-        <a href="index.html" class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+        <div class="flex items-center space-x-4">
+            <button id="clear-all-button" class="px-4 py-2 text-sm font-semibold bg-red-600/80 rounded-lg hover:bg-red-600 transition-colors">すべてクリア</button>
+            <a href="index.html" class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+        </div>
     </header>
 
     <!-- Main Hub Container -->
-    <main id="hub-container" class="w-full h-screen">
+    <main id="hub-container" class="w-full flex-grow relative">
         <!-- Instruction Text -->
         <div id="instruction" class="absolute inset-0 flex items-center justify-center z-0">
             <div class="text-center p-8 bg-black/20 rounded-2xl backdrop-blur-sm">

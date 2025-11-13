@@ -1,20 +1,26 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const hubContainer = document.getElementById('hub-container');
     const instruction = document.getElementById('instruction');
+    const clearAllButton = document.getElementById('clear-all-button');
     let zIndexCounter = 10;
 
     // --- IndexedDB Setup ---
     const db = await idb.openDB('clipboard-hub-db', 1, {
         upgrade(db) {
-            db.createObjectStore('items', {
-                keyPath: 'id',
-                autoIncrement: true,
-            });
+            if (!db.objectStoreNames.contains('items')) {
+                db.createObjectStore('items', { keyPath: 'id', autoIncrement: true });
+            }
         },
     });
 
+    // --- Event Listeners ---
+    window.addEventListener('paste', handlePaste);
+    hubContainer.addEventListener('dragover', handleDragOver);
+    hubContainer.addEventListener('drop', handleDrop);
+    clearAllButton.addEventListener('click', handleClearAll);
+
     // --- Load existing items from DB ---
-    const loadAllItems = async () => {
+    async function loadAllItems() {
         const items = await db.getAll('items');
         if (items.length > 0) {
             instruction.style.display = 'none';
@@ -27,45 +33,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Paste Event ---
-    window.addEventListener('paste', (e) => {
+    // --- Event Handlers ---
+    function handlePaste(e) {
         e.preventDefault();
         if (instruction) instruction.style.display = 'none';
-
         const items = e.clipboardData.items;
         for (const item of items) {
             if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                createItem({ type: 'image', content: file });
+                createItem({ type: 'image', content: item.getAsFile() });
             } else if (item.type === 'text/plain') {
-                item.getAsString((text) => {
-                    createItem({ type: 'text', content: text });
+                item.getAsString(async (text) => {
+                    const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+                    if (urlRegex.test(text)) {
+                        await createUrlItem(text);
+                    } else {
+                        createItem({ type: 'text', content: text });
+                    }
                 });
             }
         }
-    });
+    }
 
-    // --- Drag and Drop Event ---
-    hubContainer.addEventListener('dragover', (e) => { e.preventDefault(); });
-    hubContainer.addEventListener('drop', (e) => {
+    function handleDragOver(e) { e.preventDefault(); }
+
+    function handleDrop(e) {
         e.preventDefault();
         if (instruction) instruction.style.display = 'none';
         const items = e.dataTransfer.items;
         for (const item of items) {
             if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                createItem({ type: 'image', content: file });
+                createItem({ type: 'image', content: item.getAsFile() });
             }
         }
-    });
+    }
 
+    function handleClearAll() {
+        if (window.confirm('本当にすべてのアイテムを削除しますか？この操作は元に戻せません。')) {
+            db.clear('items');
+            hubContainer.querySelectorAll('.item-wrapper').forEach(el => el.remove());
+            instruction.style.display = 'flex';
+        }
+    }
+
+    // --- Core Functions ---
     async function createItem(itemData) {
         const newItem = {
             type: itemData.type,
             content: itemData.content,
-            x: Math.random() * (hubContainer.clientWidth - 250),
+            x: Math.random() * (hubContainer.clientWidth - 300),
             y: Math.random() * (hubContainer.clientHeight - 200),
-            width: 250,
+            width: 280,
             height: 200,
             zIndex: zIndexCounter++,
         };
@@ -73,18 +90,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadItem({ ...newItem, id });
     }
 
+    async function createUrlItem(url) {
+        const placeholderItem = {
+            type: 'url',
+            url: url,
+            title: '読み込み中...',
+            description: url,
+            image: '',
+            x: Math.random() * (hubContainer.clientWidth - 300),
+            y: Math.random() * (hubContainer.clientHeight - 200),
+            width: 320,
+            height: 'auto',
+            zIndex: zIndexCounter++,
+        };
+        const id = await db.add('items', placeholderItem);
+        const element = loadItem({ ...placeholderItem, id });
+
+        try {
+            const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+            const html = data.contents;
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const title = doc.querySelector('meta[property="og:title"]')?.content || doc.querySelector('title')?.textContent || 'タイトルなし';
+            const description = doc.querySelector('meta[property="og:description"]')?.content || doc.querySelector('meta[name="description"]')?.content || url;
+            let image = doc.querySelector('meta[property="og:image"]')?.content || '';
+
+            const updatedItem = { ...placeholderItem, id, title, description, image };
+            await db.put('items', updatedItem);
+            
+            const titleEl = element.querySelector('.url-title');
+            const descEl = element.querySelector('.url-description');
+            const imgEl = element.querySelector('.url-image');
+            
+            if(titleEl) titleEl.textContent = title;
+            if(descEl) descEl.textContent = description;
+            if(imgEl && image) {
+                imgEl.src = image;
+                imgEl.style.display = 'block';
+            } else if(imgEl) {
+                imgEl.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Failed to fetch URL metadata:', error);
+            const errorItem = { ...placeholderItem, id, title: '取得失敗', description: url };
+            await db.put('items', errorItem);
+            const titleEl = element.querySelector('.url-title');
+            if(titleEl) titleEl.textContent = '取得失敗';
+        }
+    }
+
     function loadItem(item) {
         const itemWrapper = document.createElement('div');
-        itemWrapper.className = 'item-wrapper absolute p-1 bg-white/10 border border-white/20 backdrop-blur-lg rounded-lg shadow-xl select-none';
+        itemWrapper.className = 'item-wrapper absolute p-1 bg-white/10 border border-white/20 backdrop-blur-lg rounded-lg shadow-xl select-none flex flex-col';
         itemWrapper.style.left = `${item.x}px`;
         itemWrapper.style.top = `${item.y}px`;
         itemWrapper.style.width = `${item.width}px`;
-        itemWrapper.style.height = `${item.height}px`;
+        itemWrapper.style.height = (item.type === 'image' || item.height === 'auto') ? 'auto' : `${item.height}px`;
         itemWrapper.style.zIndex = item.zIndex;
         itemWrapper.dataset.id = item.id;
 
         const header = document.createElement('div');
-        header.className = 'h-8 flex justify-end items-center space-x-2 px-2 cursor-move';
+        header.className = 'h-8 flex-shrink-0 flex justify-end items-center space-x-2 px-2 cursor-move';
         
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
@@ -96,28 +166,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         header.appendChild(copyButton);
         header.appendChild(closeButton);
+        itemWrapper.appendChild(header);
 
-        let contentElement;
         if (item.type === 'image') {
-            contentElement = document.createElement('img');
+            const contentElement = document.createElement('img');
             contentElement.src = (item.content instanceof Blob) ? URL.createObjectURL(item.content) : item.content;
             contentElement.className = 'w-full h-auto block';
-            itemWrapper.style.height = 'auto'; // Adjust height for images
-        } else { // text
-            contentElement = document.createElement('textarea');
+            itemWrapper.appendChild(contentElement);
+        } else if (item.type === 'text') {
+            const contentElement = document.createElement('textarea');
             contentElement.value = item.content;
-            contentElement.className = 'w-full h-full bg-transparent text-white p-2 resize-none outline-none';
+            contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none';
+            contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
+            itemWrapper.appendChild(contentElement);
+            setTimeout(() => adjustTextareaHeight(contentElement), 0);
+        } else if (item.type === 'url') {
+            const urlContent = `
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="block p-2">
+                    <img src="${item.image}" class="url-image w-full h-32 object-cover rounded-t-md ${!item.image && 'hidden'}">
+                    <div class="p-2">
+                        <h3 class="url-title font-bold text-sm truncate">${item.title}</h3>
+                        <p class="url-description text-xs text-gray-300 mt-1 max-h-10 overflow-hidden">${item.description}</p>
+                    </div>
+                </a>
+            `;
+            const contentWrapper = document.createElement('div');
+            contentWrapper.innerHTML = urlContent;
+            itemWrapper.appendChild(contentWrapper);
         }
         
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
-
-        itemWrapper.appendChild(header);
-        itemWrapper.appendChild(contentElement);
         itemWrapper.appendChild(resizeHandle);
+        
         hubContainer.appendChild(itemWrapper);
-
         makeInteractive(itemWrapper, header, resizeHandle);
+        return itemWrapper;
+    }
+
+    function adjustTextareaHeight(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+        const wrapper = textarea.closest('.item-wrapper');
+        if (wrapper) wrapper.style.height = 'auto';
     }
 
     function makeInteractive(element, header, resizeHandle) {
@@ -125,37 +216,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const updateDb = async (props) => {
             const tx = db.transaction('items', 'readwrite');
-            const store = tx.objectStore('items');
-            const item = await store.get(id);
+            const item = await tx.store.get(id);
             if (item) {
                 Object.assign(item, props);
-                await store.put(item);
+                await tx.store.put(item);
             }
             await tx.done;
         };
 
-        // --- Bring to front ---
         element.addEventListener('mousedown', () => {
             const newZIndex = zIndexCounter++;
             element.style.zIndex = newZIndex;
             updateDb({ zIndex: newZIndex });
         }, { capture: true });
 
-        // --- Close ---
         header.querySelector('.close-button').addEventListener('click', () => {
             hubContainer.removeChild(element);
             db.delete('items', id);
         });
 
-        // --- Copy ---
         header.querySelector('.copy-button').addEventListener('click', async () => {
             const copyButton = header.querySelector('.copy-button');
             const originalIcon = copyButton.innerHTML;
             const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
             try {
                 const item = await db.get('items', id);
-                if (item.type === 'text') {
-                    await navigator.clipboard.writeText(item.content);
+                const contentToCopy = item.type === 'url' ? item.url : item.content;
+                
+                if (item.type === 'text' || item.type === 'url') {
+                    await navigator.clipboard.writeText(contentToCopy);
                 } else if (item.type === 'image') {
                     await navigator.clipboard.write([new ClipboardItem({ [item.content.type]: item.content })]);
                 }
@@ -164,18 +253,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (err) { console.error('Failed to copy: ', err); }
         });
 
-        // --- Dragging ---
         let isDragging = false;
         header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button')) return;
+            if (e.target.closest('button') || e.target.closest('a')) return;
             isDragging = true;
             element.classList.add('dragging');
         });
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             e.preventDefault();
-            element.style.left = `${element.offsetLeft + e.movementX}px`;
-            element.style.top = `${element.offsetTop + e.movementY}px`;
+            let newX = element.offsetLeft + e.movementX;
+            let newY = element.offsetTop + e.movementY;
+            const container = element.parentElement;
+            newX = Math.max(0, Math.min(newX, container.clientWidth - element.clientWidth));
+            newY = Math.max(0, Math.min(newY, container.clientHeight - element.clientHeight));
+            element.style.left = `${newX}px`;
+            element.style.top = `${newY}px`;
         });
         window.addEventListener('mouseup', () => {
             if (!isDragging) return;
@@ -184,7 +277,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateDb({ x: element.offsetLeft, y: element.offsetTop });
         });
 
-        // --- Resizing ---
         let isResizing = false;
         resizeHandle.addEventListener('mousedown', (e) => {
             e.stopPropagation();
@@ -195,13 +287,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!isResizing) return;
             const newWidth = element.offsetWidth + e.movementX;
             const newHeight = element.offsetHeight + e.movementY;
-            element.style.width = `${Math.max(100, newWidth)}px`;
-            element.style.height = `${Math.max(80, newHeight)}px`;
+            element.style.width = `${Math.max(150, newWidth)}px`;
+            if (element.querySelector('textarea')) {
+                element.style.height = `${Math.max(100, newHeight)}px`;
+            }
         });
         window.addEventListener('mouseup', () => {
             if (!isResizing) return;
             isResizing = false;
             element.classList.remove('dragging');
+            const textarea = element.querySelector('textarea');
+            if (textarea) adjustTextareaHeight(textarea);
             updateDb({ width: element.offsetWidth, height: element.offsetHeight });
         });
     }
