@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard Hub - 一時的なメモと画像の置き場所</title>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind CSS & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ドラッグ中のアイテムのスタイル */
+        .dragging {
+            opacity: 0.7;
+            cursor: grabbing;
+            z-index: 1000;
+        }
+        /* リサイズハンドル */
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            cursor: se-resize;
+            background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 16L16 10' stroke='rgba(255,255,255,0.5)' stroke-width='2'/%3E%3Cpath d='M6 16L16 6' stroke='rgba(255,255,255,0.5)' stroke-width='2'/%3E%3C/svg%3E%0A");
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-900 text-white overflow-hidden">
+
+    <!-- Animated Gradient Background -->
+    <div class="fixed inset-0 -z-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-indigo-900 animated-gradient"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-black/10 backdrop-blur-sm z-50">
+        <h1 class="text-xl font-bold">Clipboard Hub</h1>
+        <a href="index.html" class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+    </header>
+
+    <!-- Main Hub Container -->
+    <main id="hub-container" class="w-full h-screen">
+        <!-- Instruction Text -->
+        <div id="instruction" class="absolute inset-0 flex items-center justify-center z-0">
+            <div class="text-center p-8 bg-black/20 rounded-2xl backdrop-blur-sm">
+                <h2 class="text-2xl font-bold mb-2">ペースト、またはファイルをドロップ</h2>
+                <p class="text-gray-300">画像やテキストを一時的に置いておくことができます</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- External JavaScript -->
+    <script src="clipboard-hub.js"></script>
+</body>
+</html>
