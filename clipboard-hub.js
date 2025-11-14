@@ -256,9 +256,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (item.type === 'url') {
                         await navigator.clipboard.writeText(contentToCopy);
                     } else if (item.type === 'image') {
-                        console.log('Image item content:', item.content);
-                        console.log('Image item content type:', item.content.type);
-                        await navigator.clipboard.write([new ClipboardItem({ [item.content.type]: item.content })]);
+                        // 画像をPNGに変換してコピーを試みる
+                        const imgBlob = item.content;
+                        const img = new Image();
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            img.src = reader.result;
+                        };
+                        reader.readAsDataURL(imgBlob);
+
+                        await new Promise(resolve => {
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.naturalWidth;
+                                canvas.height = img.naturalHeight;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                canvas.toBlob(async (blob) => {
+                                    if (blob) {
+                                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                                    } else {
+                                        throw new Error('Failed to convert image to PNG blob.');
+                                    }
+                                    resolve();
+                                }, 'image/png');
+                            };
+                        });
                     }
                 }
                 copyButton.innerHTML = successIcon;
