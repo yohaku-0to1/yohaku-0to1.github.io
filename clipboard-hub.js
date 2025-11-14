@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Event Handlers ---
     function handlePaste(e) {
+        // イベントのターゲットがtextareaであれば、デフォルトの貼り付け動作を許可し、処理を終了
+        if (e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
         e.preventDefault();
         if (instruction) instruction.style.display = 'none';
         const items = e.clipboardData.items;
