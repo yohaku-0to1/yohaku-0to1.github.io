@@ -82,13 +82,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Core Functions ---
     async function createItem(itemData) {
+        const MAX_ITEM_HEIGHT = hubContainer.clientHeight * 0.8; // 画面の80%を最大高さとする
         const newItem = {
             type: itemData.type,
             content: itemData.content,
             x: Math.random() * (hubContainer.clientWidth - 300),
-            y: Math.random() * (hubContainer.clientHeight - 200),
+            y: Math.random() * (hubContainer.clientHeight - Math.min(200, MAX_ITEM_HEIGHT)), // 初期y座標も最大高さを考慮
             width: 280,
-            height: 200,
+            height: 'auto', // 初期高さはautoにして、loadItemで調整
             zIndex: zIndexCounter++,
         };
         const id = await db.add('items', newItem);
@@ -150,11 +151,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function loadItem(item) {
         const itemWrapper = document.createElement('div');
-        itemWrapper.className = 'item-wrapper absolute p-1 bg-white/10 border border-white/20 backdrop-blur-lg rounded-lg shadow-xl select-none flex flex-col';
+        itemWrapper.className = 'item-wrapper absolute p-1 bg-white/10 border border-white/20 backdrop-blur-lg rounded-lg shadow-xl select-none flex flex-col overflow-hidden'; // overflow-hidden を追加
         itemWrapper.style.left = `${item.x}px`;
         itemWrapper.style.top = `${item.y}px`;
         itemWrapper.style.width = `${item.width}px`;
         itemWrapper.style.height = (item.type === 'image' || item.height === 'auto' || item.type === 'text') ? 'auto' : `${item.height}px`;
+        itemWrapper.style.maxHeight = `${hubContainer.clientHeight * 0.8}px`; // 最大高さを設定
         itemWrapper.style.zIndex = item.zIndex;
         itemWrapper.dataset.id = item.id;
 
@@ -181,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (item.type === 'text') {
             const contentElement = document.createElement('textarea');
             contentElement.value = item.content;
-            contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none';
+            contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none overflow-y-auto'; // overflow-y-auto を追加
             contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
             itemWrapper.appendChild(contentElement);
             setTimeout(() => adjustTextareaHeight(contentElement), 0);
