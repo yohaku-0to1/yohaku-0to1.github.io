@@ -184,7 +184,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const contentElement = document.createElement('textarea');
             contentElement.value = item.content;
             contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none overflow-y-auto'; // overflow-y-auto を追加
-            contentElement.addEventListener('input', () => adjustTextareaHeight(contentElement));
             itemWrapper.appendChild(contentElement);
             setTimeout(() => adjustTextareaHeight(contentElement), 0);
         } else if (item.type === 'url') {
@@ -314,6 +313,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             updateDb({ width: element.offsetWidth, height: element.offsetHeight });
         });
+
+        const textarea = element.querySelector('textarea');
+        if (textarea) {
+            textarea.addEventListener('input', () => {
+                adjustTextareaHeight(textarea);
+                updateDb({ content: textarea.value });
+            });
+        }
     }
 
     loadAllItems();
