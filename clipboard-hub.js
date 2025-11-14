@@ -256,6 +256,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (item.type === 'url') {
                         await navigator.clipboard.writeText(contentToCopy);
                     } else if (item.type === 'image') {
+                        console.log('Image item content:', item.content);
+                        console.log('Image item content type:', item.content.type);
                         await navigator.clipboard.write([new ClipboardItem({ [item.content.type]: item.content })]);
                     }
                 }
