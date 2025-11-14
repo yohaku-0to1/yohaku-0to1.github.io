@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         itemWrapper.style.left = `${item.x}px`;
         itemWrapper.style.top = `${item.y}px`;
         itemWrapper.style.width = `${item.width}px`;
-        itemWrapper.style.height = (item.type === 'image' || item.height === 'auto') ? 'auto' : `${item.height}px`;
+        itemWrapper.style.height = (item.type === 'image' || item.height === 'auto' || item.type === 'text') ? 'auto' : `${item.height}px`;
         itemWrapper.style.zIndex = item.zIndex;
         itemWrapper.dataset.id = item.id;
 
@@ -307,7 +307,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             isResizing = false;
             element.classList.remove('dragging');
             const textarea = element.querySelector('textarea');
-            if (textarea) adjustTextareaHeight(textarea);
+            if (textarea) {
+                textarea.style.height = '100%'; // リサイズ後の高さに合わせる
+            }
             updateDb({ width: element.offsetWidth, height: element.offsetHeight });
         });
     }
