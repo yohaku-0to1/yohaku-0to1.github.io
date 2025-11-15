@@ -69,13 +69,19 @@ document.addEventListener('DOMContentLoaded', () => {
         mainImageIndex = -1;
         tabImageIndex = -1;
         redrawSpecialCanvases();
+        appendImages(files);
+    }
 
-        Array.from(files).forEach((file, index) => {
+    function appendImages(files) {
+        const startIndex = stamps.length;
+        Array.from(files).forEach((file, i) => {
             if (!file.type.startsWith('image/')) return;
+
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
+                    const index = startIndex + i;
                     const newStamp = {
                         id: index,
                         image: img,
@@ -98,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     stamps.push(newStamp);
 
                     createThumbnail(img, index);
-                    if (index === 0) {
+                    if (stamps.length === 1) { // 最初の画像だった場合
                         setActiveStamp(0);
                     }
                 };
@@ -107,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
-
+    
     function handleTextChange(e) {
         if (activeStampIndex === -1) return;
         stamps[activeStampIndex].text = e.target.value;
@@ -227,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dragOverlay.classList.add('hidden');
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            loadImages(files);
+            appendImages(files);
         }
     }
 
@@ -235,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createThumbnail(image, index) {
         const item = document.createElement('div');
-        item.className = 'stamp-item aspect-square flex items-center justify-center bg-gray-700 rounded-md cursor-pointer border-2 border-transparent';
+        item.className = 'stamp-item relative aspect-square flex items-center justify-center bg-gray-700 rounded-md cursor-pointer border-2 border-transparent';
         item.dataset.index = index;
 
         const thumbCanvas = document.createElement('canvas');
@@ -247,6 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
         thumbCtx.drawImage(image, fit.offset.x, fit.offset.y, fit.width, fit.height);
         
         item.appendChild(thumbCanvas);
+
+        const deleteBtn = document.createElement('div');
+        deleteBtn.className = 'absolute top-0 right-0 -mt-1 -mr-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold hover:bg-red-700';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteStamp(index);
+        };
+        item.appendChild(deleteBtn);
+        
         stampListContainer.appendChild(item);
 
         item.addEventListener('click', () => setActiveStamp(index));
@@ -257,8 +273,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function deleteStamp(index) {
+        stamps.splice(index, 1);
+        
+        if (activeStampIndex === index) activeStampIndex = -1;
+        else if (activeStampIndex > index) activeStampIndex--;
+
+        if (mainImageIndex === index) mainImageIndex = -1;
+        else if (mainImageIndex > index) mainImageIndex--;
+
+        if (tabImageIndex === index) tabImageIndex = -1;
+        else if (tabImageIndex > index) tabImageIndex--;
+
+        redrawStampList();
+    }
+
+    function redrawStampList() {
+        stampListContainer.innerHTML = '';
+        stamps.forEach((stamp, index) => {
+            // The createThumbnail function now handles everything
+            createThumbnail(stamp.image, index);
+        });
+        // Update active state visually
+        if (activeStampIndex !== -1) {
+            const activeItem = stampListContainer.querySelector(`[data-index="${activeStampIndex}"]`);
+            if (activeItem) {
+                activeItem.classList.add('border-emerald-400');
+            }
+        } else {
+            // Clear main canvas if no item is active
+            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+            textInput.value = '';
+        }
+        redrawSpecialCanvases();
+    }
+
     function setActiveStamp(index) {
-        if (activeStampIndex === index || !stamps[index]) return;
+        if (!stamps[index]) return;
+        
         activeStampIndex = index;
 
         document.querySelectorAll('.stamp-item').forEach((item) => {
