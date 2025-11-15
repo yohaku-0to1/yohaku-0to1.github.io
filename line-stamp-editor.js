@@ -5,25 +5,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainCanvas = document.getElementById('main-canvas');
     const ctx = mainCanvas.getContext('2d');
 
+    const textInput = document.getElementById('text-input');
+    const fontFamilySelect = document.getElementById('font-family');
+    const fontSizeInput = document.getElementById('font-size');
+    const fontColorInput = document.getElementById('font-color');
+    const strokeWidthInput = document.getElementById('stroke-width');
+    const strokeColorInput = document.getElementById('stroke-color');
+
     // スタンプデータを管理する配列
     let stamps = [];
     let activeStampIndex = -1;
 
-    // 画像アップロード時の処理
-    imageUpload.addEventListener('change', (e) => {
+    // --- イベントリスナー ---
+    imageUpload.addEventListener('change', handleImageUpload);
+    textInput.addEventListener('input', handleTextChange);
+    fontFamilySelect.addEventListener('input', handleFontChange);
+    fontSizeInput.addEventListener('input', handleFontChange);
+    fontColorInput.addEventListener('input', handleFontChange);
+    strokeWidthInput.addEventListener('input', handleFontChange);
+    strokeColorInput.addEventListener('input', handleFontChange);
+
+    // --- イベントハンドラ ---
+
+    function handleImageUpload(e) {
         const files = e.target.files;
         if (!files) return;
 
-        // 既存のスタンプをクリア
         stamps = [];
         stampListContainer.innerHTML = '';
+        activeStampIndex = -1;
 
         Array.from(files).forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
-                    // スタンプデータを配列に追加
                     stamps.push({
                         id: index,
                         image: img,
@@ -38,11 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         textPos: { x: mainCanvas.width / 2, y: mainCanvas.height - 50 },
                         imagePos: { x: 0, y: 0, width: img.width, height: img.height }
                     });
-
-                    // サムネイルを作成して表示
                     createThumbnail(img, index);
-
-                    // 最初の画像をアクティブにする
                     if (index === 0) {
                         setActiveStamp(0);
                     }
@@ -51,16 +63,33 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         });
-    });
+    }
 
-    // サムネイルを作成する関数
+    function handleTextChange(e) {
+        if (activeStampIndex === -1) return;
+        stamps[activeStampIndex].text = e.target.value;
+        redrawMainCanvas();
+    }
+
+    function handleFontChange() {
+        if (activeStampIndex === -1) return;
+        const stamp = stamps[activeStampIndex];
+        stamp.font.family = fontFamilySelect.value;
+        stamp.font.size = parseInt(fontSizeInput.value, 10);
+        stamp.font.color = fontColorInput.value;
+        stamp.font.strokeWidth = parseInt(strokeWidthInput.value, 10);
+        stamp.font.strokeColor = strokeColorInput.value;
+        redrawMainCanvas();
+    }
+
+    // --- コア機能 ---
+
     function createThumbnail(image, index) {
         const thumbCanvas = document.createElement('canvas');
         thumbCanvas.width = 96;
         thumbCanvas.height = 74;
         const thumbCtx = thumbCanvas.getContext('2d');
         
-        // アスペクト比を維持して描画
         const aspectRatio = image.width / image.height;
         let drawWidth = thumbCanvas.width;
         let drawHeight = drawWidth / aspectRatio;
@@ -76,28 +105,31 @@ document.addEventListener('DOMContentLoaded', () => {
         thumbCanvas.dataset.index = index;
         stampListContainer.appendChild(thumbCanvas);
 
-        // サムネイルクリックでアクティブなスタンプを切り替え
         thumbCanvas.addEventListener('click', () => {
             setActiveStamp(index);
         });
     }
 
-    // アクティブなスタンプを設定する関数
     function setActiveStamp(index) {
         if (activeStampIndex === index || !stamps[index]) return;
-
         activeStampIndex = index;
 
-        // サムネイルのアクティブ表示を更新
         document.querySelectorAll('.stamp-thumbnail').forEach((thumb, i) => {
             thumb.classList.toggle('active', i === index);
         });
 
-        // メインキャンバスを再描画
+        // UIに現在のアクティブスタンプの値を反映
+        const stamp = stamps[activeStampIndex];
+        textInput.value = stamp.text;
+        fontFamilySelect.value = stamp.font.family;
+        fontSizeInput.value = stamp.font.size;
+        fontColorInput.value = stamp.font.color;
+        strokeWidthInput.value = stamp.font.strokeWidth;
+        strokeColorInput.value = stamp.font.strokeColor;
+
         redrawMainCanvas();
     }
 
-    // メインキャンバスを再描画する関数
     function redrawMainCanvas() {
         if (activeStampIndex === -1) {
             ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
@@ -105,11 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const stamp = stamps[activeStampIndex];
-        
-        // キャンバスをクリア
         ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-        // 画像を描画（LINEスタンプの要件に合わせて余白を考慮）
+        // 画像の描画
         const padding = 10;
         const maxW = mainCanvas.width - padding * 2;
         const maxH = mainCanvas.height - padding * 2;
@@ -134,6 +164,74 @@ document.addEventListener('DOMContentLoaded', () => {
         stamp.imagePos = { x, y, width: drawWidth, height: drawHeight };
         ctx.drawImage(stamp.image, x, y, drawWidth, drawHeight);
 
-        // TODO: テキスト描画処理をここに追加
+        // テキストの描画
+        if (stamp.text) {
+            const font = stamp.font;
+            ctx.font = `${font.size}px ${font.family}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 縁取り
+            if (font.strokeWidth > 0) {
+                ctx.strokeStyle = font.strokeColor;
+                ctx.lineWidth = font.strokeWidth * 2; // 縁取りの太さを直感的に
+                ctx.strokeText(stamp.text, stamp.textPos.x, stamp.textPos.y);
+            }
+
+            // メインテキスト
+            ctx.fillStyle = font.color;
+            ctx.fillText(stamp.text, stamp.textPos.x, stamp.textPos.y);
+        }
     }
+
+    // --- ドラッグ移動の処理 ---
+    let isDragging = false;
+    let dragStartX, dragStartY;
+
+    mainCanvas.addEventListener('mousedown', (e) => {
+        if (activeStampIndex === -1) return;
+
+        const stamp = stamps[activeStampIndex];
+        const rect = mainCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // テキストの当たり判定
+        ctx.font = `${stamp.font.size}px ${stamp.font.family}`;
+        const textMetrics = ctx.measureText(stamp.text);
+        const textWidth = textMetrics.width;
+        const textHeight = stamp.font.size; // 簡易的な高さ
+        const textX = stamp.textPos.x - textWidth / 2;
+        const textY = stamp.textPos.y - textHeight / 2;
+
+        if (mouseX >= textX && mouseX <= textX + textWidth && mouseY >= textY && mouseY <= textY + textHeight) {
+            isDragging = true;
+            dragStartX = mouseX - stamp.textPos.x;
+            dragStartY = mouseY - stamp.textPos.y;
+            mainCanvas.style.cursor = 'move';
+        }
+    });
+
+    mainCanvas.addEventListener('mousemove', (e) => {
+        if (!isDragging || activeStampIndex === -1) return;
+
+        const rect = mainCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        stamps[activeStampIndex].textPos.x = mouseX - dragStartX;
+        stamps[activeStampIndex].textPos.y = mouseY - dragStartY;
+
+        redrawMainCanvas();
+    });
+
+    mainCanvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        mainCanvas.style.cursor = 'default';
+    });
+
+    mainCanvas.addEventListener('mouseout', () => {
+        isDragging = false;
+        mainCanvas.style.cursor = 'default';
+    });
 });
