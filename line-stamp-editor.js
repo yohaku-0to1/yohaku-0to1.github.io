@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const strokeColorInput = document.getElementById('stroke-color');
     const imageScaleSlider = document.getElementById('image-scale');
     const resetImageButton = document.getElementById('reset-image');
+    const removeBackgroundButton = document.getElementById('remove-background');
 
     const applyFontAllButton = document.getElementById('apply-font-all');
     const downloadZipButton = document.getElementById('download-zip');
@@ -20,12 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainImageCanvas = document.getElementById('main-image-canvas');
     const tabImageCanvas = document.getElementById('tab-image-canvas');
     const dragOverlay = document.getElementById('drag-overlay');
+    const loadingOverlay = document.getElementById('loading-overlay');
 
     // スタンプデータを管理する配列
     let stamps = [];
     let activeStampIndex = -1;
     let mainImageIndex = -1;
     let tabImageIndex = -1;
+
+    // MediaPipeモデルのインスタンス
+    let selfieSegmentation;
 
     // --- イベントリスナー ---
     imageUpload.addEventListener('change', handleImageUpload);
@@ -37,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     strokeColorInput.addEventListener('input', handleFontChange);
     imageScaleSlider.addEventListener('input', handleImageScaleChange);
     resetImageButton.addEventListener('click', resetImage);
+    removeBackgroundButton.addEventListener('click', removeBackground);
     applyFontAllButton.addEventListener('click', applyFontToAll);
     downloadZipButton.addEventListener('click', downloadAsZip);
     downloadSingleButton.addEventListener('click', downloadSingleStamp);
@@ -143,6 +149,66 @@ document.addEventListener('DOMContentLoaded', () => {
         
         imageScaleSlider.value = stamp.scale;
         redrawMainCanvas();
+    }
+
+    async function removeBackground() {
+        if (activeStampIndex === -1) {
+            alert('背景を透過する画像を選択してください。');
+            return;
+        }
+
+        loadingOverlay.classList.remove('hidden');
+
+        try {
+            // モデルの初期化（初回のみ）
+            if (!selfieSegmentation) {
+                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+                }});
+                selfieSegmentation.setOptions({
+                    modelSelection: 1, // 0: General, 1: Landscape
+                });
+            }
+
+            const stamp = stamps[activeStampIndex];
+            const image = stamp.image;
+
+            const onResults = (results) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
+                
+                const newImage = new Image();
+                newImage.onload = () => {
+                    stamp.image = newImage;
+                    redrawMainCanvas();
+                    // サムネイルも更新
+                    const thumbItem = stampListContainer.querySelector(`[data-index="${activeStampIndex}"]`);
+                    if (thumbItem) {
+                        const thumbCanvas = thumbItem.querySelector('canvas');
+                        const thumbCtx = thumbCanvas.getContext('2d');
+                        const fit = fitImageToCanvas(newImage, thumbCanvas);
+                        thumbCtx.clearRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+                        thumbCtx.drawImage(newImage, fit.offset.x, fit.offset.y, fit.width, fit.height);
+                    }
+                    loadingOverlay.classList.add('hidden');
+                };
+                newImage.src = canvas.toDataURL('image/png');
+            }
+            
+            selfieSegmentation.onResults(onResults);
+            await selfieSegmentation.send({image: image});
+
+        } catch (error) {
+            console.error('背景透過処理中にエラーが発生しました:', error);
+            alert('背景透過処理中にエラーが発生しました。');
+            loadingOverlay.classList.add('hidden');
+        }
     }
 
     // --- ドラッグ＆ドロップハンドラ ---
