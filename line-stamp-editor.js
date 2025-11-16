@@ -2,230 +2,315 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM要素の取得
     const imageUpload = document.getElementById('imageUpload');
     const stampListContainer = document.getElementById('stamp-list');
-    const mainCanvas = document.getElementById('main-canvas');
-    const ctx = mainCanvas.getContext('2d');
-
+    
     const textInput = document.getElementById('text-input');
     const fontFamilySelect = document.getElementById('font-family');
     const fontSizeInput = document.getElementById('font-size');
     const fontColorInput = document.getElementById('font-color');
     const strokeWidthInput = document.getElementById('stroke-width');
     const strokeColorInput = document.getElementById('stroke-color');
-    const imageScaleSlider = document.getElementById('image-scale');
+    const imageScale = document.getElementById('image-scale');
+    
     const resetImageButton = document.getElementById('reset-image');
     const removeBackgroundButton = document.getElementById('remove-background');
-
+    
     const applyFontAllButton = document.getElementById('apply-font-all');
     const downloadZipButton = document.getElementById('download-zip');
     const downloadSingleButton = document.getElementById('download-single');
-    const mainImageCanvas = document.getElementById('main-image-canvas');
-    const tabImageCanvas = document.getElementById('tab-image-canvas');
+    
+    const mainImageCanvasEl = document.getElementById('main-image-canvas');
+    const tabImageCanvasEl = document.getElementById('tab-image-canvas');
     const dragOverlay = document.getElementById('drag-overlay');
     const loadingOverlay = document.getElementById('loading-overlay');
 
-    // スタンプデータを管理する配列
+    // --- グローバル変数 ---
+    let fabricCanvas;
     let stamps = [];
     let activeStampIndex = -1;
     let mainImageIndex = -1;
     let tabImageIndex = -1;
-
-    // MediaPipeモデルのインスタンス
     let selfieSegmentation;
+    let isApplyingChanges = false; // UI更新の無限ループを防ぐフラグ
 
-    // --- イベントリスナー ---
-    imageUpload.addEventListener('change', handleImageUpload);
-    textInput.addEventListener('input', handleTextChange);
-    fontFamilySelect.addEventListener('input', handleFontChange);
-    fontSizeInput.addEventListener('input', handleFontChange);
-    fontColorInput.addEventListener('input', handleFontChange);
-    strokeWidthInput.addEventListener('input', handleFontChange);
-    strokeColorInput.addEventListener('input', handleFontChange);
-    imageScaleSlider.addEventListener('input', handleImageScaleChange);
-    resetImageButton.addEventListener('click', resetImage);
-    removeBackgroundButton.addEventListener('click', removeBackground);
-    applyFontAllButton.addEventListener('click', applyFontToAll);
-    downloadZipButton.addEventListener('click', downloadAsZip);
-    downloadSingleButton.addEventListener('click', downloadSingleStamp);
+    // --- 初期化 ---
+    function initialize() {
+        fabricCanvas = new fabric.Canvas('main-canvas', {
+            backgroundColor: '#374151', // 背景色を少し明るく
+            preserveObjectStacking: true,
+        });
 
-    // ドラッグ＆ドロップのリスナー
-    document.body.addEventListener('dragenter', showDragOverlay);
-    document.body.addEventListener('dragover', showDragOverlay);
-    dragOverlay.addEventListener('dragleave', hideDragOverlay);
-    dragOverlay.addEventListener('drop', handleDrop);
-
-
-    // --- イベントハンドラ ---
-
-    function handleImageUpload(e) {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-        loadImages(files);
-    }
-    
-    function loadImages(files) {
-        stamps = [];
-        stampListContainer.innerHTML = '';
-        activeStampIndex = -1;
-        mainImageIndex = -1;
-        tabImageIndex = -1;
-        redrawSpecialCanvases();
-        appendImages(files);
+        initializeMediaPipe();
+        setupEventListeners();
+        setupFabricListeners();
     }
 
-    function appendImages(files) {
-        const startIndex = stamps.length;
-        Array.from(files).forEach((file, i) => {
-            if (!file.type.startsWith('image/')) return;
+    function initializeMediaPipe() {
+        selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+        }});
+        selfieSegmentation.setOptions({
+            modelSelection: 1,
+        });
+    }
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const index = startIndex + i;
-                    const newStamp = {
-                        id: index,
-                        image: img,
-                        text: '',
-                        font: {
-                            family: "'M PLUS Rounded 1c', sans-serif",
-                            size: 40,
-                            color: '#FFFFFF',
-                            strokeWidth: 2,
-                            strokeColor: '#000000'
-                        },
-                        textPos: { x: mainCanvas.width / 2, y: mainCanvas.height - 50 },
-                        scale: 1,
-                        offset: { x: 0, y: 0 },
-                    };
-                    // 初期表示時に画像を中央にフィットさせる
-                    const initialFit = fitImageToCanvas(img, mainCanvas);
-                    newStamp.scale = initialFit.scale;
-                    newStamp.offset = initialFit.offset;
-                    stamps.push(newStamp);
+    function setupEventListeners() {
+        imageUpload.addEventListener('change', handleImageUpload);
+        document.body.addEventListener('dragenter', showDragOverlay);
+        document.body.addEventListener('dragover', showDragOverlay);
+        dragOverlay.addEventListener('dragleave', hideDragOverlay);
+        dragOverlay.addEventListener('drop', handleDrop);
 
-                    createThumbnail(img, index);
-                    if (stamps.length === 1) { // 最初の画像だった場合
-                        setActiveStamp(0);
-                    }
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+        // Text controls
+        textInput.addEventListener('input', (e) => updateActiveObjectProperty('text', e.target.value));
+        fontFamilySelect.addEventListener('change', (e) => updateActiveObjectProperty('fontFamily', e.target.value));
+        fontSizeInput.addEventListener('input', (e) => updateActiveObjectProperty('fontSize', parseInt(e.target.value, 10)));
+        fontColorInput.addEventListener('input', (e) => updateActiveObjectProperty('fill', e.target.value));
+        strokeWidthInput.addEventListener('input', (e) => updateActiveObjectProperty('strokeWidth', parseInt(e.target.value, 10)));
+        strokeColorInput.addEventListener('input', (e) => updateActiveObjectProperty('stroke', e.target.value));
+
+        // Image controls
+        imageScale.addEventListener('input', (e) => {
+            if (isApplyingChanges) return;
+            const imageObject = fabricCanvas.getObjects('image')[0];
+            if (imageObject) {
+                imageObject.scale(parseFloat(e.target.value));
+                fabricCanvas.renderAll();
+                saveState();
+            }
+        });
+
+        // Action buttons
+        resetImageButton.addEventListener('click', resetActiveStamp);
+        applyFontAllButton.addEventListener('click', applyFontToAllStamps);
+        downloadSingleButton.addEventListener('click', downloadSingleStamp);
+        downloadZipButton.addEventListener('click', downloadAsZip);
+        removeBackgroundButton.addEventListener('click', removeBackground);
+    }
+
+    function setupFabricListeners() {
+        fabricCanvas.on({
+            'selection:created': updateUIControls,
+            'selection:updated': updateUIControls,
+            'selection:cleared': clearUIControls,
+            'object:modified': (e) => {
+                saveState();
+                // Update UI controls if the modified object is the currently active one
+                if (e.target === fabricCanvas.getActiveObject()) {
+                    updateUIControls(e);
+                }
+            },
+            'object:scaling': (e) => {
+                if (e.target.type === 'image') {
+                    isApplyingChanges = true;
+                    imageScale.value = e.target.scaleX;
+                    isApplyingChanges = false;
+                }
+            }
         });
     }
     
-    function handleTextChange(e) {
-        if (activeStampIndex === -1) return;
-        stamps[activeStampIndex].text = e.target.value;
-        redrawMainCanvas();
+    function saveState() {
+        if (activeStampIndex !== -1 && stamps[activeStampIndex]) {
+            stamps[activeStampIndex].fabricState = fabricCanvas.toJSON();
+        }
     }
 
-    function handleFontChange() {
+    // --- Image Actions ---
+    function resetActiveStamp() {
         if (activeStampIndex === -1) return;
-        const stamp = stamps[activeStampIndex];
-        stamp.font.family = fontFamilySelect.value;
-        stamp.font.size = parseInt(fontSizeInput.value, 10);
-        stamp.font.color = fontColorInput.value;
-        stamp.font.strokeWidth = parseInt(strokeWidthInput.value, 10);
-        stamp.font.strokeColor = strokeColorInput.value;
-        redrawMainCanvas();
-    }
-
-    function handleImageScaleChange(e) {
-        if (activeStampIndex === -1) return;
-        const stamp = stamps[activeStampIndex];
-        
-        const oldScale = stamp.scale;
-        const newScale = parseFloat(e.target.value);
-        
-        stamp.offset.x = stamp.offset.x * (newScale / oldScale);
-        stamp.offset.y = stamp.offset.y * (newScale / oldScale);
-        stamp.scale = newScale;
-
-        redrawMainCanvas();
-    }
-
-    function resetImage() {
-        if (activeStampIndex === -1) return;
-        
-        const stamp = stamps[activeStampIndex];
-        const initialFit = fitImageToCanvas(stamp.image, mainCanvas);
-        stamp.scale = initialFit.scale;
-        stamp.offset = initialFit.offset;
-        
-        imageScaleSlider.value = stamp.scale;
-        redrawMainCanvas();
+        if (confirm('現在のスタンプへの変更をリセットしますか？')) {
+            stamps[activeStampIndex].fabricState = null;
+            // Re-load the stamp to reset its state on the canvas
+            const currentIndex = activeStampIndex;
+            activeStampIndex = -1; // Force reload
+            setActiveStamp(currentIndex);
+        }
     }
 
     async function removeBackground() {
-        if (activeStampIndex === -1) {
-            alert('背景を透過する画像を選択してください。');
+        if (!selfieSegmentation) {
+            alert('背景透過モデルの読み込みが完了していません。');
+            return;
+        }
+        const activeObject = fabricCanvas.getObjects('image')[0];
+        if (!activeObject) {
+            alert('キャンバスに画像がありません。');
             return;
         }
 
         loadingOverlay.classList.remove('hidden');
 
-        try {
-            // モデルの初期化（初回のみ）
-            if (!selfieSegmentation) {
-                selfieSegmentation = new SelfieSegmentation({locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
-                }});
-                selfieSegmentation.setOptions({
-                    modelSelection: 1, // 0: General, 1: Landscape
+        const imageElement = activeObject.getElement();
+        
+        selfieSegmentation.onResults((results) => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = results.image.width;
+            tempCanvas.height = results.image.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.drawImage(results.image, 0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.globalCompositeOperation = 'destination-in';
+            tempCtx.drawImage(results.segmentationMask, 0, 0, tempCanvas.width, tempCanvas.height);
+            
+            const newImg = new Image();
+            newImg.onload = () => {
+                const newFabricImg = new fabric.Image(newImg, {
+                    left: activeObject.left,
+                    top: activeObject.top,
+                    scaleX: activeObject.scaleX,
+                    scaleY: activeObject.scaleY,
+                    angle: activeObject.angle,
+                });
+                fabricCanvas.remove(activeObject);
+                fabricCanvas.add(newFabricImg);
+                fabricCanvas.renderAll();
+                saveState();
+                loadingOverlay.classList.add('hidden');
+            };
+            newImg.src = tempCanvas.toDataURL('image/png');
+        });
+
+        await selfieSegmentation.send({ image: imageElement });
+    }
+
+    async function applyFontToAllStamps() {
+        if (activeStampIndex === -1) {
+            alert('基準となるスタンプを選択してください。');
+            return;
+        }
+        if (!confirm('現在のフォント設定をすべてのスタンプに適用しますか？この操作は元に戻せません。')) {
+            return;
+        }
+
+        loadingOverlay.classList.remove('hidden');
+
+        const activeObject = fabricCanvas.getActiveObject();
+        if (!activeObject || activeObject.type !== 'i-text') {
+            alert('テキストを選択してください。');
+            loadingOverlay.classList.add('hidden');
+            return;
+        }
+
+        const fontProps = {
+            fontFamily: activeObject.fontFamily,
+            fontSize: activeObject.fontSize,
+            fill: activeObject.fill,
+            stroke: activeObject.stroke,
+            strokeWidth: activeObject.strokeWidth,
+            paintFirst: 'stroke',
+        };
+
+        // Save current state before modifying others
+        saveState();
+
+        const tempCanvas = new fabric.StaticCanvas(null, { width: 370, height: 320 });
+
+        for (let i = 0; i < stamps.length; i++) {
+            if (i === activeStampIndex) continue;
+            
+            const stamp = stamps[i];
+
+            if (stamp.fabricState) {
+                // Logic for already-edited stamps
+                await new Promise(resolve => {
+                    tempCanvas.loadFromJSON(stamp.fabricState, () => {
+                        const textObject = tempCanvas.getObjects('i-text')[0];
+                        if (textObject) {
+                            textObject.set(fontProps);
+                        }
+                        tempCanvas.renderAll();
+                        stamp.fabricState = tempCanvas.toJSON();
+                        tempCanvas.clear();
+                        resolve();
+                    });
+                });
+            } else {
+                // Logic for pristine, un-edited stamps
+                await new Promise(resolve => {
+                    fabric.Image.fromURL(stamp.originalImageSrc, (fabricImage) => {
+                        const canvasAspect = tempCanvas.width / tempCanvas.height;
+                        const imageAspect = fabricImage.width / fabricImage.height;
+                        let scale = (imageAspect > canvasAspect) ? tempCanvas.width / fabricImage.width : tempCanvas.height / fabricImage.height;
+                        
+                        fabricImage.scale(scale * 0.9);
+                        tempCanvas.add(fabricImage);
+                        fabricImage.center();
+
+                        const text = new fabric.IText('テキストを入力', {
+                            top: tempCanvas.height * 0.8,
+                            left: tempCanvas.width / 2,
+                            originX: 'center',
+                            ...fontProps 
+                        });
+                        tempCanvas.add(text);
+                        
+                        tempCanvas.renderAll();
+                        stamp.fabricState = tempCanvas.toJSON();
+                        tempCanvas.clear();
+                        resolve();
+
+                    }, { crossOrigin: 'anonymous' });
                 });
             }
+        }
+        
+        loadingOverlay.classList.add('hidden');
+        alert('すべてのスタンプにフォント設定を適用しました。');
+    }
 
-            const stamp = stamps[activeStampIndex];
-            const image = stamp.image;
+    // --- UI更新 ---
+    function updateUIControls(e) {
+        if (!e.target) return;
+        const activeObject = e.target;
+        isApplyingChanges = true;
+        if (activeObject.type === 'i-text') {
+            textInput.value = activeObject.text;
+            fontFamilySelect.value = activeObject.fontFamily;
+            fontSizeInput.value = activeObject.fontSize;
+            fontColorInput.value = activeObject.fill;
+            strokeWidthInput.value = activeObject.strokeWidth;
+            strokeColorInput.value = activeObject.stroke;
+        } else if (activeObject.type === 'image') {
+            imageScale.value = activeObject.scaleX;
+        }
+        isApplyingChanges = false;
+    }
 
-            const onResults = (results) => {
-                const canvas = document.createElement('canvas');
-                canvas.width = image.width;
-                canvas.height = image.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+    function clearUIControls() {
+        isApplyingChanges = true;
+        textInput.value = '';
+        fontFamilySelect.value = "'M PLUS Rounded 1c', sans-serif";
+        fontSizeInput.value = 40;
+        fontColorInput.value = '#FFFFFF';
+        strokeWidthInput.value = 2;
+        strokeColorInput.value = '#000000';
+        imageScale.value = 1;
+        isApplyingChanges = false;
+    }
 
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
-                
-                const newImage = new Image();
-                newImage.onload = () => {
-                    stamp.image = newImage;
-                    redrawMainCanvas();
-                    // サムネイルも更新
-                    const thumbItem = stampListContainer.querySelector(`[data-index="${activeStampIndex}"]`);
-                    if (thumbItem) {
-                        const thumbCanvas = thumbItem.querySelector('canvas');
-                        const thumbCtx = thumbCanvas.getContext('2d');
-                        const fit = fitImageToCanvas(newImage, thumbCanvas);
-                        thumbCtx.clearRect(0, 0, thumbCanvas.width, thumbCanvas.height);
-                        thumbCtx.drawImage(newImage, fit.offset.x, fit.offset.y, fit.width, fit.height);
-                    }
-                    loadingOverlay.classList.add('hidden');
-                };
-                newImage.src = canvas.toDataURL('image/png');
-            }
-            
-            selfieSegmentation.onResults(onResults);
-            await selfieSegmentation.send({image: image});
-
-        } catch (error) {
-            console.error('背景透過処理中にエラーが発生しました:', error);
-            alert('背景透過処理中にエラーが発生しました。');
-            loadingOverlay.classList.add('hidden');
+    function updateActiveObjectProperty(prop, value) {
+        if (isApplyingChanges) return;
+        const activeObject = fabricCanvas.getActiveObject();
+        if (activeObject && activeObject.type === 'i-text') {
+            activeObject.set(prop, value);
+            fabricCanvas.renderAll();
+            saveState();
         }
     }
 
-    // --- ドラッグ＆ドロップハンドラ ---
-    function showDragOverlay(e) {
-        e.preventDefault();
-        dragOverlay.classList.remove('hidden');
-    }
-
-    function hideDragOverlay(e) {
-        e.preventDefault();
-        dragOverlay.classList.add('hidden');
+    // --- 画像の読み込みと管理 ---
+    function handleImageUpload(e) {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        stamps = [];
+        stampListContainer.innerHTML = '';
+        activeStampIndex = -1;
+        mainImageIndex = -1;
+        tabImageIndex = -1;
+        fabricCanvas.clear();
+        clearUIControls();
+        redrawSpecialCanvases();
+        appendImages(files);
     }
 
     function handleDrop(e) {
@@ -237,8 +322,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- コア機能 ---
+    function appendImages(files) {
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const newStamp = {
+                        originalImageSrc: img.src,
+                        fabricState: null,
+                    };
+                    stamps.push(newStamp);
+                    createThumbnail(img, stamps.length - 1);
+                    if (stamps.length === 1) {
+                        setActiveStamp(0);
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
+    // --- スタンプの選択と状態保存 ---
+    function setActiveStamp(index) {
+        if (index === activeStampIndex || !stamps[index]) return;
+        
+        saveState();
+
+        activeStampIndex = index;
+        const activeStamp = stamps[index];
+
+        document.querySelectorAll('.stamp-item').forEach(item => {
+            item.classList.toggle('border-emerald-400', parseInt(item.dataset.index, 10) === index);
+        });
+
+        fabricCanvas.clear();
+        clearUIControls();
+
+        const synchronizeUI = () => {
+            fabricCanvas.renderAll();
+            fabricCanvas.forEachObject(obj => obj.selectable = true);
+
+            const imageObject = fabricCanvas.getObjects('image')[0];
+            if (imageObject) {
+                isApplyingChanges = true;
+                imageScale.value = imageObject.scaleX;
+                isApplyingChanges = false;
+            }
+
+            const textObject = fabricCanvas.getObjects('i-text')[0];
+            if (textObject) {
+                fabricCanvas.setActiveObject(textObject);
+            }
+            // The 'selection:created' event will fire here, calling updateUIControls
+        };
+
+        if (activeStamp.fabricState) {
+            fabricCanvas.loadFromJSON(activeStamp.fabricState, synchronizeUI);
+        } else {
+            fabric.Image.fromURL(activeStamp.originalImageSrc, (fabricImage) => {
+                const canvasAspect = fabricCanvas.width / fabricCanvas.height;
+                const imageAspect = fabricImage.width / fabricImage.height;
+                let scale = (imageAspect > canvasAspect) ? fabricCanvas.width / fabricImage.width : fabricCanvas.height / fabricImage.height;
+                
+                fabricImage.scale(scale * 0.9);
+                fabricCanvas.add(fabricImage);
+                fabricImage.center();
+
+                const text = new fabric.IText('テキストを入力', {
+                    top: fabricCanvas.height * 0.8,
+                    left: fabricCanvas.width / 2,
+                    originX: 'center',
+                    fontSize: 40,
+                    fontFamily: "'M PLUS Rounded 1c', sans-serif",
+                    fill: '#FFFFFF',
+                    stroke: '#000000',
+                    strokeWidth: 2,
+                    paintFirst: 'stroke',
+                });
+                fabricCanvas.add(text);
+                
+                synchronizeUI();
+            }, { crossOrigin: 'anonymous' });
+        }
+    }
+
+    // --- サムネイル、削除、ダウンロード ---
     function createThumbnail(image, index) {
         const item = document.createElement('div');
         item.className = 'stamp-item relative aspect-square flex items-center justify-center bg-gray-700 rounded-md cursor-pointer border-2 border-transparent';
@@ -255,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.appendChild(thumbCanvas);
 
         const deleteBtn = document.createElement('div');
-        deleteBtn.className = 'absolute top-0 right-0 -mt-1 -mr-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold hover:bg-red-700';
+        deleteBtn.className = 'absolute top-0 right-0 -mt-1 -mr-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold hover:bg-red-700 opacity-50 hover:opacity-100 transition-opacity';
         deleteBtn.innerHTML = '&times;';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
@@ -264,9 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.appendChild(deleteBtn);
         
         stampListContainer.appendChild(item);
-
         item.addEventListener('click', () => setActiveStamp(index));
-        
         item.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             showContextMenu(e.clientX, e.clientY, index);
@@ -276,133 +445,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function deleteStamp(index) {
         stamps.splice(index, 1);
         
-        if (activeStampIndex === index) activeStampIndex = -1;
-        else if (activeStampIndex > index) activeStampIndex--;
-
         if (mainImageIndex === index) mainImageIndex = -1;
         else if (mainImageIndex > index) mainImageIndex--;
 
         if (tabImageIndex === index) tabImageIndex = -1;
         else if (tabImageIndex > index) tabImageIndex--;
 
+        if (activeStampIndex === index) {
+            activeStampIndex = -1;
+            fabricCanvas.clear();
+            clearUIControls();
+        } else if (activeStampIndex > index) {
+            activeStampIndex--;
+        }
+        
         redrawStampList();
     }
 
     function redrawStampList() {
         stampListContainer.innerHTML = '';
+        if (stamps.length === 0) {
+            fabricCanvas.clear();
+            clearUIControls();
+            redrawSpecialCanvases();
+            return;
+        }
         stamps.forEach((stamp, index) => {
-            // The createThumbnail function now handles everything
-            createThumbnail(stamp.image, index);
+            const img = new Image();
+            img.onload = () => {
+                createThumbnail(img, index);
+                if (index === activeStampIndex) {
+                    const activeItem = stampListContainer.querySelector(`[data-index="${index}"]`);
+                    if (activeItem) activeItem.classList.add('border-emerald-400');
+                }
+            };
+            img.src = stamp.originalImageSrc;
         });
-        // Update active state visually
-        if (activeStampIndex !== -1) {
-            const activeItem = stampListContainer.querySelector(`[data-index="${activeStampIndex}"]`);
-            if (activeItem) {
-                activeItem.classList.add('border-emerald-400');
-            }
-        } else {
-            // Clear main canvas if no item is active
-            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-            textInput.value = '';
-        }
         redrawSpecialCanvases();
-    }
-
-    function setActiveStamp(index) {
-        if (!stamps[index]) return;
-        
-        activeStampIndex = index;
-
-        document.querySelectorAll('.stamp-item').forEach((item) => {
-            item.classList.toggle('border-emerald-400', parseInt(item.dataset.index, 10) === index);
-        });
-
-        const stamp = stamps[activeStampIndex];
-        textInput.value = stamp.text;
-        fontFamilySelect.value = stamp.font.family;
-        fontSizeInput.value = stamp.font.size;
-        fontColorInput.value = stamp.font.color;
-        strokeWidthInput.value = stamp.font.strokeWidth;
-        strokeColorInput.value = stamp.font.strokeColor;
-        imageScaleSlider.value = stamp.scale;
-
-        redrawMainCanvas();
-    }
-
-    function redrawMainCanvas() {
-        if (activeStampIndex === -1) {
-            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-            return;
-        }
-        const stamp = stamps[activeStampIndex];
-        drawStamp(ctx, stamp);
-    }
-
-    function fitImageToCanvas(image, canvas) {
-        const canvasAspect = canvas.width / canvas.height;
-        const imageAspect = image.width / image.height;
-        let scale, width, height, x, y;
-
-        if (imageAspect > canvasAspect) {
-            scale = canvas.width / image.width;
-            width = canvas.width;
-            height = image.height * scale;
-            x = 0;
-            y = (canvas.height - height) / 2;
-        } else {
-            scale = canvas.height / image.height;
-            height = canvas.height;
-            width = image.width * scale;
-            x = (canvas.width - width) / 2;
-            y = 0;
-        }
-        return { scale, width, height, offset: { x, y } };
-    }
-
-    function drawImageWithTransform(canvasContext, stamp) {
-        const { image, scale, offset } = stamp;
-        const canvas = canvasContext.canvas;
-        
-        const drawWidth = image.width * scale;
-        const drawHeight = image.height * scale;
-        
-        const x = (canvas.width - drawWidth) / 2 + offset.x;
-        const y = (canvas.height - drawHeight) / 2 + offset.y;
-
-        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-        canvasContext.drawImage(image, x, y, drawWidth, drawHeight);
-    }
-
-    function drawStamp(canvasContext, stamp) {
-        drawImageWithTransform(canvasContext, stamp);
-
-        if (stamp.text) {
-            const font = stamp.font;
-            canvasContext.font = `${font.size}px ${font.family}`;
-            canvasContext.textAlign = 'center';
-            canvasContext.textBaseline = 'middle';
-
-            if (font.strokeWidth > 0) {
-                canvasContext.strokeStyle = font.strokeColor;
-                canvasContext.lineWidth = font.strokeWidth * 2;
-                canvasContext.strokeText(stamp.text, stamp.textPos.x, stamp.textPos.y);
-            }
-
-            canvasContext.fillStyle = font.color;
-            canvasContext.fillText(stamp.text, stamp.textPos.x, stamp.textPos.y);
-        }
-    }
-
-    function applyFontToAll() {
-        if (activeStampIndex === -1) {
-            alert('基準となるスタンプを選択してください。');
-            return;
-        }
-        const baseFont = stamps[activeStampIndex].font;
-        stamps.forEach(stamp => {
-            stamp.font = { ...baseFont };
-        });
-        alert('すべてのスタンプにフォント設定を適用しました。');
     }
 
     async function downloadSingleStamp() {
@@ -410,21 +489,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('ダウンロードするスタンプを選択してください。');
             return;
         }
+        saveState();
 
-        const stamp = stamps[activeStampIndex];
-        const offscreenCanvas = document.createElement('canvas');
-        offscreenCanvas.width = 370;
-        offscreenCanvas.height = 320;
-        const offscreenCtx = offscreenCanvas.getContext('2d');
-
-        drawStamp(offscreenCtx, stamp);
-
-        const blob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
+        const dataURL = fabricCanvas.toDataURL({ format: 'png', multiplier: 370 / fabricCanvas.width });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        link.href = dataURL;
         link.download = `stamp_${activeStampIndex + 1}.png`;
         link.click();
-        URL.revokeObjectURL(link.href);
     }
 
     async function downloadAsZip() {
@@ -437,41 +508,33 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        downloadZipButton.disabled = true;
-        downloadZipButton.innerText = 'ZIP作成中...';
+        loadingOverlay.classList.remove('hidden');
+        saveState(); // 現在の作業を保存
 
         const zip = new JSZip();
-        const offscreenCanvas = document.createElement('canvas');
-        const offscreenCtx = offscreenCanvas.getContext('2d');
+        const tempCanvas = new fabric.StaticCanvas(null, { width: 370, height: 320 });
 
-        // スタンプ画像 (ユーザーの編集を適用)
         for (let i = 0; i < stamps.length; i++) {
-            offscreenCanvas.width = 370;
-            offscreenCanvas.height = 320;
-            drawStamp(offscreenCtx, stamps[i]);
-            const blob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
-            zip.file(`${String(i + 1).padStart(2, '0')}.png`, blob);
+            const stamp = stamps[i];
+            await new Promise(resolve => {
+                tempCanvas.loadFromJSON(stamp.fabricState, () => {
+                    const dataURL = tempCanvas.toDataURL({ format: 'png' });
+                    zip.file(`${String(i + 1).padStart(2, '0')}.png`, dataURL.split(',')[1], { base64: true });
+                    resolve();
+                });
+            });
         }
 
-        // メイン画像 (フィットさせた状態)
-        offscreenCanvas.width = 240;
-        offscreenCanvas.height = 240;
-        const mainStamp = stamps[mainImageIndex];
-        const mainFit = fitImageToCanvas(mainStamp.image, offscreenCanvas);
-        offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        offscreenCtx.drawImage(mainStamp.image, mainFit.offset.x, mainFit.offset.y, mainFit.width, mainFit.height);
-        const mainBlob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
-        zip.file('main.png', mainBlob);
+        // メイン・タブ画像
+        const mainImg = new Image();
+        mainImg.src = stamps[mainImageIndex].originalImageSrc;
+        await new Promise(r => mainImg.onload = r);
+        zip.file('main.png', await getFittedImageBlob(mainImg, 240, 240));
 
-        // タブ画像 (フィットさせた状態)
-        offscreenCanvas.width = 96;
-        offscreenCanvas.height = 74;
-        const tabStamp = stamps[tabImageIndex];
-        const tabFit = fitImageToCanvas(tabStamp.image, offscreenCanvas);
-        offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        offscreenCtx.drawImage(tabStamp.image, tabFit.offset.x, tabFit.offset.y, tabFit.width, tabFit.height);
-        const tabBlob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
-        zip.file('tab.png', tabBlob);
+        const tabImg = new Image();
+        tabImg.src = stamps[tabImageIndex].originalImageSrc;
+        await new Promise(r => tabImg.onload = r);
+        zip.file('tab.png', await getFittedImageBlob(tabImg, 96, 74));
 
         const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
@@ -479,46 +542,71 @@ document.addEventListener('DOMContentLoaded', () => {
         link.download = 'line_stamps.zip';
         link.click();
         URL.revokeObjectURL(link.href);
+        loadingOverlay.classList.add('hidden');
+    }
 
-        downloadZipButton.disabled = false;
-        downloadZipButton.innerText = 'まとめてZIPダウンロード';
+    async function getFittedImageBlob(image, width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const fit = fitImageToCanvas(image, canvas);
+        ctx.drawImage(image, fit.offset.x, fit.offset.y, fit.width, fit.height);
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    // --- ユーティリティ ---
+    function fitImageToCanvas(image, canvas) {
+        const canvasAspect = canvas.width / canvas.height;
+        const imageAspect = image.width / image.height;
+        let width, height, x, y;
+        if (imageAspect > canvasAspect) {
+            width = canvas.width;
+            height = width / imageAspect;
+        } else {
+            height = canvas.height;
+            width = height * imageAspect;
+        }
+        x = (canvas.width - width) / 2;
+        y = (canvas.height - height) / 2;
+        return { width, height, offset: { x, y } };
     }
 
     function redrawSpecialCanvases() {
-        const mainCtx = mainImageCanvas.getContext('2d');
-        const tabCtx = tabImageCanvas.getContext('2d');
-        mainCtx.clearRect(0, 0, mainImageCanvas.width, mainImageCanvas.height);
-        tabCtx.clearRect(0, 0, tabImageCanvas.width, tabImageCanvas.height);
-
+        const mainCtx = mainImageCanvasEl.getContext('2d');
+        mainCtx.clearRect(0, 0, mainImageCanvasEl.width, mainImageCanvasEl.height);
         if (mainImageIndex !== -1) {
-            const mainStamp = stamps[mainImageIndex];
-            const fit = fitImageToCanvas(mainStamp.image, mainImageCanvas);
-            mainCtx.drawImage(mainStamp.image, fit.offset.x, fit.offset.y, fit.width, fit.height);
+            const img = new Image();
+            img.onload = () => {
+                const fit = fitImageToCanvas(img, mainImageCanvasEl);
+                mainCtx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
+            };
+            img.src = stamps[mainImageIndex].originalImageSrc;
         }
+
+        const tabCtx = tabImageCanvasEl.getContext('2d');
+        tabCtx.clearRect(0, 0, tabImageCanvasEl.width, tabImageCanvasEl.height);
         if (tabImageIndex !== -1) {
-            const tabStamp = stamps[tabImageIndex];
-            const fit = fitImageToCanvas(tabStamp.image, tabImageCanvas);
-            tabCtx.drawImage(tabStamp.image, fit.offset.x, fit.offset.y, fit.width, fit.height);
+            const img = new Image();
+            img.onload = () => {
+                const fit = fitImageToCanvas(img, tabImageCanvasEl);
+                tabCtx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
+            };
+            img.src = stamps[tabImageIndex].originalImageSrc;
         }
     }
-
+    
     function showContextMenu(x, y, index) {
-        // 既存のメニューがあれば削除する
         const existingMenu = document.querySelector('.context-menu');
-        if (existingMenu) {
-            document.body.removeChild(existingMenu);
-        }
+        if (existingMenu) document.body.removeChild(existingMenu);
 
         const menu = document.createElement('div');
         menu.className = 'context-menu absolute bg-white text-gray-800 rounded-md shadow-lg py-1 z-50';
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
 
-        // メニューを閉じるためのクリーンアップ関数
         const closeMenu = () => {
-            if (document.body.contains(menu)) {
-                document.body.removeChild(menu);
-            }
+            if (document.body.contains(menu)) document.body.removeChild(menu);
             window.removeEventListener('click', closeMenu);
         };
 
@@ -526,125 +614,39 @@ document.addEventListener('DOMContentLoaded', () => {
         setMain.className = 'px-4 py-2 hover:bg-gray-200 cursor-pointer';
         setMain.innerText = 'メイン画像に設定';
         setMain.onclick = (e) => {
-            e.stopPropagation(); // イベントの伝播を停止
+            e.stopPropagation();
             mainImageIndex = index;
             redrawSpecialCanvases();
-            closeMenu(); // クリーンアップ関数を呼ぶ
+            closeMenu();
         };
 
         const setTab = document.createElement('div');
         setTab.className = 'px-4 py-2 hover:bg-gray-200 cursor-pointer';
         setTab.innerText = 'タブ画像に設定';
         setTab.onclick = (e) => {
-            e.stopPropagation(); // イベントの伝播を停止
+            e.stopPropagation();
             tabImageIndex = index;
             redrawSpecialCanvases();
-            closeMenu(); // クリーンアップ関数を呼ぶ
+            closeMenu();
         };
 
         menu.appendChild(setMain);
         menu.appendChild(setTab);
         document.body.appendChild(menu);
 
-        // 現在のクリックイベントがすぐにウィンドウリスナーに拾われないようにsetTimeoutを使用
-        setTimeout(() => {
-            window.addEventListener('click', closeMenu);
-        }, 0);
+        setTimeout(() => window.addEventListener('click', closeMenu), 0);
     }
 
-    // --- ドラッグ移動の処理 ---
-    let isDraggingText = false;
-    let isDraggingImage = false;
-    let dragStartX, dragStartY;
+    function showDragOverlay(e) {
+        e.preventDefault();
+        dragOverlay.classList.remove('hidden');
+    }
 
-    mainCanvas.addEventListener('mousedown', (e) => {
-        if (activeStampIndex === -1) return;
+    function hideDragOverlay(e) {
+        e.preventDefault();
+        dragOverlay.classList.add('hidden');
+    }
 
-        const stamp = stamps[activeStampIndex];
-        const rect = mainCanvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        // テキストの当たり判定
-        ctx.font = `${stamp.font.size}px ${stamp.font.family}`;
-        const textMetrics = ctx.measureText(stamp.text);
-        const textWidth = textMetrics.width;
-        const textHeight = stamp.font.size; // Simplified hit-box
-        const textX = stamp.textPos.x - textWidth / 2;
-        const textY = stamp.textPos.y - textHeight / 2;
-
-        if (mouseX >= textX && mouseX <= textX + textWidth && mouseY >= textY && mouseY <= textY + textHeight) {
-            isDraggingText = true;
-            dragStartX = mouseX - stamp.textPos.x;
-            dragStartY = mouseY - stamp.textPos.y;
-            mainCanvas.style.cursor = 'move';
-            return; // テキストをドラッグするので画像ドラッグは判定しない
-        }
-
-        // 画像の当たり判定
-        const { image, scale, offset } = stamp;
-        const drawWidth = image.width * scale;
-        const drawHeight = image.height * scale;
-        const imageX = (mainCanvas.width - drawWidth) / 2 + offset.x;
-        const imageY = (mainCanvas.height - drawHeight) / 2 + offset.y;
-
-        if (mouseX >= imageX && mouseX <= imageX + drawWidth && mouseY >= imageY && mouseY <= imageY + drawHeight) {
-            isDraggingImage = true;
-            dragStartX = mouseX - offset.x;
-            dragStartY = mouseY - offset.y;
-            mainCanvas.style.cursor = 'grabbing';
-        }
-    });
-
-    mainCanvas.addEventListener('mousemove', (e) => {
-        if (activeStampIndex === -1) return;
-        if (!isDraggingText && !isDraggingImage) {
-             // ホバー時のカーソル変更
-            const stamp = stamps[activeStampIndex];
-            const rect = mainCanvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            
-            const { image, scale, offset } = stamp;
-            const drawWidth = image.width * scale;
-            const drawHeight = image.height * scale;
-            const imageX = (mainCanvas.width - drawWidth) / 2 + offset.x;
-            const imageY = (mainCanvas.height - drawHeight) / 2 + offset.y;
-
-            if (mouseX >= imageX && mouseX <= imageX + drawWidth && mouseY >= imageY && mouseY <= imageY + drawHeight) {
-                mainCanvas.style.cursor = 'grab';
-            } else {
-                mainCanvas.style.cursor = 'default';
-            }
-            return;
-        };
-
-
-        const rect = mainCanvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const stamp = stamps[activeStampIndex];
-
-        if (isDraggingText) {
-            stamp.textPos.x = mouseX - dragStartX;
-            stamp.textPos.y = mouseY - dragStartY;
-        } else if (isDraggingImage) {
-            stamp.offset.x = mouseX - dragStartX;
-            stamp.offset.y = mouseY - dragStartY;
-        }
-
-        redrawMainCanvas();
-    });
-
-    mainCanvas.addEventListener('mouseup', () => {
-        isDraggingText = false;
-        isDraggingImage = false;
-        mainCanvas.style.cursor = 'grab'; // Or 'default' if not over the image
-    });
-
-    mainCanvas.addEventListener('mouseout', () => {
-        isDraggingText = false;
-        isDraggingImage = false;
-        mainCanvas.style.cursor = 'default';
-    });
+    // --- 初期化実行 ---
+    initialize();
 });

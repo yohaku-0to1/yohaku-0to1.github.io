@@ -112,10 +112,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const id = await db.add('items', placeholderItem);
         const element = loadItem({ ...placeholderItem, id });
 
+        // Add spinner
+        const loader = document.createElement('div');
+        loader.className = 'loader absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+        const contentWrapper = element.querySelector('a');
+        if (contentWrapper) {
+            contentWrapper.style.position = 'relative';
+            contentWrapper.appendChild(loader);
+        }
+
         try {
             const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             const html = data.contents;
+
+            if (!html) throw new Error('No content received from proxy.');
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
@@ -142,10 +154,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Failed to fetch URL metadata:', error);
-            const errorItem = { ...placeholderItem, id, title: '取得失敗', description: url };
+            const errorItem = { ...placeholderItem, id, title: 'メタデータの取得に失敗しました', description: url };
             await db.put('items', errorItem);
             const titleEl = element.querySelector('.url-title');
             if(titleEl) titleEl.textContent = '取得失敗';
+            const descEl = element.querySelector('.url-description');
+            if(descEl) descEl.textContent = error.message;
+        } finally {
+            // Remove spinner
+            loader.remove();
         }
     }
 
