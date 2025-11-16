@@ -183,11 +183,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
         copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>`;
-        
+        copyButton.title = "コピー";
+
         const closeButton = document.createElement('button');
         closeButton.className = 'close-button w-5 h-5 bg-red-500/80 rounded-full hover:bg-red-500 transition-colors flex items-center justify-center text-white font-bold';
         closeButton.innerHTML = '&times;';
+        closeButton.title = "削除";
         
+        if (item.type === 'text') {
+            const cleanMdButton = document.createElement('button');
+            cleanMdButton.className = 'clean-md-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
+            cleanMdButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.5 1.591L5.22 15.75M9.75 3.104a2.25 2.25 0 00-2.25 2.25v4.507c0 .534.212 1.023.558 1.386l3.85 3.85a2.25 2.25 0 003.182 0l2.962-2.962a2.25 2.25 0 000-3.182l-3.85-3.85a2.25 2.25 0 00-1.386-.558H9.75z" /></svg>`;
+            cleanMdButton.title = "Markdown記法を削除";
+            header.appendChild(cleanMdButton);
+        }
+
         header.appendChild(copyButton);
         header.appendChild(closeButton);
         itemWrapper.appendChild(header);
@@ -234,6 +244,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (wrapper) wrapper.style.height = 'auto';
     }
 
+    function stripMarkdown(text) {
+        let newText = text;
+        // Remove headers
+        newText = newText.replace(/^(#+\s*)/gm, '');
+        // Remove bold, italics, strikethrough
+        newText = newText.replace(/(\*\*|__)(.*?)\1/g, '$2');
+        newText = newText.replace(/(\*|_)(.*?)\1/g, '$2');
+        newText = newText.replace(/~~(.*?)~~/g, '$1');
+        // Remove links, keeping the text
+        newText = newText.replace(/\[(.*?)\]\(.*?\)/g, '$1');
+        // Remove images, keeping the alt text
+        newText = newText.replace(/!\[(.*?)\]\(.*?\)/g, '$1');
+        // Remove inline code
+        newText = newText.replace(/`([^`]+)`/g, '$1');
+        // Remove code blocks
+        newText = newText.replace(/```[\s\S]*?```/g, '');
+        // Remove blockquotes
+        newText = newText.replace(/^>\s*/gm, '');
+        // Remove list markers
+        newText = newText.replace(/^([*+-]|\d+\.)\s+/gm, '');
+        // Remove horizontal rules
+        newText = newText.replace(/^(---|\*\*\*|___)\s*$/gm, '');
+        
+        return newText.trim();
+    }
+
     function makeInteractive(element, header, resizeHandle) {
         const id = parseInt(element.dataset.id, 10);
 
@@ -257,6 +293,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             hubContainer.removeChild(element);
             db.delete('items', id);
         });
+
+        const cleanMdButton = header.querySelector('.clean-md-button');
+        if (cleanMdButton) {
+            cleanMdButton.addEventListener('click', () => {
+                const textarea = element.querySelector('textarea');
+                if (textarea) {
+                    const cleanedText = stripMarkdown(textarea.value);
+                    textarea.value = cleanedText;
+                    updateDb({ content: cleanedText });
+                    adjustTextareaHeight(textarea);
+                }
+            });
+        }
 
         header.querySelector('.copy-button').addEventListener('click', async () => {
             const copyButton = header.querySelector('.copy-button');
