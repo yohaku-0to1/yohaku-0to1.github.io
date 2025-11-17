@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (type) {
             case 'pc-home':
                 content = `
-                    <div class="w-full max-w-xs">
+                    <div class="w-full">
                         ${thumbnailHtml}
                         <div class="flex mt-3">
                             <div class="w-9 h-9 rounded-full bg-gray-500 mr-3 flex-shrink-0"></div>
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'pc-sidebar':
                  content = `
-                    <div class="w-full max-w-xs">
+                    <div class="w-full max-w-md">
                         <div class="flex gap-2">
                             <div class="w-40 flex-shrink-0">
                                 ${imgB ? thumbnailHtml.replace(/w-1\/2/g, 'w-full').replace('rounded-lg', 'rounded') : thumbnailHtml.replace('rounded-lg', 'rounded')}
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  if(imgB) {
                     // For sidebar, stack them vertically if two images
                     content = `
-                    <div class="w-full max-w-xs">
+                    <div class="w-full max-w-md">
                         <div class="flex gap-2">
                             <div class="w-40 flex-shrink-0 space-y-2">
                                 <img src="${imgA}" class="w-full aspect-video rounded">
