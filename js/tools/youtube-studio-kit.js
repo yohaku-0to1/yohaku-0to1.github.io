@@ -122,12 +122,18 @@ document.addEventListener('DOMContentLoaded', () => {
         previewBox.className = 'preview-container p-4 rounded-lg';
         
         let content = '';
+        const thumbnailHtml = `
+            <div class="thumbnail-container relative cursor-pointer">
+                <img src="${imgA}" class="thumbnail-a w-full aspect-video rounded-lg">
+                ${imgB ? `<img src="${imgB}" class="thumbnail-b w-full aspect-video rounded-lg absolute top-0 left-0 hidden">` : ''}
+            </div>
+        `;
+
         switch (type) {
             case 'pc-home':
                 content = `
                     <div class="w-full max-w-xs">
-                        <img src="${imgA}" class="thumbnail-a w-full aspect-video rounded-lg cursor-pointer">
-                        ${imgB ? `<img src="${imgB}" class="thumbnail-b w-full aspect-video rounded-lg cursor-pointer hidden">` : ''}
+                        ${thumbnailHtml}
                         <div class="flex mt-3">
                             <div class="w-9 h-9 rounded-full bg-gray-500 mr-3 flex-shrink-0"></div>
                             <div>
@@ -144,8 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="w-full max-w-xs">
                         <div class="flex gap-2">
                             <div class="w-40 flex-shrink-0">
-                                <img src="${imgA}" class="thumbnail-a w-full aspect-video rounded cursor-pointer">
-                                ${imgB ? `<img src="${imgB}" class="thumbnail-b w-full aspect-video rounded cursor-pointer hidden">` : ''}
+                                ${thumbnailHtml.replace('rounded-lg', 'rounded')}
                             </div>
                             <div>
                                 <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
@@ -159,8 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'mobile-home':
                 content = `
                     <div class="w-full max-w-sm">
-                        <img src="${imgA}" class="thumbnail-a w-full aspect-video cursor-pointer">
-                        ${imgB ? `<img src="${imgB}" class="thumbnail-b w-full aspect-video cursor-pointer hidden">` : ''}
+                        ${thumbnailHtml.replace('rounded-lg', '')}
                         <div class="flex mt-3 p-2">
                             <div class="w-10 h-10 rounded-full bg-gray-500 mr-3 flex-shrink-0"></div>
                             <div class="flex-grow">
@@ -177,14 +181,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add toggle logic if image B exists
         if (imgB) {
-            const thumbA = wrapper.querySelector('.thumbnail-a');
-            const thumbB = wrapper.querySelector('.thumbnail-b');
-            wrapper.addEventListener('click', (e) => {
-                if (e.target === thumbA || e.target === thumbB) {
-                    thumbA.classList.toggle('hidden');
-                    thumbB.classList.toggle('hidden');
+            const imageContainer = wrapper.querySelector('.thumbnail-container');
+            if (imageContainer) {
+                const thumbA = imageContainer.querySelector('.thumbnail-a');
+                const thumbB = imageContainer.querySelector('.thumbnail-b');
+                if (thumbA && thumbB) {
+                    imageContainer.addEventListener('click', () => {
+                        thumbA.classList.toggle('hidden');
+                        thumbB.classList.toggle('hidden');
+                    });
                 }
-            });
+            }
         }
 
         return wrapper;

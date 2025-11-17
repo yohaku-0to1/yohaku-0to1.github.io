@@ -46,7 +46,7 @@ body {
     grid-template-columns: 1fr;
     gap: 2rem;
     width: 100%;
-    max-width: 640px; /* sm:max-w-2xl */
+    max-width: 1024px; /* lg:max-w-4xl */
     margin: 0 auto;
     padding: 3rem 1rem;
 }
