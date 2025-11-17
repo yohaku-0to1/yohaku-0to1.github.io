@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Animate cards on load ---
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.classList.add('animate-fade-in-up');
+        }, index * 120);
+    });
+
     // --- Common Elements ---
     const tabThumbnail = document.getElementById('tab-thumbnail');
     const tabTimestamp = document.getElementById('tab-timestamp');
