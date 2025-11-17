@@ -58,6 +58,22 @@ const TOOLS_DATA = [
 // --- 3. YouTube動画の設定 ---
 const YOUTUBE_VIDEO_ID = "KKagquvsqBE";
 
+// --- 4. LINEスタンプデータ ---
+const LINE_STICKER_DATA = {
+    name: "ネオンのLINEスタンプ",
+    description: "YouTubeチャンネル「0と1のすきま」より、ネオンのLINEスタンプが登場！",
+    url: "https://line.me/S/sticker/32061025",
+    image: "assets/images/line_sticker_placeholder.png" // 仮のパス
+};
+
+// --- 4. LINEスタンプデータ ---
+const LINE_STICKER_DATA = {
+    name: "ネオンのLINEスタンプ",
+    description: "YouTubeチャンネル「0と1のすきま」より、ネオンのLINEスタンプが登場！",
+    url: "https://line.me/S/sticker/32061025",
+    image: "assets/images/line_sticker_placeholder.png" // 仮のパス
+};
+
 // --- 4. リンクデータの管理 ---
 const links = [
     {
@@ -103,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileName = document.getElementById('profile-name');
     const profileBio = document.getElementById('profile-bio');
     const gradientBackground = document.querySelector('.animated-gradient');
+    const lineStickerContent = document.getElementById('line-sticker-content'); // LINEスタンプ要素を取得
 
     // --- 機能の実行 ---
 
@@ -139,7 +156,20 @@ document.addEventListener("DOMContentLoaded", () => {
         youtubeContainer.appendChild(iframe);
     }
     
-    // 3. リンクボタンを生成
+    // 3. LINEスタンプ情報を生成
+    if (lineStickerContent && LINE_STICKER_DATA) {
+        const stickerHtml = `
+            <a href="${LINE_STICKER_DATA.url}" target="_blank" rel="noopener noreferrer" class="block w-full text-center">
+                <img src="${LINE_STICKER_DATA.image}" alt="${LINE_STICKER_DATA.name}" class="w-48 h-48 object-contain mx-auto mb-2">
+                <h3 class="text-xl font-bold text-white">${LINE_STICKER_DATA.name}</h3>
+                <p class="text-gray-300 text-sm">${LINE_STICKER_DATA.description}</p>
+            </a>
+        `;
+        lineStickerContent.innerHTML = stickerHtml;
+    }
+    }
+    
+    // 4. リンクボタンを生成
     if (links && links.length > 0 && listElement) {
         links.forEach(link => {
             const li = document.createElement('li');
@@ -170,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         listElement.innerHTML = "<p class='text-gray-400'>リンクはまだありません。</p>";
     }
 
-    // 4. ツール一覧を生成
+    // 5. ツール一覧を生成
     if (TOOLS_DATA && TOOLS_DATA.length > 0 && toolsListElement) {
         TOOLS_DATA.forEach(tool => {
             const li = document.createElement('li');
@@ -189,18 +219,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 5. アニメーションの実行
+    // 6. アニメーションの実行
     const header = document.getElementById('page-header');
     const footer = document.getElementById('page-footer');
+    const lineStickerSection = document.getElementById('line-sticker-section'); // LINEスタンプセクションを取得
     const linkItems = listElement.querySelectorAll('li');
     const toolsSection = document.getElementById('tools-section');
     const toolItems = toolsListElement.querySelectorAll('li');
     const chatbotSection = document.getElementById('chatbot-section');
 
-    const elementsToAnimate = [header, youtubeContainer, ...linkItems, toolsSection, ...toolItems, chatbotSection, footer];
+    const elementsToAnimate = [header, youtubeContainer, lineStickerSection, ...linkItems, toolsSection, ...toolItems, chatbotSection, footer];
     
     elementsToAnimate.forEach((el, index) => {
-        if (!el || (el.id === 'youtube-container' && !YOUTUBE_VIDEO_ID) || (el.id === 'tools-section' && (!TOOLS_DATA || TOOLS_DATA.length === 0))) return;
+        if (!el || (el.id === 'youtube-container' && !YOUTUBE_VIDEO_ID) || (el.id === 'tools-section' && (!TOOLS_DATA || TOOLS_DATA.length === 0)) || (el.id === 'line-sticker-section' && !LINE_STICKER_DATA)) return;
         
         setTimeout(() => {
             el.classList.remove('opacity-0');
@@ -208,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, index * 100); 
     });
 
-    // 6. マウス追従パララックスエフェクト
+    // 7. マウス追従パララックスエフェクト
     if (gradientBackground) {
         document.addEventListener('mousemove', (e) => {
             if (window.innerWidth < 768) {
@@ -223,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- 7. Chatbot Logic ---
+    // --- 8. Chatbot Logic ---
     function initChatbot() {
         const neonImage = document.getElementById('neon-image');
         const chatLog = document.getElementById('chat-log');
