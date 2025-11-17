@@ -155,20 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 break;
             case 'pc-sidebar':
-                 content = `
-                    <div class="w-full max-w-md">
-                        <div class="flex gap-2">
-                            <div class="w-40 flex-shrink-0">
-                                ${imgB ? thumbnailHtml.replace(/w-1\/2/g, 'w-full').replace('rounded-lg', 'rounded') : thumbnailHtml.replace('rounded-lg', 'rounded')}
-                            </div>
-                            <div>
-                                <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
-                                <p class="preview-meta text-xs mt-1">${data.channel}</p>
-                                <p class="preview-meta text-xs">${data.views}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
                  if(imgB) {
                     // For sidebar, stack them vertically if two images
                     content = `
@@ -177,6 +163,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="w-40 flex-shrink-0 space-y-2">
                                 <img src="${imgA}" class="w-full aspect-video rounded">
                                 <img src="${imgB}" class="w-full aspect-video rounded">
+                            </div>
+                            <div>
+                                <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
+                                <p class="preview-meta text-xs mt-1">${data.channel}</p>
+                                <p class="preview-meta text-xs">${data.views}</p>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                } else {
+                    content = `
+                    <div class="w-full max-w-md">
+                        <div class="flex gap-2">
+                            <div class="w-40 flex-shrink-0">
+                                ${thumbnailHtml.replace('rounded-lg', 'rounded')}
                             </div>
                             <div>
                                 <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
