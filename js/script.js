@@ -63,15 +63,7 @@ const LINE_STICKER_DATA = {
     name: "ネオンのLINEスタンプ",
     description: "YouTubeチャンネル「0と1のすきま」より、ネオンのLINEスタンプが登場！",
     url: "https://line.me/S/sticker/32061025",
-    image: "assets/images/line_sticker_placeholder.png" // 仮のパス
-};
-
-// --- 4. LINEスタンプデータ ---
-const LINE_STICKER_DATA = {
-    name: "ネオンのLINEスタンプ",
-    description: "YouTubeチャンネル「0と1のすきま」より、ネオンのLINEスタンプが登場！",
-    url: "https://line.me/S/sticker/32061025",
-    image: "assets/images/line_sticker_placeholder.png" // 仮のパス
+    image: "assets/images/line_sticker_neon.png" // 仮のパス
 };
 
 // --- 4. リンクデータの管理 ---
@@ -166,7 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </a>
         `;
         lineStickerContent.innerHTML = stickerHtml;
-    }
     }
     
     // 4. リンクボタンを生成
