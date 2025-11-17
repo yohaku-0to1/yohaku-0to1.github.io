@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Links - リンク集</title>
+    <title>0と1のすきま - Portfolio</title>
     
     <!-- External CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
@@ -13,85 +13,88 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_MEASUREMENT_ID"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1GQRC5L80E"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-1GQRC5L80E');
     </script>
 </head>
-<body class="font-sans bg-gray-900 text-white">
+<body class="font-sans">
 
-    <div class="fixed inset-0 -z-10">
-        <div class="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-indigo-900 animated-gradient"></div>
-    </div>
+    <div id="aurora-background"></div>
 
-    <div class="flex items-center justify-center min-h-screen px-4 py-12">
-        <div class="w-full max-w-md p-6 sm:p-8 bg-white/5 rounded-3xl shadow-2xl border border-white/10 backdrop-blur-xl">
-            
-            <header id="page-header" class="flex flex-col items-center mb-10 opacity-0">
-                <!-- プロフィール画像 -->
-                <img id="profile-avatar" src="" alt="プロフィール画像" class="w-28 h-28 rounded-full mx-auto mb-4 border-4 border-white/10 shadow-xl">
-                <!-- 名前 -->
-                <h1 id="profile-name" class="text-4xl font-bold text-white" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);"></h1>
-                <!-- 自己紹介 -->
-                <p id="profile-bio" class="mt-2 text-lg text-center text-gray-200 max-w-xs"></p>
+    <main class="main-container">
+        
+        <!-- Profile Section -->
+        <section id="profile-section" class="card">
+            <header id="page-header" class="flex flex-col items-center">
+                <img id="profile-avatar" src="" alt="プロフィール画像" class="w-28 h-28 rounded-full mx-auto mb-4">
+                <h1 id="profile-name" class="text-4xl font-bold"></h1>
+                <p id="profile-bio" class="mt-2 text-lg text-center max-w-xs"></p>
             </header>
+        </section>
 
-            <div id="youtube-container" class="opacity-0 mb-10">
+        <!-- YouTube Section -->
+        <section id="youtube-section" class="card">
+            <h2 class="card-header">Featured Video</h2>
+            <div id="youtube-container">
                 <!-- JavaScriptによってここに動画が挿入されます -->
             </div>
+        </section>
 
-            <!-- LINE Sticker Section -->
-            <div id="line-sticker-section" class="mt-10 opacity-0">
-                <h2 class="text-2xl font-bold text-center text-white mb-6" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">LINEスタンプ</h2>
-                <div id="line-sticker-content" class="bg-white/10 border border-white/20 rounded-xl p-4 flex flex-col items-center space-y-4">
-                    <!-- JavaScriptによってここにLINEスタンプ情報が挿入されます -->
-                </div>
+        <!-- LINE Sticker Section -->
+        <section id="line-sticker-section" class="card">
+            <h2 class="card-header">LINE Sticker</h2>
+            <div id="line-sticker-content">
+                <!-- JavaScriptによってここにLINEスタンプ情報が挿入されます -->
             </div>
+        </section>
 
-            <main id="page-main">
-                <ul id="links-list" class="space-y-4">
-                    <!-- JavaScriptによってここにリンクが挿入されます -->
-                </ul>
-            </main>
+        <!-- Links Section -->
+        <section id="links-section" class="card">
+            <h2 class="card-header">Links</h2>
+            <ul id="links-list" class="space-y-4">
+                <!-- JavaScriptによってここにリンクが挿入されます -->
+            </ul>
+        </section>
 
-            <!-- Tools Section -->
-            <div id="tools-section" class="mt-16 opacity-0">
-                <h2 class="text-2xl font-bold text-center text-white mb-6" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Tools</h2>
-                <ul id="tools-list" class="space-y-4">
-                    <!-- JavaScriptによってここにツールが挿入されます -->
-                </ul>
+        <!-- Tools Section -->
+        <section id="tools-section" class="card">
+            <h2 class="card-header">Tools</h2>
+            <ul id="tools-list" class="space-y-4">
+                <!-- JavaScriptによってここにツールが挿入されます -->
+            </ul>
+        </section>
+
+        <!-- Chatbot Section -->
+        <section id="chatbot-section" class="card">
+            <h2 class="card-header">Chat with NEON</h2>
+            <div id="neon-container" class="mb-4 flex justify-center">
+                <img id="neon-image" src="" alt="ネオン" class="w-32 h-32">
             </div>
-
-            <!-- Chatbot Section -->
-            <div id="chatbot-section" class="mt-16 opacity-0">
-                <h2 class="text-2xl font-bold text-center text-white mb-6" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Chat with NEON</h2>
-                <div id="neon-container" class="mb-4 flex justify-center">
-                    <img id="neon-image" src="" alt="ネオン" class="w-32 h-32 transition-transform duration-500 ease-in-out">
-                </div>
-                <div id="chat-log" class="h-64 bg-black/20 rounded-xl p-4 overflow-y-auto border border-white/10 mb-4">
-                    <!-- Chat messages will appear here -->
-                </div>
-                <div class="flex space-x-2">
-                    <input type="text" id="user-input" class="flex-grow bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all" placeholder="ネオンに話しかける...">
-                    <button id="send-button" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                    </button>
-                </div>
+            <div id="chat-log" class="h-64 p-4 overflow-y-auto mb-4">
+                <!-- Chat messages will appear here -->
             </div>
+            <div class="flex space-x-2">
+                <input type="text" id="user-input" class="flex-grow px-4 py-2" placeholder="ネオンに話しかける...">
+                <button id="send-button" class="font-bold py-2 px-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                </button>
+            </div>
+        </section>
 
-            <footer id="page-footer" class="mt-12 text-center opacity-0">
-                <p class="text-sm text-gray-300">&copy; 2025 <span id="footer-username">Your Name</span>. All rights reserved.</p>
-            </footer>
+        <!-- Footer -->
+        <footer id="page-footer" class="text-center py-6">
+            <p class="text-sm">&copy; 2025 <span id="footer-username">Your Name</span>. All rights reserved.</p>
+        </footer>
 
-        </div>
-    </div>
+    </main>
 
     <!-- External JavaScript -->
     <script src="js/script.js"></script>

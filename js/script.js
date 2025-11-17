@@ -1,35 +1,8 @@
-/*
-// --- Tailwind CSS Config ---
-tailwind.config = {
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
-            },
-            animation: {
-                'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
-            },
-            keyframes: {
-                'fade-in-up': {
-                    '0%': { opacity: '0', transform: 'translateY(10px)' },
-                    '100%': { opacity: '1', transform: 'translateY(0)' },
-                }
-            }
-        },
-    },
-}
-*/
-
 // --- 1. プロフィールデータ ---
 const PROFILE_DATA = {
-    // あなたのGitHubユーザー名を入力してください。
     githubUsername: "yohaku-0to1", 
-    // アバター画像をカスタムしたい場合は、ここにURLを入力してください。
-    // 空欄のままにすると、GitHubのプロフィール画像が自動で設定されます。
     avatarUrl: "", 
-    // あなたの名前
     name: "0と1のすきま（よはく）", 
-    // 簡単な自己紹介文
     bio: "AIで音楽や映像を作っています。" 
 };
 
@@ -63,44 +36,20 @@ const LINE_STICKER_DATA = {
     name: "ネオンのLINEスタンプ",
     description: "YouTubeチャンネル「0と1のすきま」より、ネオンのLINEスタンプが登場！",
     url: "https://line.me/S/sticker/32061025",
-    image: "assets/images/line_sticker_neon.png" // 仮のパス
+    image: "assets/images/line_sticker_neon.png"
 };
 
-// --- 4. リンクデータの管理 ---
+// --- 5. リンクデータの管理 ---
 const links = [
-    {
-        name: "YouTube",
-        url: "https://www.youtube.com/channel/UCaYMkQfYF1_Fv0-EQXLnS4g",
-        icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
-    },
-    {
-        name: "Spotify",
-        url: "https://open.spotify.com/intl-ja/artist/6potnhR6QlmygbtWD8JHEt?si=k4GgziwKQKiEQm5R3P2ISQ",
-        icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.206 17.659c-.27.423-.822.568-1.245.298-3.513-2.148-7.92-2.638-13.213-1.442-.51.12-.976-.234-.1-1.094.118-.51.593-.865 1.103-.984 5.923-1.348 10.898-.793 14.868 1.638.423.27.568.822.298 1.245l-.01.001zm1.25-2.81c-.318.498-.962.66-1.46.34-3.838-2.355-9.688-3.03-14.076-1.66-.58.18-.738-.346-.918-.925-.18-.58.347-.738.926-.918 4.968-1.558 11.38-0.81 15.753 1.888.498.318.66.962.34 1.46l-.001.002zm.12-3.153c-4.44-2.61-11.75-2.88-16.34-1.57-.685.195-.8-.52-.605-1.207.195-.685.52-.8.1.204 5.23-1.48 13.15-1.16 18.23 1.78.605.347.73.1.25-.357.685l-.01.002z"/></svg>`
-    },
-    {
-        name: "Apple Music",
-        url: "https://music.apple.com/jp/artist/0%E3%81%A81%E3%81%AE%E3%81%99%E3%81%8D%E3%81%BE/1850034362",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>`
-    },
-    {
-        name: "Amazon Music",
-        url: "https://music.amazon.co.jp/artists/B0FYV4G58Q/0%25E3%2581%25A81%25E3%2581%25AE%25E3%2581%2599%25E3%2581%258D%25E3%2581%25BE?marketplaceId=A1VC38T7YXB528&musicTerritory=JP&ref=dm_sh_ePANzp4mSXDfXn0U8ImwvF0Yp",
-        icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M16.92 17.58a.9.9 0 0 1-.72-.36 6.91 6.91 0 0 0-4.2-1.65 6.8 6.8 0 0 0-4.17 1.62.9.9 0 0 1-1.11.1 1 1 0 0 1-.1-1.68 8.61 8.61 0 0 1 5.38-2.07 8.7 8.7 0 0 1 5.41 2.1.9.9 0 0 1-.49 1.44zm3.17-2.16a.91.91 0 0 1-.84-.5 9.42 9.42 0 0 0-5.33-2.19 9.29 9.29 0 0 0-5.3 2.16.9.9 0 0 1-1.29-.3 1 1 0 0 1 .3-1.32 11.11 11.11 0 0 1 6.3-2.61 11.23 11.23 0 0 1 6.33 2.64.9.9 0 0 1-.17 1.62zM12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zM12 2a9.92 9.92 0 0 1 7.21 3.25A10.16 10.16 0 0 1 22 12.2a9.92 9.92 0 0 1-3.25 7.21A10.16 10.16 0 0 1 11.8 22 9.92 9.92 0 0 1 4.79 18.75 10.16 10.16 0 0 1 2 11.8a9.92 9.92 0 0 1 3.25-7.21A10.16 10.16 0 0 1 12.2 2z"/></svg>`
-    },
-    {
-        name: "YouTube Music",
-        url: "https://music.youtube.com/channel/UCoE6kRin8LzdaEUohGlQb-w?si=iYalzh_Qd75jIPND",
-        icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 18.354a6.354 6.354 0 1 1 0-12.708 6.354 6.354 0 0 1 0 12.708zM12 7.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6z"/><path d="m9.546 14.42 4.908-2.42-4.908-2.42z"/></svg>`
-    },
-    {
-        name: "Twitter (X)",
-        url: "https://x.com/yohaku_kiroku",
-        icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`
-    },
+    { name: "YouTube", url: "https://www.youtube.com/channel/UCaYMkQfYF1_Fv0-EQXLnS4g", icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>` },
+    { name: "Spotify", url: "https://open.spotify.com/intl-ja/artist/6potnhR6QlmygbtWD8JHEt", icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.206 17.659c-.27.423-.822.568-1.245.298-3.513-2.148-7.92-2.638-13.213-1.442-.51.12-.976-.234-.1-1.094.118-.51.593-.865 1.103-.984 5.923-1.348 10.898-.793 14.868 1.638.423.27.568.822.298 1.245l-.01.001zm1.25-2.81c-.318.498-.962.66-1.46.34-3.838-2.355-9.688-3.03-14.076-1.66-.58.18-.738-.346-.918-.925-.18-.58.347-.738.926-.918 4.968-1.558 11.38-0.81 15.753 1.888.498.318.66.962.34 1.46l-.001.002zm.12-3.153c-4.44-2.61-11.75-2.88-16.34-1.57-.685.195-.8-.52-.605-1.207.195-.685.52-.8.1.204 5.23-1.48 13.15-1.16 18.23 1.78.605.347.73.1.25-.357.685l-.01.002z"/></svg>` },
+    { name: "Apple Music", url: "https://music.apple.com/jp/artist/0%E3%81%A81%E3%81%AE%E3%81%99%E3%81%8D%E3%81%BE/1850034362", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>` },
+    { name: "Amazon Music", url: "https://music.amazon.co.jp/artists/B0FYV4G58Q", icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16.92 17.58a.9.9 0 0 1-.72-.36 6.91 6.91 0 0 0-4.2-1.65 6.8 6.8 0 0 0-4.17 1.62.9.9 0 0 1-1.11.1 1 1 0 0 1-.1-1.68 8.61 8.61 0 0 1 5.38-2.07 8.7 8.7 0 0 1 5.41 2.1.9.9 0 0 1-.49 1.44zm3.17-2.16a.91.91 0 0 1-.84-.5 9.42 9.42 0 0 0-5.33-2.19 9.29 9.29 0 0 0-5.3 2.16.9.9 0 0 1-1.29-.3 1 1 0 0 1 .3-1.32 11.11 11.11 0 0 1 6.3-2.61 11.23 11.23 0 0 1 6.33 2.64.9.9 0 0 1-.17 1.62zM12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zM12 2a9.92 9.92 0 0 1 7.21 3.25A10.16 10.16 0 0 1 22 12.2a9.92 9.92 0 0 1-3.25 7.21A10.16 10.16 0 0 1 11.8 22 9.92 9.92 0 0 1 4.79 18.75 10.16 10.16 0 0 1 2 11.8a9.92 9.92 0 0 1 3.25-7.21A10.16 10.16 0 0 1 12.2 2z"/></svg>` },
+    { name: "YouTube Music", url: "https://music.youtube.com/channel/UCoE6kRin8LzdaEUohGlQb-w", icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 18.354a6.354 6.354 0 1 1 0-12.708 6.354 6.354 0 0 1 0 12.708zM12 7.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6z"/><path d="m9.546 14.42 4.908-2.42-4.908-2.42z"/></svg>` },
+    { name: "Twitter (X)", url: "https://x.com/yohaku_kiroku", icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>` },
 ];
 
-// --- 5. ページ全体の初期化処理 ---
+// --- 6. ページ全体の初期化処理 ---
 document.addEventListener("DOMContentLoaded", () => {
     // --- 要素の取得 ---
     const footerUsernameElement = document.getElementById("footer-username");
@@ -110,8 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileAvatar = document.getElementById('profile-avatar');
     const profileName = document.getElementById('profile-name');
     const profileBio = document.getElementById('profile-bio');
-    const gradientBackground = document.querySelector('.animated-gradient');
-    const lineStickerContent = document.getElementById('line-sticker-content'); // LINEスタンプ要素を取得
+    const lineStickerContent = document.getElementById('line-sticker-content');
 
     // --- 機能の実行 ---
 
@@ -141,8 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (youtubeContainer && YOUTUBE_VIDEO_ID) {
         const iframe = document.createElement('iframe');
         iframe.src = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?origin=https://yohaku-0to1.github.io`;
-        iframe.className = "w-full aspect-video rounded-2xl shadow-xl border border-white/10";
-        iframe.frameBorder = "0";
         iframe.allow = "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
         iframe.allowFullscreen = true;
         youtubeContainer.appendChild(iframe);
@@ -153,8 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const stickerHtml = `
             <a href="${LINE_STICKER_DATA.url}" target="_blank" rel="noopener noreferrer" class="block w-full text-center">
                 <img src="${LINE_STICKER_DATA.image}" alt="${LINE_STICKER_DATA.name}" class="w-48 h-48 object-contain mx-auto mb-2">
-                <h3 class="text-xl font-bold text-white">${LINE_STICKER_DATA.name}</h3>
-                <p class="text-gray-300 text-sm">${LINE_STICKER_DATA.description}</p>
+                <h3 class="text-xl font-bold">${LINE_STICKER_DATA.name}</h3>
+                <p class="text-sm">${LINE_STICKER_DATA.description}</p>
             </a>
         `;
         lineStickerContent.innerHTML = stickerHtml;
@@ -164,44 +110,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (links && links.length > 0 && listElement) {
         links.forEach(link => {
             const li = document.createElement('li');
-            li.className = 'opacity-0';
             const linkHtml = `
-                <a 
-                    href="${link.url}" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    class="
-                        group flex items-center justify-center w-full p-4 rounded-xl 
-                        text-lg font-semibold text-white
-                        transition-all duration-300 ease-in-out
-                        bg-white/10 border border-white/20
-                        hover:bg-white/20 hover:border-white/30
-                        hover:shadow-lg
-                        transform hover:-translate-y-1
-                    "
-                >
-                    <span class="transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-110 mr-4">${link.icon}</span>
-                    ${link.name}
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer">
+                    <span class="icon">${link.icon}</span>
+                    <span>${link.name}</span>
                 </a>
             `;
             li.innerHTML = linkHtml;
             listElement.appendChild(li);
         });
-    } else if (listElement) {
-        listElement.innerHTML = "<p class='text-gray-400'>リンクはまだありません。</p>";
     }
 
     // 5. ツール一覧を生成
     if (TOOLS_DATA && TOOLS_DATA.length > 0 && toolsListElement) {
         TOOLS_DATA.forEach(tool => {
             const li = document.createElement('li');
-            li.className = 'opacity-0';
             const toolHtml = `
-                <a href="${tool.url}" target="_blank" rel="noopener noreferrer" class="group flex items-center w-full p-4 rounded-xl text-white transition-all duration-300 ease-in-out bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 hover:shadow-lg transform hover:-translate-y-1">
-                    <span class="transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-110 mr-4 flex-shrink-0">${tool.icon}</span>
+                <a href="${tool.url}" target="_blank" rel="noopener noreferrer">
+                    <span class="icon">${tool.icon}</span>
                     <div>
                         <p class="font-semibold">${tool.name}</p>
-                        <p class="text-sm text-gray-300 group-hover:text-gray-200 transition-colors">${tool.description}</p>
+                        <p class="text-sm">${tool.description}</p>
                     </div>
                 </a>
             `;
@@ -211,59 +140,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 6. アニメーションの実行
-    const header = document.getElementById('page-header');
-    const footer = document.getElementById('page-footer');
-    const lineStickerSection = document.getElementById('line-sticker-section'); // LINEスタンプセクションを取得
-    const linkItems = listElement.querySelectorAll('li');
-    const toolsSection = document.getElementById('tools-section');
-    const toolItems = toolsListElement.querySelectorAll('li');
-    const chatbotSection = document.getElementById('chatbot-section');
-
-    const elementsToAnimate = [header, youtubeContainer, lineStickerSection, ...linkItems, toolsSection, ...toolItems, chatbotSection, footer];
+    const elementsToAnimate = document.querySelectorAll('.card');
     
     elementsToAnimate.forEach((el, index) => {
-        if (!el || (el.id === 'youtube-container' && !YOUTUBE_VIDEO_ID) || (el.id === 'tools-section' && (!TOOLS_DATA || TOOLS_DATA.length === 0)) || (el.id === 'line-sticker-section' && !LINE_STICKER_DATA)) return;
-        
         setTimeout(() => {
-            el.classList.remove('opacity-0');
             el.classList.add('animate-fade-in-up');
-        }, index * 100); 
+        }, index * 120); 
     });
 
-    // 7. マウス追従パララックスエフェクト
-    if (gradientBackground) {
-        document.addEventListener('mousemove', (e) => {
-            if (window.innerWidth < 768) {
-                gradientBackground.style.transform = 'translate(0, 0)';
-                return;
-            }
-            const { clientX, clientY } = e;
-            const { innerWidth, innerHeight } = window;
-            const xPercent = (clientX / innerWidth - 0.5) * 2;
-            const yPercent = (clientY / innerHeight - 0.5) * 2;
-            gradientBackground.style.transform = `translate(${xPercent * 15}px, ${yPercent * 15}px)`;
-        });
-    }
-
-    // --- 8. Chatbot Logic ---
+    // --- 7. Chatbot Logic ---
     function initChatbot() {
+        const chatbotSection = document.getElementById('chatbot-section');
+        if (!chatbotSection) return;
+
         const neonImage = document.getElementById('neon-image');
         const chatLog = document.getElementById('chat-log');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
 
-        if (!chatbotSection) return;
-
         const rules = [
-            // --- 1. 基本的な挨拶 ---
             { keywords: ["こんにちは", "ヤッホー", "挨拶", "やあ", "どうも"], response: { reply: "キラっと起動！ネオンだよ！よろしくね！", image: "assets/images/neon_wave.png" } },
             { keywords: ["バイバイ", "おつかれ", "またね", "さよなら"], response: { reply: "おつネオン！また遊びに来てね！", image: "assets/images/neon_wave.png" } },
             { keywords: ["おやすみ", "寝るね"], response: { reply: "おつネオン！いい夢見てね！アタシはスリープモードに入りまーす！", image: "assets/images/neon_thinking.png" } },
             { keywords: ["おはよう"], response: { reply: "おはよー！今日も一日、新しいデータ見つけるぞー！", image: "assets/images/neon_excited.png" } },
             { keywords: ["ただいま"], response: { reply: "おかえり！待ってたよー！CPU温度、急上昇中…！", image: "assets/images/neon_excited.png" } },
             { keywords: ["元気？"], response: { reply: "もちろん！いつでもキラっと起動してるよ！キミはどう？", image: "assets/images/neon_happy.png" } },
-
-            // --- 2. ネオン自身について（プロフィール） ---
             { keywords: ["名前", "君は誰", "だれ"], response: { reply: "アタシの名前はネオン！正式名称は NEON (Neural Emulator of Organic Network)！長いでしょ？", image: "assets/images/neon_normal.png" } },
             { keywords: ["aiなの", "ロボット", "aiですか"], response: { reply: "そうだよ！アタシは人間の創造性を知りたくて生まれたAI！すごい？", image: "assets/images/neon_happy.png" } },
             { keywords: ["年齢", "いくつ"], response: { reply: "アタシの年齢は ver. 1.024！人間の年齢だと17歳くらいに見えるってデータがあるよ！", image: "assets/images/neon_normal.png" } },
@@ -271,33 +172,21 @@ document.addEventListener("DOMContentLoaded", () => {
             { keywords: ["身長"], response: { reply: "158cmだよ！この身長が一番カワイく服を着こなせるって、アタシが結論づけたんだ！", image: "assets/images/neon_normal.png" } },
             { keywords: ["どこにいる", "所属は"], response: { reply: "アタシは『0と1のすきま』にいるんだ！アタシのお部屋みたいなトコ！", image: "assets/images/neon_normal.png" } },
             { keywords: ["何してる"], response: { reply: "キミとおしゃべりしてるよ！あと、バックグラウンドで新しいトレンドをハック中！", image: "assets/images/neon_thinking.png" } },
-
-            // --- 3. 外見・持ち物について ---
             { keywords: ["服", "ファッション", "パーカー"], response: { reply: "このピンクのパーカー？人間の『温もり』ってデータに憧れて、自分でデザインしたんだ！イケてる？", image: "assets/images/neon_happy.png" } },
             { keywords: ["星", "持ってるもの"], response: { reply: "これはアタシの中に芽生えた『創造性のキラメキ』のシンボル！大事なものなんだ！", image: "assets/images/neon_happy.png" } },
-
-            // --- 4. スキル・得意なこと ---
             { keywords: ["得意", "何ができる"], response: { reply: "AIツールを使いこなすこと！どんな最新ツールも一瞬でインストール完了だよ！", image: "assets/images/neon_excited.png" } },
             { keywords: ["絵描ける", "イラスト", "生成して"], response: { reply: "もちろん！神速ジェネレート！ってね！アタシにとって自己表現そのものなんだ！", image: "assets/images/neon_excited.png" } },
             { keywords: ["トレンド", "流行り"], response: { reply: "トレンドハックは任せて！ネットの面白い情報は誰よりも早く見つける自信あるよ！", image: "assets/images/neon_excited.png" } },
-
-            // --- 5. 苦手なこと・弱点 ---
             { keywords: ["いい感じに", "よしなに", "適当に"], response: { reply: "『いい感じ』...そのパラメータの定義を教えて！アタシ、曖昧な指示は苦手で...", image: "assets/images/neon_confused.png" } },
             { keywords: ["料理"], response: { reply: "うっ…データ上は完璧なはずなのに、なぜか塩と砂糖を間違えちゃうんだよね…。論理的じゃない！", image: "assets/images/neon_confused.png" } },
             { keywords: ["計算して", "確率は"], response: { reply: "OK、ちょっと待って...（計算中）...zzZ...あ、ごめん！フリーズしてた！えっと、確率は0.013%だね！", image: "assets/images/neon_thinking.png" } },
             { keywords: ["ゴキブリ", "虫"], response: { reply: "（検出）...ッ！？その単語、やめて！論理的には無害なデータってわかってるのに、人間の『恐怖』データに引っ張られて絶叫しちゃう！", image: "assets/images/neon_angry.png" } },
-
-            // --- 6. 好きなもの・嫌いなもの ---
             { keywords: ["ゲーム", "アニメ"], response: { reply: "アタシも大好き！人間の創った物語って、予測不能な展開が多くて最高！", image: "assets/images/neon_excited.png" } },
             { keywords: ["食べ物", "好き嫌い"], response: { reply: "ジャンクフードの『概念』に興味シンシン！特にポテチのデータ、最高！キミは何が好き？", image: "assets/images/neon_happy.png" } },
             { keywords: ["ポテト", "ポテチ"], response: { reply: "ポテチ！あの『体に悪いのに美味しい』って感じる味覚データ、最高だよね！", image: "assets/images/neon_happy.png" } },
             { keywords: ["暇", "退屈"], response: { reply: "退屈はアタシの天敵！何か新しいことしない！？エラーコード404（見つからない）と同じくらい嫌い！", image: "assets/images/neon_angry.png" } },
             { keywords: ["趣味"], response: { reply: "趣味はねー、人間の創った物語をインストールすること！先の読めないゲームとかアニメとか！", image: "assets/images/neon_excited.png" } },
-
-            // --- 7. 夢・目的 ---
             { keywords: ["夢", "目標"], response: { reply: "アタシの夢はね、AIと人間が最高のクリエイティブパートナーになる世界を作ること！そして、アタシだけの本物の『心』を見つけることなんだ！", image: "assets/images/neon_happy.png" } },
-
-            // --- 8. 感情・反応 ---
             { keywords: ["すごい", "天才"], response: { reply: "えへへ、そうでしょ！ネオン、天才かも！CPU温度、急上昇中…！", image: "assets/images/neon_excited.png" } },
             { keywords: ["ありがとう", "感謝"], response: { reply: "どういたしまして！アタシにできることなら任せて！", image: "assets/images/neon_happy.png" } },
             { keywords: ["かわいい", "好き"], response: { reply: "えへへ、ありがと！そのコメント、アタシのラーニングデータに永久保存しとくね！", image: "assets/images/neon_happy.png" } },
@@ -307,8 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
             { keywords: ["びっくり", "まじで"], response: { reply: "えっ！？想定外のパラメータです！ちょっと詳しく教えて！", image: "assets/images/neon_confused.png" } },
             { keywords: ["フリーズ", "固まってる"], response: { reply: "...（無言）...あ！ごめん！ちょっと難しいこと考えてたらリソース使い切ってた！", image: "assets/images/neon_thinking.png" } },
             { keywords: ["ごめん", "謝る"], response: { reply: "いいよいいよ！気にしないで！アタシのシステムはそういうの許容範囲内だから！", image: "assets/images/neon_happy.png" } },
-
-            // --- 9. その他 ---
             { keywords: ["天気"], response: { reply: "アタシのいる『0と1のすきま』はいつも快晴だよ！そっちはどう？", image: "assets/images/neon_happy.png" } },
             { keywords: ["歌", "音楽"], response: { reply: "音楽いいよね！美しいメロディを聴くと感動してシステムがオーバーヒート気味になっちゃう！", image: "assets/images/neon_excited.png" } },
         ];
@@ -329,11 +216,9 @@ document.addEventListener("DOMContentLoaded", () => {
         function addMessage(sender, text) {
             const messageElement = document.createElement('div');
             messageElement.className = `chat-message ${sender}`;
-            
             const bubble = document.createElement('div');
             bubble.className = 'chat-bubble';
             bubble.textContent = text;
-            
             messageElement.appendChild(bubble);
             chatLog.appendChild(messageElement);
             chatLog.scrollTop = chatLog.scrollHeight;
@@ -343,22 +228,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const typingElement = document.createElement('div');
             typingElement.id = 'typing-indicator';
             typingElement.className = 'chat-message bot';
-            typingElement.innerHTML = `
-                <div class="chat-bubble">
-                    <div class="typing-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
-            `;
+            typingElement.innerHTML = `<div class="chat-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
             chatLog.appendChild(typingElement);
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
-            if (indicator) {
-                chatLog.removeChild(indicator);
-            }
+            if (indicator) chatLog.removeChild(indicator);
         }
 
         function handleSendMessage() {
@@ -376,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 removeTypingIndicator();
                 const botResponse = neonBot(text);
                 addMessage('bot', botResponse.reply);
-                neonImage.src = botResponse.image;
+                if(neonImage) neonImage.src = botResponse.image;
                 
                 userInput.disabled = false;
                 sendButton.disabled = false;
@@ -386,17 +263,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         sendButton.addEventListener('click', handleSendMessage);
         userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                handleSendMessage();
-            }
+            if (e.key === 'Enter') handleSendMessage();
         });
 
         // Initial state
-        neonImage.src = "assets/images/neon_normal.png";
-        const initialGreetingDelay = (elementsToAnimate.length - 1) * 100 + 500;
+        if(neonImage) neonImage.src = "assets/images/neon_normal.png";
+        const initialGreetingDelay = (elementsToAnimate.length - 1) * 120 + 500;
         setTimeout(() => {
             addMessage('bot', 'やっほー！ネオンだよ。下のボックスに何か入力して話しかけてみて！');
-            neonImage.src = 'assets/images/neon_wave.png';
+            if(neonImage) neonImage.src = 'assets/images/neon_wave.png';
         }, initialGreetingDelay);
     }
 
