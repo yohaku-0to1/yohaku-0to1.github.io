@@ -121,14 +121,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const previewBox = document.createElement('div');
         previewBox.className = 'preview-container p-4 rounded-lg';
         
-        let content = '';
-        const thumbnailHtml = `
-            <div class="thumbnail-container relative cursor-pointer">
-                <img src="${imgA}" class="thumbnail-a w-full aspect-video rounded-lg">
-                ${imgB ? `<img src="${imgB}" class="thumbnail-b w-full aspect-video rounded-lg absolute top-0 left-0 hidden">` : ''}
-            </div>
-        `;
+        let thumbnailHtml;
+        if (imgB) {
+            thumbnailHtml = `
+                <div class="thumbnail-container flex gap-2">
+                    <img src="${imgA}" class="thumbnail-a w-1/2 aspect-video rounded-lg">
+                    <img src="${imgB}" class="thumbnail-b w-1/2 aspect-video rounded-lg">
+                </div>
+            `;
+        } else {
+            thumbnailHtml = `
+                <div class="thumbnail-container">
+                    <img src="${imgA}" class="thumbnail-a w-full aspect-video rounded-lg">
+                </div>
+            `;
+        }
 
+        let content = '';
         switch (type) {
             case 'pc-home':
                 content = `
@@ -150,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="w-full max-w-xs">
                         <div class="flex gap-2">
                             <div class="w-40 flex-shrink-0">
-                                ${thumbnailHtml.replace('rounded-lg', 'rounded')}
+                                ${imgB ? thumbnailHtml.replace(/w-1\/2/g, 'w-full').replace('rounded-lg', 'rounded') : thumbnailHtml.replace('rounded-lg', 'rounded')}
                             </div>
                             <div>
                                 <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
@@ -160,11 +169,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
+                 if(imgB) {
+                    // For sidebar, stack them vertically if two images
+                    content = `
+                    <div class="w-full max-w-xs">
+                        <div class="flex gap-2">
+                            <div class="w-40 flex-shrink-0 space-y-2">
+                                <img src="${imgA}" class="w-full aspect-video rounded">
+                                <img src="${imgB}" class="w-full aspect-video rounded">
+                            </div>
+                            <div>
+                                <p class="preview-title font-semibold text-sm leading-snug">${data.title}</p>
+                                <p class="preview-meta text-xs mt-1">${data.channel}</p>
+                                <p class="preview-meta text-xs">${data.views}</p>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }
                 break;
             case 'mobile-home':
                 content = `
                     <div class="w-full max-w-sm">
-                        ${thumbnailHtml.replace('rounded-lg', '')}
+                        ${thumbnailHtml.replace(/rounded-lg/g, '')}
                         <div class="flex mt-3 p-2">
                             <div class="w-10 h-10 rounded-full bg-gray-500 mr-3 flex-shrink-0"></div>
                             <div class="flex-grow">
@@ -178,21 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         previewBox.innerHTML = content;
         wrapper.appendChild(previewBox);
-
-        // Add toggle logic if image B exists
-        if (imgB) {
-            const imageContainer = wrapper.querySelector('.thumbnail-container');
-            if (imageContainer) {
-                const thumbA = imageContainer.querySelector('.thumbnail-a');
-                const thumbB = imageContainer.querySelector('.thumbnail-b');
-                if (thumbA && thumbB) {
-                    imageContainer.addEventListener('click', () => {
-                        thumbA.classList.toggle('hidden');
-                        thumbB.classList.toggle('hidden');
-                    });
-                }
-            }
-        }
 
         return wrapper;
     }
