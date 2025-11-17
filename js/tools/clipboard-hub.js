@@ -154,12 +154,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Failed to fetch URL metadata:', error);
-            const errorItem = { ...placeholderItem, id, title: 'メタデータの取得に失敗しました', description: url };
+            // 元のURLをタイトルとして保持し、説明にエラーメッセージを表示
+            const errorItem = { ...placeholderItem, id, title: url, description: `メタデータの取得に失敗しました: ${error.message}` };
             await db.put('items', errorItem);
             const titleEl = element.querySelector('.url-title');
-            if(titleEl) titleEl.textContent = '取得失敗';
+            if(titleEl) titleEl.textContent = url; // 元のURLを表示
             const descEl = element.querySelector('.url-description');
-            if(descEl) descEl.textContent = error.message;
+            if(descEl) descEl.textContent = `メタデータの取得に失敗しました: ${error.message}`; // エラーメッセージを表示
         } finally {
             // Remove spinner
             loader.remove();
