@@ -213,6 +213,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentElement.value = item.content;
             contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none overflow-y-auto'; // overflow-y-auto を追加
             itemWrapper.appendChild(contentElement);
+
+            const counterContainer = document.createElement('div');
+            counterContainer.className = 'counter-container text-xs text-gray-400 p-1 text-right';
+            counterContainer.innerHTML = `
+                <span>文字数: <span class="char-count">0</span></span> | 
+                <span>行数: <span class="line-count">0</span></span>
+            `;
+            itemWrapper.appendChild(counterContainer);
+
             setTimeout(() => adjustTextareaHeight(contentElement), 0);
         } else if (item.type === 'url') {
             const urlContent = `
@@ -408,10 +417,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const textarea = element.querySelector('textarea');
         if (textarea) {
+            const charCountEl = element.querySelector('.char-count');
+            const lineCountEl = element.querySelector('.line-count');
+
+            const updateCounter = () => {
+                const text = textarea.value;
+                const lines = text.split('\n');
+                charCountEl.textContent = text.length;
+                lineCountEl.textContent = text.length === 0 ? 0 : lines.length;
+            };
+
             textarea.addEventListener('input', () => {
                 adjustTextareaHeight(textarea);
                 updateDb({ content: textarea.value });
+                updateCounter();
             });
+
+            updateCounter(); // Initial count
         }
     }
 
