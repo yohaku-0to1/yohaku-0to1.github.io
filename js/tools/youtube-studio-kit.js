@@ -40,9 +40,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlayTextInput = document.getElementById('overlay-text');
     const textFontSizeInput = document.getElementById('text-font-size');
     const textColorInput = document.getElementById('text-color');
+    const textPosXInput = document.getElementById('text-pos-x');
+    const textPosYInput = document.getElementById('text-pos-y');
     const downloadThumbnailBtn = document.getElementById('download-thumbnail-btn');
 
     let currentBaseImage = null; // Stores the base image for the canvas
+
+    // --- Thumbnail Editor State ---
+    let textLayers = [];
+    let selectedTextLayerIndex = -1;
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    // --- Thumbnail Editor Elements ---
+    const thumbnailEditor = document.getElementById('thumbnail-editor');
+    const thumbnailCanvas = document.getElementById('thumbnail-canvas');
+    const ctx = thumbnailCanvas.getContext('2d');
+    const overlayTextInput = document.getElementById('overlay-text');
+    const textFontSizeInput = document.getElementById('text-font-size');
+    const textColorInput = document.getElementById('text-color');
+    const textPosXInput = document.getElementById('text-pos-x');
+    const textPosYInput = document.getElementById('text-pos-y');
+    const downloadThumbnailBtn = document.getElementById('download-thumbnail-btn');
+    const textLayersList = document.getElementById('text-layers-list');
+    const addTextLayerBtn = document.getElementById('add-text-layer-btn');
+    const deleteTextLayerBtn = document.getElementById('delete-text-layer-btn');
 
     // --- Thumbnail Editor Constants ---
     const THUMBNAIL_WIDTH = 1280; // YouTube recommended width
@@ -289,27 +312,87 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ctx.drawImage(currentBaseImage, offsetX, offsetY, drawWidth, drawHeight);
 
+        // Draw each text layer
+        textLayers.forEach((layer, index) => {
+            ctx.font = `${layer.fontSize}px Noto Sans JP, sans-serif`;
+            ctx.fillStyle = layer.color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-        const text = overlayTextInput.value;
-        const fontSize = textFontSizeInput.value;
-        const textColor = textColorInput.value;
+            ctx.fillText(layer.text, layer.x, layer.y);
 
-        ctx.font = `${fontSize}px Noto Sans JP, sans-serif`; // Use Noto Sans JP for better Japanese support
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+            // Highlight selected layer
+            if (index === selectedTextLayerIndex) {
+                const textWidth = ctx.measureText(layer.text).width;
+                const textHeight = parseInt(layer.fontSize, 10);
+                ctx.strokeStyle = 'yellow';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(layer.x - textWidth / 2 - 5, layer.y - textHeight / 2 - 5, textWidth + 10, textHeight + 10);
+            }
+        });
+    }
 
-        // Default position (center of canvas)
-        const x = thumbnailCanvas.width / 2;
-        const y = thumbnailCanvas.height / 2;
+    function renderTextLayersList() {
+        textLayersList.innerHTML = textLayers.map((layer, index) => `
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5 ${index === selectedTextLayerIndex ? 'border border-blue-500' : ''}" data-index="${index}">
+                <span class="flex-grow truncate">${layer.text || '(空のテキスト)'}</span>
+                <button class="select-text-layer-btn bg-gray-600 hover:bg-gray-700 text-white text-xs py-1 px-2 rounded transition-colors" data-index="${index}">選択</button>
+            </div>
+        `).join('');
+    }
 
-        ctx.fillText(text, x, y);
+    function selectTextLayer(index) {
+        selectedTextLayerIndex = index;
+        if (selectedTextLayerIndex !== -1 && textLayers[selectedTextLayerIndex]) {
+            const layer = textLayers[selectedTextLayerIndex];
+            overlayTextInput.value = layer.text;
+            textFontSizeInput.value = layer.fontSize;
+            textColorInput.value = layer.color;
+            textPosXInput.value = Math.round(layer.x);
+            textPosYInput.value = Math.round(layer.y);
+        } else {
+            // Clear inputs if no layer is selected
+            overlayTextInput.value = '';
+            textFontSizeInput.value = '48';
+            textColorInput.value = '#FFFFFF';
+            textPosXInput.value = String(THUMBNAIL_WIDTH / 2);
+            textPosYInput.value = String(THUMBNAIL_HEIGHT / 2);
+        }
+        renderTextLayersList();
+        drawOverlayText();
     }
 
     // Event listeners for overlay controls
-    overlayTextInput.addEventListener('input', drawOverlayText);
-    textFontSizeInput.addEventListener('change', drawOverlayText);
-    textColorInput.addEventListener('change', drawOverlayText);
+    overlayTextInput.addEventListener('input', () => {
+        if (selectedTextLayerIndex !== -1) {
+            textLayers[selectedTextLayerIndex].text = overlayTextInput.value;
+            drawOverlayText();
+        }
+    });
+    textFontSizeInput.addEventListener('change', () => {
+        if (selectedTextLayerIndex !== -1) {
+            textLayers[selectedTextLayerIndex].fontSize = parseInt(textFontSizeInput.value, 10);
+            drawOverlayText();
+        }
+    });
+    textColorInput.addEventListener('change', () => {
+        if (selectedTextLayerIndex !== -1) {
+            textLayers[selectedTextLayerIndex].color = textColorInput.value;
+            drawOverlayText();
+        }
+    });
+    textPosXInput.addEventListener('change', () => {
+        if (selectedTextLayerIndex !== -1) {
+            textLayers[selectedTextLayerIndex].x = parseInt(textPosXInput.value, 10);
+            drawOverlayText();
+        }
+    });
+    textPosYInput.addEventListener('change', () => {
+        if (selectedTextLayerIndex !== -1) {
+            textLayers[selectedTextLayerIndex].y = parseInt(textPosYInput.value, 10);
+            drawOverlayText();
+        }
+    });
 
     downloadThumbnailBtn.addEventListener('click', () => {
         if (!currentBaseImage) {
@@ -320,6 +403,91 @@ document.addEventListener('DOMContentLoaded', () => {
         link.download = 'youtube_thumbnail.png';
         link.href = thumbnailCanvas.toDataURL('image/png');
         link.click();
+    });
+
+    // --- Canvas Drag & Drop for Text ---
+    thumbnailCanvas.addEventListener('mousedown', (e) => {
+        if (selectedTextLayerIndex === -1) return; // Only drag if a layer is selected
+
+        const rect = thumbnailCanvas.getBoundingClientRect();
+        const scaleX = thumbnailCanvas.width / rect.width;
+        const scaleY = thumbnailCanvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+
+        const selectedLayer = textLayers[selectedTextLayerIndex];
+        if (!selectedLayer) return;
+
+        ctx.font = `${selectedLayer.fontSize}px Noto Sans JP, sans-serif`;
+        const textWidth = ctx.measureText(selectedLayer.text).width;
+        const textHeight = parseInt(selectedLayer.fontSize, 10); // Approximation
+
+        // Check if mouse is over the selected text layer
+        if (mouseX > selectedLayer.x - textWidth / 2 - 5 && mouseX < selectedLayer.x + textWidth / 2 + 5 &&
+            mouseY > selectedLayer.y - textHeight / 2 - 5 && mouseY < selectedLayer.y + textHeight / 2 + 5) {
+            isDragging = true;
+            dragOffsetX = mouseX - selectedLayer.x;
+            dragOffsetY = mouseY - selectedLayer.y;
+        }
+    });
+
+    thumbnailCanvas.addEventListener('mousemove', (e) => {
+        if (isDragging && selectedTextLayerIndex !== -1) {
+            const rect = thumbnailCanvas.getBoundingClientRect();
+            const scaleX = thumbnailCanvas.width / rect.width;
+            const scaleY = thumbnailCanvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+
+            textLayers[selectedTextLayerIndex].x = mouseX - dragOffsetX;
+            textLayers[selectedTextLayerIndex].y = mouseY - dragOffsetY;
+
+            // Update input fields
+            textPosXInput.value = Math.round(textLayers[selectedTextLayerIndex].x);
+            textPosYInput.value = Math.round(textLayers[selectedTextLayerIndex].y);
+
+            drawOverlayText();
+        }
+    });
+
+    thumbnailCanvas.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    thumbnailCanvas.addEventListener('mouseleave', () => {
+        isDragging = false; // Stop dragging if mouse leaves canvas
+    });
+
+    addTextLayerBtn.addEventListener('click', () => {
+        const newLayer = {
+            text: '新しいテキスト',
+            x: THUMBNAIL_WIDTH / 2,
+            y: THUMBNAIL_HEIGHT / 2,
+            fontSize: 48,
+            color: '#FFFFFF'
+        };
+        textLayers.push(newLayer);
+        selectTextLayer(textLayers.length - 1); // Select the newly added layer
+    });
+
+    deleteTextLayerBtn.addEventListener('click', () => {
+        if (selectedTextLayerIndex !== -1 && textLayers.length > 0) {
+            textLayers.splice(selectedTextLayerIndex, 1);
+            selectedTextLayerIndex = -1; // Deselect
+            renderTextLayersList();
+            drawOverlayText();
+            selectTextLayer(-1); // Clear input fields
+        } else {
+            alert('削除するテキストレイヤーがありません。');
+        }
+    });
+
+    textLayersList.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.classList.contains('select-text-layer-btn')) {
+            const index = parseInt(target.dataset.index, 10);
+            selectTextLayer(index);
+        }
     });
 
     function renderPreviews() {
@@ -469,18 +637,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTimestampList() {
-        timestampList.innerHTML = timestamps.map((ts, index) => `
-            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5 draggable-item" draggable="true" data-index="${index}" data-id="${ts.time}-${index}">
-                <span class="timestamp-display font-mono text-sm">${formatTime(ts.time)}</span>
-                <input type="text" class="timestamp-edit-time hidden bg-white/10 border border-white/20 rounded-lg px-2 py-1 w-28 text-sm" value="${formatTime(ts.time)}">
-                <span class="title-display flex-grow">${ts.title}</span>
-                <input type="text" class="title-edit-input hidden flex-grow bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-sm" value="${ts.title}">
-                <button class="edit-ts-btn text-blue-400 hover:text-blue-600 transition-colors">編集</button>
-                <button class="save-ts-btn hidden text-green-400 hover:text-green-600 transition-colors">保存</button>
-                <button class="cancel-ts-btn hidden text-gray-400 hover:text-gray-600 transition-colors">キャンセル</button>
-                <button class="delete-ts-btn text-red-400 hover:text-red-600 transition-colors">✖</button>
-            </div>
-        `).join('');
+        const videoDuration = player ? player.getDuration() : 0;
+        timestampList.innerHTML = timestamps.map((ts, index) => {
+            const nextTimestampTime = timestamps[index + 1] ? timestamps[index + 1].time : videoDuration;
+            const chapterDuration = nextTimestampTime > ts.time ? nextTimestampTime - ts.time : 0;
+            const formattedDuration = chapterDuration > 0 ? ` (${formatTime(chapterDuration)})` : '';
+
+            return `
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5 draggable-item" draggable="true" data-index="${index}" data-id="${ts.time}-${index}">
+                    <span class="timestamp-display font-mono text-sm">${formatTime(ts.time)}</span>
+                    <input type="text" class="timestamp-edit-time hidden bg-white/10 border border-white/20 rounded-lg px-2 py-1 w-28 text-sm" value="${formatTime(ts.time)}">
+                    <span class="title-display flex-grow">${ts.title}${formattedDuration}</span>
+                    <input type="text" class="title-edit-input hidden flex-grow bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-sm" value="${ts.title}">
+                    <button class="edit-ts-btn text-blue-400 hover:text-blue-600 transition-colors">編集</button>
+                    <button class="save-ts-btn hidden text-green-400 hover:text-green-600 transition-colors">保存</button>
+                    <button class="cancel-ts-btn hidden text-gray-400 hover:text-gray-600 transition-colors">キャンセル</button>
+                    <button class="delete-ts-btn text-red-400 hover:text-red-600 transition-colors">✖</button>
+                </div>
+            `;
+        }).join('');
     }
 
     function renderTimestampOutput() {
@@ -643,6 +818,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyMetadataBtn = document.getElementById('copy-metadata');
     const suggestTagsBtn = document.getElementById('suggest-tags-btn');
 
+    // --- Description Template Elements ---
+    const descriptionTemplateInput = document.getElementById('description-template');
+    const generateDescriptionBtn = document.getElementById('generate-description-btn');
+
+    // --- Social Media Link Elements ---
+    const socialLinkNameInput = document.getElementById('social-link-name');
+    const socialLinkUrlInput = document.getElementById('social-link-url');
+    const addSocialLinkBtn = document.getElementById('add-social-link-btn');
+    const socialLinksList = document.getElementById('social-links-list');
+    let socialLinks = []; // Array to hold social link objects
+
     applyOffsetBtn.addEventListener('click', () => {
         const offsetStr = offsetTimeInput.value;
         if (!offsetStr) return;
@@ -736,4 +922,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
         videoTagsInput.value = Array.from(newTags).join(', ');
     });
+
+    generateDescriptionBtn.addEventListener('click', () => {
+        const template = descriptionTemplateInput.value;
+        const title = videoTitleInput.value;
+        const tags = videoTagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '').map(tag => `#${tag}`).join(' ');
+        const formattedTimestamps = timestamps.map(ts => `${formatTime(ts.time)} ${ts.title}`).join('\n');
+
+        let generatedDescription = template;
+        generatedDescription = generatedDescription.replace(/{{title}}/g, title);
+        generatedDescription = generatedDescription.replace(/{{timestamps}}/g, formattedTimestamps);
+        generatedDescription = generatedDescription.replace(/{{tags}}/g, tags);
+        // Add more placeholders as needed, e.g., {{description}} if it's not the target
+
+        videoDescriptionInput.value = generatedDescription;
+    });
+
+    // --- Social Media Link Manager Logic ---
+    function loadSocialLinks() {
+        const storedLinks = localStorage.getItem('socialLinks');
+        socialLinks = storedLinks ? JSON.parse(storedLinks) : [];
+    }
+
+    function saveSocialLinks() {
+        localStorage.setItem('socialLinks', JSON.stringify(socialLinks));
+    }
+
+    function renderSocialLinks() {
+        socialLinksList.innerHTML = socialLinks.map((link, index) => `
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                <span class="font-semibold">${link.name}:</span>
+                <a href="${link.url}" target="_blank" class="text-blue-400 hover:underline flex-grow truncate">${link.url}</a>
+                <button data-index="${index}" class="insert-social-link-btn bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-2 rounded transition-colors">挿入</button>
+                <button data-index="${index}" class="delete-social-link-btn text-red-400 hover:text-red-600 transition-colors">✖</button>
+            </div>
+        `).join('');
+    }
+
+    addSocialLinkBtn.addEventListener('click', () => {
+        const name = socialLinkNameInput.value.trim();
+        const url = socialLinkUrlInput.value.trim();
+
+        if (!name || !url) {
+            alert('名前とURLを入力してください。');
+            return;
+        }
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            alert('有効なURL (http:// または https:// で始まる) を入力してください。');
+            return;
+        }
+
+        socialLinks.push({ name, url });
+        saveSocialLinks();
+        renderSocialLinks();
+        socialLinkNameInput.value = '';
+        socialLinkUrlInput.value = '';
+    });
+
+    socialLinksList.addEventListener('click', (e) => {
+        const target = e.target;
+        const index = parseInt(target.dataset.index, 10);
+
+        if (target.classList.contains('insert-social-link-btn')) {
+            const link = socialLinks[index];
+            if (link) {
+                // Insert at cursor position in videoDescriptionInput
+                const start = videoDescriptionInput.selectionStart;
+                const end = videoDescriptionInput.selectionEnd;
+                const currentText = videoDescriptionInput.value;
+                videoDescriptionInput.value = currentText.substring(0, start) + `${link.name}: ${link.url}\n` + currentText.substring(end);
+                videoDescriptionInput.focus();
+                videoDescriptionInput.selectionEnd = start + `${link.name}: ${link.url}\n`.length;
+            }
+        } else if (target.classList.contains('delete-social-link-btn')) {
+            if (confirm(`${socialLinks[index].name} を削除しますか？`)) {
+                socialLinks.splice(index, 1);
+                saveSocialLinks();
+                renderSocialLinks();
+            }
+        }
+    });
+
+    // Initial load
+    loadSocialLinks();
+    renderSocialLinks();
 });

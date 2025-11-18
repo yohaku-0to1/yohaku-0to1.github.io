@@ -72,6 +72,29 @@
                                 <input type="color" id="text-color" class="w-full h-10 bg-white/10 border border-white/20 rounded-lg px-3 py-2" value="#FFFFFF">
                             </div>
                             <div class="flex gap-2">
+                                <div>
+                                    <label for="text-pos-x" class="block text-sm font-medium mb-1">X位置</label>
+                                    <input type="number" id="text-pos-x" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2" value="640">
+                                </div>
+                                <div>
+                                    <label for="text-pos-y" class="block text-sm font-medium mb-1">Y位置</label>
+                                    <input type="number" id="text-pos-y" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2" value="360">
+                                </div>
+                            </div>
+
+                            <!-- Text Layers Management -->
+                            <div class="border-t border-white/20 pt-4 mt-4">
+                                <h4 class="font-bold mb-2">テキストレイヤー</h4>
+                                <div id="text-layers-list" class="space-y-2 mb-2">
+                                    <!-- Text layers will be listed here -->
+                                </div>
+                                <div class="flex gap-2">
+                                    <button id="add-text-layer-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-grow">レイヤーを追加</button>
+                                    <button id="delete-text-layer-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">削除</button>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
                                 <button id="download-thumbnail-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-grow">ダウンロード</button>
                             </div>
                         </div>
@@ -145,6 +168,42 @@
                         </div>
                         <div class="flex justify-end">
                             <button id="copy-metadata" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">メタデータをコピー</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Template Generator -->
+                <div id="description-template-generator" class="mt-8">
+                    <h3 class="font-bold mb-2">4. 説明テンプレート</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="description-template" class="block text-sm font-medium mb-1">テンプレート入力</label>
+                            <textarea id="description-template" class="w-full h-32 bg-white/10 border border-white/20 rounded-lg px-3 py-2" placeholder="例:
+{{title}}
+
+こんにちは！今回の動画では...
+
+{{timestamps}}
+
+#{{tags}}"></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button id="generate-description-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">説明を生成</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media Link Manager -->
+                <div id="social-media-links-manager" class="mt-8">
+                    <h3 class="font-bold mb-2">5. ソーシャルメディアリンク</h3>
+                    <div class="space-y-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="social-link-name" class="w-1/3 bg-white/10 border border-white/20 rounded-lg px-3 py-2" placeholder="名前 (例: Twitter)">
+                            <input type="url" id="social-link-url" class="flex-grow bg-white/10 border border-white/20 rounded-lg px-3 py-2" placeholder="URL (例: https://twitter.com/your_id)">
+                            <button id="add-social-link-btn" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">追加</button>
+                        </div>
+                        <div id="social-links-list" class="space-y-2">
+                            <!-- Social media links will be displayed here -->
                         </div>
                     </div>
                 </div>
