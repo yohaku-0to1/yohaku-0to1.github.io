@@ -50,29 +50,40 @@
 
             <!-- Timestamp Editor Content (Initially hidden) -->
             <div id="content-timestamp" class="py-4 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Editor -->
-                    <div>
-                        <h3 class="font-bold mb-2">チャプターを追加</h3>
-                        <form id="timestamp-form" class="flex items-center gap-2 mb-4">
-                            <input type="text" id="timestamp-time" placeholder="HH:MM:SS" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 w-28">
-                            <input type="text" id="timestamp-title" placeholder="チャプター名" class="flex-grow bg-white/10 border border-white/20 rounded-lg px-3 py-2">
-                            <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">追加</button>
-                        </form>
-                        <div id="timestamp-list" class="space-y-2">
-                            <!-- Timestamp items will be generated here -->
+                <div id="youtube-url-container">
+                    <h3 class="font-bold mb-2">1. YouTube動画のURLを入力</h3>
+                    <form id="youtube-url-form" class="flex items-center gap-2">
+                        <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=..." class="flex-grow bg-white/10 border border-white/20 rounded-lg px-3 py-2">
+                        <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">読み込む</button>
+                    </form>
+                </div>
+
+                <div id="player-container" class="hidden mt-6">
+                    <h3 class="font-bold mb-2">2. 動画を再生してチャプターを作成</h3>
+                    <div id="player" class="w-full aspect-video bg-black rounded-lg mb-4"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Editor -->
+                        <div>
+                            <form id="timestamp-form" class="flex items-center gap-2 mb-4">
+                                <button type="button" id="get-current-time" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-lg transition-colors" title="現在の再生時間を入力">▶</button>
+                                <input type="text" id="timestamp-time" placeholder="HH:MM:SS" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 w-28">
+                                <input type="text" id="timestamp-title" placeholder="チャプター名" class="flex-grow bg-white/10 border border-white/20 rounded-lg px-3 py-2">
+                                <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">追加</button>
+                            </form>
+                            <div id="timestamp-list" class="space-y-2">
+                                <!-- Timestamp items will be generated here -->
+                            </div>
                         </div>
-                    </div>
-                    <!-- Output & Controls -->
-                    <div>
-                        <h3 class="font-bold mb-2">出力結果</h3>
-                        <textarea id="timestamp-output" readonly class="w-full h-48 bg-black/20 rounded-lg p-2 border border-white/10"></textarea>
-                        <div class="flex justify-between items-center mt-2">
-                            <button id="copy-timestamps" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">すべてコピー</button>
-                            <div class="flex items-center gap-2">
-                                <label for="offset-time" class="text-sm">オフセット:</label>
-                                <input type="text" id="offset-time" placeholder="+/- MM:SS" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 w-28">
-                                <button id="apply-offset" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-lg transition-colors">適用</button>
+                        <!-- Output & Controls -->
+                        <div>
+                            <textarea id="timestamp-output" readonly class="w-full h-48 bg-black/20 rounded-lg p-2 border border-white/10"></textarea>
+                            <div class="flex justify-between items-center mt-2">
+                                <button id="copy-timestamps" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">すべてコピー</button>
+                                <div class="flex items-center gap-2">
+                                    <label for="offset-time" class="text-sm">オフセット:</label>
+                                    <input type="text" id="offset-time" placeholder="+/- MM:SS" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 w-28">
+                                    <button id="apply-offset" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-lg transition-colors">適用</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -81,6 +92,7 @@
         </div>
     </main>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="../js/tools/youtube-studio-kit.js"></script>
 </body>
 </html>

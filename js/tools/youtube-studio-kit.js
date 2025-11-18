@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Global YouTube Player Variables ---
+    let player; // YouTube Player instance
+    let videoId = ''; // Current YouTube video ID
+
+    // This function is called by the YouTube IFrame Player API when the API is ready.
+    window.onYouTubeIframeAPIReady = () => {
+        console.log('YouTube IFrame API is ready.');
+        // Player will be created when a URL is submitted
+    };
+
     // --- Animate cards on load ---
     const cards = document.querySelectorAll('.card');
     cards.forEach((card, index) => {
@@ -32,6 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyTimestampsBtn = document.getElementById('copy-timestamps');
     let timestamps = []; // Array to hold timestamp objects {time: seconds, title: "string"}
 
+    // --- YouTube Player Elements ---
+    const youtubeUrlForm = document.getElementById('youtube-url-form');
+    const youtubeUrlInput = document.getElementById('youtube-url');
+    const playerContainer = document.getElementById('player-container');
+    const playerDiv = document.getElementById('player');
+    const getCurrentTimeBtn = document.getElementById('get-current-time');
+
     // --- Tab Switching Logic ---
     function switchTab(activeTab) {
         if (activeTab === 'thumbnail') {
@@ -49,6 +66,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tabThumbnail.addEventListener('click', () => switchTab('thumbnail'));
     tabTimestamp.addEventListener('click', () => switchTab('timestamp'));
+
+    // --- YouTube Player Logic ---
+    function getYouTubeVideoId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    youtubeUrlForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const url = youtubeUrlInput.value;
+        const id = getYouTubeVideoId(url);
+
+        if (id) {
+            videoId = id;
+            if (player) {
+                player.loadVideoById(videoId);
+            } else {
+                player = new YT.Player('player', {
+                    height: '360',
+                    width: '640',
+                    videoId: videoId,
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            }
+            playerContainer.classList.remove('hidden');
+        } else {
+            alert('有効なYouTube動画のURLを入力してください。');
+        }
+    });
+
+    function onPlayerReady(event) {
+        console.log('YouTube Player is ready.');
+        // event.target.playVideo(); // Optionally play video on load
+    }
+
+    function onPlayerStateChange(event) {
+        // Handle player state changes if needed
+    }
+
+    getCurrentTimeBtn.addEventListener('click', () => {
+        if (player) {
+            const currentTime = Math.floor(player.getCurrentTime());
+            timestampTimeInput.value = formatTime(currentTime);
+        } else {
+            alert('YouTube動画が読み込まれていません。');
+        }
+    });
 
     // --- Thumbnail Previewer Logic ---
     function setupDropZone(dropZone, fileInput, imageIndex) {
