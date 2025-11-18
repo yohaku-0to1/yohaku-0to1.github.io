@@ -3,6 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let player; // YouTube Player instance
     let videoId = ''; // Current YouTube video ID
 
+    // --- Thumbnail Editor Constants ---
+    const THUMBNAIL_WIDTH = 1280; // YouTube recommended width
+    const THUMBNAIL_HEIGHT = 720; // YouTube recommended height
+
     // This function is called by the YouTube IFrame Player API when the API is ready.
     window.onYouTubeIframeAPIReady = () => {
         console.log('YouTube IFrame API is ready.');
@@ -33,17 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let imageA_url = null;
     let imageB_url = null;
 
-    // --- Thumbnail Editor Elements ---
-    const thumbnailEditor = document.getElementById('thumbnail-editor');
-    const thumbnailCanvas = document.getElementById('thumbnail-canvas');
-    const ctx = thumbnailCanvas.getContext('2d');
-    const overlayTextInput = document.getElementById('overlay-text');
-    const textFontSizeInput = document.getElementById('text-font-size');
-    const textColorInput = document.getElementById('text-color');
-    const textPosXInput = document.getElementById('text-pos-x');
-    const textPosYInput = document.getElementById('text-pos-y');
-    const downloadThumbnailBtn = document.getElementById('download-thumbnail-btn');
-
     let currentBaseImage = null; // Stores the base image for the canvas
 
     // --- Thumbnail Editor State ---
@@ -67,9 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTextLayerBtn = document.getElementById('add-text-layer-btn');
     const deleteTextLayerBtn = document.getElementById('delete-text-layer-btn');
 
-    // --- Thumbnail Editor Constants ---
-    const THUMBNAIL_WIDTH = 1280; // YouTube recommended width
-    const THUMBNAIL_HEIGHT = 720; // YouTube recommended height
+
 
     // --- Timestamp Editor Elements ---
     const timestampForm = document.getElementById('timestamp-form');
@@ -289,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = imageUrl;
     }
 
-    function drawOverlayText() {
+    function drawOverlayText(forDownload = false) {
         if (!currentBaseImage) return;
 
         // Redraw the base image first
@@ -321,8 +312,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             ctx.fillText(layer.text, layer.x, layer.y);
 
-            // Highlight selected layer
-            if (index === selectedTextLayerIndex) {
+            // Highlight selected layer only if not for download
+            if (!forDownload && index === selectedTextLayerIndex) {
                 const textWidth = ctx.measureText(layer.text).width;
                 const textHeight = parseInt(layer.fontSize, 10);
                 ctx.strokeStyle = 'yellow';
@@ -399,10 +390,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('まずサムネイル画像を読み込んでください。');
             return;
         }
+        // Temporarily draw without highlight for download
+        drawOverlayText(true); 
         const link = document.createElement('a');
         link.download = 'youtube_thumbnail.png';
         link.href = thumbnailCanvas.toDataURL('image/png');
         link.click();
+        // Restore editing view with highlight
+        drawOverlayText(false);
     });
 
     // --- Canvas Drag & Drop for Text ---
@@ -1006,4 +1001,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial load
     loadSocialLinks();
     renderSocialLinks();
+    switchTab('thumbnail'); // Explicitly activate thumbnail tab on load
 });
