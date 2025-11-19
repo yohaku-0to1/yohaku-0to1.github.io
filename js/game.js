@@ -153,13 +153,16 @@ const state = {
     verticalVelocity: 0,
     grounded: true,
     isDashing: false,
+    coins: 0,
     dashTimer: 0,
     dashCooldownTimer: 0,
     obstacles: [],
+    stars: [],
     particles: [],
     buildings: [],
     speedLines: [],
-    shake: 0
+    shake: 0,
+    lastObstacleTime: 0
 };
 
 // --- Scene Setup ---
@@ -330,9 +333,10 @@ function spawnObstacle() {
     const type = Math.random() > 0.7 ? 'tall' : 'box';
     const lane = Math.floor(Math.random() * 3) - 1;
 
+    // Ensure minimum gap between obstacles
     if (state.obstacles.length > 0) {
         const last = state.obstacles[state.obstacles.length - 1];
-        if (last.mesh.position.z < -30) return; // Gap
+        if (last.mesh.position.z > -40) return;
     }
 
     const geometry = type === 'box'
@@ -374,6 +378,23 @@ function spawnBuilding() {
 
     scene.add(group);
     state.buildings.push({ mesh: group });
+}
+
+function spawnStar() {
+    const lane = Math.floor(Math.random() * 3) - 1;
+    const height = 3 + Math.random() * 4;
+
+    const geometry = new THREE.OctahedronGeometry(0.8);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xfbbf24,
+        emissive: 0xfbbf24
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(lane * CONFIG.laneWidth, height, -100);
+
+    scene.add(mesh);
+    state.stars.push({ mesh, active: true, rotation: 0 });
 }
 
 function createExplosion(x, y, z, color) {
@@ -497,6 +518,36 @@ function updateWorld(dt) {
     });
     state.buildings = state.buildings.filter(b => !b.remove);
 
+    // Stars (Collectibles)
+    state.stars.forEach(star => {
+        star.mesh.position.z += currentSpeed * dt;
+        star.rotation += dt * 3;
+        star.mesh.rotation.y = star.rotation;
+
+        if (star.mesh.position.z > 10) {
+            scene.remove(star.mesh);
+            star.active = false;
+        }
+
+        if (star.active) {
+            const dx = Math.abs(star.mesh.position.x - playerMesh.position.x);
+            const dy = Math.abs(star.mesh.position.y - playerMesh.position.y);
+            const dz = Math.abs(star.mesh.position.z - playerMesh.position.z);
+
+            if (dx < 2 && dy < 2 && dz < 2) {
+                star.active = false;
+                scene.remove(star.mesh);
+                state.score += 1000;
+                state.coins++;
+                state.dashCooldownTimer = 0; // Instant dash refill!
+                createExplosion(star.mesh.position.x, star.mesh.position.y, star.mesh.position.z, 0xfbbf24);
+                audio.playTone(880, 'sine', 0.2);
+            }
+        }
+    });
+    state.stars = state.stars.filter(s => s.active);
+
+
     // Particles
     state.particles.forEach(p => {
         p.life -= dt * 2;
@@ -513,8 +564,11 @@ function updateWorld(dt) {
     });
     state.particles = state.particles.filter(p => !p.remove);
 
-    if (Math.random() < 0.03) spawnObstacle();
-    if (Math.random() < 0.1) spawnBuilding();
+    // Spawning (final balanced difficulty)
+    const spawnRate = 0.008 + (state.speed / 3000);
+    if (Math.random() < spawnRate) spawnObstacle();
+    if (Math.random() < 0.04) spawnBuilding();
+    if (Math.random() < 0.003) spawnStar(); // Ultra rare bonus
 }
 
 function gameOver() {
@@ -573,6 +627,11 @@ function animate() {
             camera.position.x += (Math.random() - 0.5) * state.shake;
             camera.position.y += (Math.random() - 0.5) * state.shake;
         }
+
+        // Update HUD
+        const dashPct = Math.max(0, 1 - (state.dashCooldownTimer / CONFIG.dashCooldown));
+        document.getElementById('dashBar').style.width = (dashPct * 100) + '%';
+        document.getElementById('coinCount').innerText = state.coins;
     }
 
     // Camera
@@ -599,10 +658,13 @@ function initGame() {
     state.speed = CONFIG.initialSpeed;
     state.obstacles.forEach(o => scene.remove(o.mesh));
     state.buildings.forEach(b => scene.remove(b.mesh));
+    state.stars.forEach(s => scene.remove(s.mesh));
     state.particles.forEach(p => scene.remove(p.mesh));
     state.obstacles = [];
     state.buildings = [];
+    state.stars = [];
     state.particles = [];
+    state.coins = 0;
     playerMesh.position.set(0, 0, 0);
     state.grounded = true;
     state.playerY = 0;

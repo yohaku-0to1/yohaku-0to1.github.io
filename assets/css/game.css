@@ -28,6 +28,67 @@ body {
     box-sizing: border-box;
 }
 
+/* --- HUD Overlay --- */
+#game-hud {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.dash-gauge {
+    margin-bottom: 15px;
+}
+
+.dash-label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.dash-bar-container {
+    width: 200px;
+    height: 12px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 2px solid #334155;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dash-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+    box-shadow: 0 0 10px #0ea5e9;
+    transition: width 0.1s linear;
+    width: 100%;
+}
+
+.coin-counter {
+    font-size: 1.5rem;
+    color: #fbbf24;
+    text-shadow: 0 0 10px #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.coin-icon {
+    font-size: 2rem;
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #game-ui {
     position: absolute;
     top: 0;

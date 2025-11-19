@@ -39,6 +39,21 @@
 
         <main class="game-area">
             <canvas id="gameCanvas"></canvas>
+
+            <!-- HUD Overlay -->
+            <div id="game-hud">
+                <div class="dash-gauge">
+                    <div class="dash-label">DASH</div>
+                    <div class="dash-bar-container">
+                        <div id="dashBar" class="dash-bar"></div>
+                    </div>
+                </div>
+                <div class="coin-counter">
+                    <span class="coin-icon">⭐</span>
+                    <span id="coinCount">0</span>
+                </div>
+            </div>
+
             <div id="startScreen" class="overlay">
                 <div class="overlay-content">
                     <h2>READY?</h2>
