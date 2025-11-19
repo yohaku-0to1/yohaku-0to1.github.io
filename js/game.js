@@ -4,7 +4,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
 // --- Ranking API ---
-const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycbz-OCSOH7izMYeLYu1wP3ZPClXLqfbwDauGvbLVGWAqdl2SW9TSo9Y5Bif5ROr4dQD5/exec';
+const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycbxws3WXOSiRXOYV14iEbsjEHc1l9APQthLUNa_ILrgvjhjVvDoDilsj2qCpDhw8L2EY/exec';
+
 
 
 // --- Audio System (Procedural) ---
@@ -628,13 +629,13 @@ async function loadRankings() {
 
 async function submitScore(name, score, coins) {
     try {
-        const response = await fetch(RANKING_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name, score, coins })
-        });
+        // Use GET with query parameters to avoid CORS
+        const url = `${RANKING_API_URL}?name=${encodeURIComponent(name)}&score=${score}&coins=${coins}&t=${Date.now()}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
 
