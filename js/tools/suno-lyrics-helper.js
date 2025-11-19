@@ -51,8 +51,8 @@ async function initKuroshiro() {
         kuroshiro = new KuroshiroConstructor();
 
         // Use a reliable dictionary path. 
-        // Switched to jsDelivr for better availability on GitHub Pages
-        const DICT_PATH = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
+        // Switched to local files to ensure stability on GitHub Pages
+        const DICT_PATH = "../js/libs/kuromoji/dict/";
 
         // Add timeout to initialization
         const initPromise = kuroshiro.init(new KuromojiAnalyzerConstructor({
