@@ -51,13 +51,19 @@ async function initKuroshiro() {
         kuroshiro = new KuroshiroConstructor();
 
         // Use a reliable dictionary path. 
-        // Sometimes jsdelivr is slow or has issues with the .gz files.
-        // We will try the standard path.
-        const DICT_PATH = "https://takuyaa.github.io/kuromoji.js/demo/kuromoji/dict/";
+        // Switched to jsDelivr for better availability on GitHub Pages
+        const DICT_PATH = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/";
 
-        await kuroshiro.init(new KuromojiAnalyzerConstructor({
+        // Add timeout to initialization
+        const initPromise = kuroshiro.init(new KuromojiAnalyzerConstructor({
             dictPath: DICT_PATH
         }));
+
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("タイムアウトしました。再読み込みしてください。")), 20000)
+        );
+
+        await Promise.race([initPromise, timeoutPromise]);
 
         isInitialized = true;
         console.log("Kuroshiro initialized successfully!");
@@ -69,9 +75,9 @@ async function initKuroshiro() {
     } catch (err) {
         console.error("Kuroshiro initialization failed:", err);
         if (loadingIndicator) {
-            loadingIndicator.innerHTML = `< div class="text-xs text-red-400" > 辞書読み込みエラー: ${err.message}</div > `;
+            loadingIndicator.innerHTML = `<div class="text-xs text-red-400">エラー: ${err.message}<br>リロードして再試行してください。</div>`;
         }
-        alert("辞書データの読み込みに失敗しました。ネットワーク接続を確認してください。");
+        // alert("辞書データの読み込みに失敗しました: " + err.message);
     } finally {
         isInitializing = false;
     }
