@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suno Lyrics Helper - 歌詞作成支援ツール</title>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Tailwind CSS & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1GQRC5L80E"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1GQRC5L80E');
+    </script>
+
+    <!-- Kuroshiro & Kuromoji -->
+    <script src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
+
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        textarea,
+        #output-div {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        textarea:focus,
+        #output-div:focus {
+            outline: none;
+            border-color: #818cf8;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tag-btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+        }
+
+        .tag-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+        }
+
+        .particle-toggle {
+            cursor: pointer;
+            border-bottom: 2px dashed #818cf8;
+            color: #a5b4fc;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .particle-toggle:hover {
+            background-color: rgba(129, 140, 248, 0.2);
+            color: #fff;
+        }
+
+        .conversion-error {
+            background-color: rgba(234, 179, 8, 0.2);
+            /* Yellow-500/20 */
+            border-bottom: 2px solid #eab308;
+            color: #fef08a;
+            cursor: text;
+        }
+
+        .conversion-error:hover {
+            background-color: rgba(234, 179, 8, 0.3);
+        }
+    </style>
+</head>
+
+<body class="font-sans bg-gray-900 text-white min-h-screen flex flex-col">
+
+    <!-- Animated Gradient Background -->
+    <div class="fixed inset-0 -z-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 animated-gradient">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="p-4 flex justify-between items-center bg-black/20 backdrop-blur-sm border-b border-white/10">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 to-violet-500 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                </svg>
+            </div>
+            <h1 class="text-xl font-bold">Suno Lyrics Helper</h1>
+        </div>
+        <a href="../index.html"
+            class="px-4 py-2 text-sm font-medium bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-6 h-[calc(100vh-80px)]">
+
+        <!-- Left Column: Input & Controls -->
+        <div class="flex-1 flex flex-col gap-4 min-h-0">
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-medium text-gray-300">歌詞入力 (日本語)</label>
+                    <button id="clear-input" class="text-xs text-gray-400 hover:text-white">クリア</button>
+                </div>
+                <textarea id="input-text" class="flex-grow w-full p-4 rounded-lg resize-none text-base leading-relaxed"
+                    placeholder="ここに歌詞を入力してください...&#10;例：&#10;夜の街を歩く&#10;光が溢れてる"></textarea>
+
+                <!-- Tag Helpers -->
+                <div class="mt-4">
+                    <p class="text-xs text-gray-400 mb-2">スタイルタグ挿入</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="tag-btn" data-tag="[Intro]">[Intro]</button>
+                        <button class="tag-btn" data-tag="[Verse]">[Verse]</button>
+                        <button class="tag-btn" data-tag="[Chorus]">[Chorus]</button>
+                        <button class="tag-btn" data-tag="[Bridge]">[Bridge]</button>
+                        <button class="tag-btn" data-tag="[Outro]">[Outro]</button>
+                        <button class="tag-btn" data-tag="[Instrumental]">[Instrumental]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Actions -->
+        <div class="flex md:flex-col justify-center items-center gap-4 shrink-0">
+            <div class="glass-panel p-4 rounded-xl flex flex-col gap-3 w-full md:w-48">
+                <h3 class="text-sm font-bold text-center mb-1">変換オプション</h3>
+
+                <button id="btn-hiragana"
+                    class="btn-primary w-full py-2 px-4 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <span>ひらがな</span>
+                    <span class="text-xs opacity-70">(読み)</span>
+                </button>
+
+                <button id="btn-katakana"
+                    class="btn-secondary w-full py-2 px-4 rounded-lg text-sm font-medium hover:text-white text-gray-200">
+                    カタカナ
+                </button>
+
+                <button id="btn-romaji"
+                    class="btn-secondary w-full py-2 px-4 rounded-lg text-sm font-medium hover:text-white text-gray-200">
+                    Romaji
+                </button>
+
+                <hr class="border-white/10 my-1">
+
+                <div class="text-xs text-gray-400 text-center space-y-1">
+                    <p>変換後、<span class="text-indigo-400 font-bold">青い文字</span>をクリックすると「ha/わ」を切り替えられます。</p>
+                    <p><span class="text-yellow-400 font-bold">黄色い文字</span>は変換できなかった漢字です。クリックして修正してください。</p>
+                </div>
+
+                <div id="loading-indicator" class="hidden mt-2 flex justify-center">
+                    <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Output -->
+        <div class="flex-1 flex flex-col gap-4 min-h-0">
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-full relative">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-medium text-gray-300">変換結果 (Suno用)</label>
+                    <span id="char-count" class="text-xs text-gray-500">0 文字</span>
+                </div>
+                <!-- Changed to div for contenteditable and span styling -->
+                <div id="output-div"
+                    class="flex-grow w-full p-4 rounded-lg overflow-auto text-base leading-relaxed font-mono whitespace-pre-wrap"
+                    contenteditable="true"></div>
+
+                <button id="copy-btn"
+                    class="absolute bottom-6 right-6 bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-full shadow-lg shadow-emerald-900/50 transition-all transform hover:scale-110 group z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m2 4h3m-9 8h6" />
+                    </svg>
+                    <span
+                        class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">コピー</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- External JavaScript -->
+    <script src="../js/tools/suno-lyrics-helper.js"></script>
+</body>
+
+</html>

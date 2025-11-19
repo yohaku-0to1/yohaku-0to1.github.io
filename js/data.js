@@ -1,13 +1,19 @@
 // --- 1. プロフィールデータ ---
 const PROFILE_DATA = {
-    githubUsername: "yohaku-0to1", 
-    avatarUrl: "", 
-    name: "0と1のすきま（よはく）", 
-    bio: "AIで音楽や映像を作っています。" 
+    githubUsername: "yohaku-0to1",
+    avatarUrl: "",
+    name: "0と1のすきま（よはく）",
+    bio: "AIで音楽や映像を作っています。"
 };
 
 // --- 2. Toolsデータ ---
 const TOOLS_DATA = [
+    {
+        name: "Suno Lyrics Helper",
+        description: "Suno AI用に歌詞の読み仮名変換やタグ挿入を支援します。",
+        url: "tools/suno-lyrics-helper.html",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>`
+    },
     {
         name: "YouTube Studio Kit",
         description: "サムネイルプレビューとタイムスタンプ作成を支援します。",
