@@ -4,6 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:description" content="AIで音楽や映像を作る「0と1のすきま」のポートフォリオサイト。">
+    <meta property="og:image" content="https://yohaku-0to1.github.io/assets/images/neon_normal.png">
+
+    <!-- Three.js & Post Processing -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+        }
+      }
+    </script>
+
+    <!-- Twitter -->
     <title>Star Rush - Yohaku Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +58,7 @@
             </div>
         </main>
     </div>
-    <script src="js/game.js"></script>
+    <script type="module" src="js/game.js"></script>
 </body>
 
 </html>
