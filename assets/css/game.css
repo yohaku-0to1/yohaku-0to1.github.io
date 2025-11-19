@@ -1,0 +1,199 @@
+/* Game Specific Styles */
+body {
+    overflow: hidden;
+    /* Prevent scrolling during game */
+}
+
+.game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+.back-button {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.back-button:hover {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.game-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(219, 39, 119, 0.8), 0 0 40px rgba(139, 92, 246, 0.6);
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.score-display {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.game-area {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content {
+    text-align: center;
+    color: #fff;
+    animation: float 3s ease-in-out infinite;
+}
+
+.overlay-content h2 {
+    font-size: 5rem;
+    margin: 0 0 20px;
+    font-family: 'Outfit', sans-serif;
+    background: linear-gradient(to right, #f472b6, #a78bfa, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.6));
+    text-transform: uppercase;
+    letter-spacing: 5px;
+}
+
+.overlay-content p {
+    font-size: 1.8rem;
+    margin: 0 0 40px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 300;
+}
+
+.controls-hint {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.key-badge {
+    background: #fff;
+    color: #0f172a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-right: 10px;
+}
+
+.game-btn {
+    background: linear-gradient(90deg, #db2777, #8b5cf6, #3b82f6);
+    background-size: 200% 200%;
+    animation: gradientMove 3s ease infinite;
+    border: none;
+    padding: 20px 60px;
+    font-size: 1.8rem;
+    color: #fff;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 30px rgba(219, 39, 119, 0.5);
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.game-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(139, 92, 246, 0.6);
+}
+
+.game-btn:active {
+    transform: translateY(1px);
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}

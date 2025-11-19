@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Rush - Yohaku Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/game.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <a href="index.html" class="back-button">← Back to Home</a>
+            <h1 class="game-title">STAR RUSH</h1>
+            <div class="score-display">SCORE: <span id="score">0</span></div>
+        </header>
+
+        <main class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div id="startScreen" class="overlay">
+                <div class="overlay-content">
+                    <h2>READY?</h2>
+                    <div class="controls-hint">
+                        <div><span class="key-badge">SPACE / CLICK</span> JUMP</div>
+                        <div><span class="key-badge">SHIFT / R-CLICK</span> DASH ATTACK</div>
+                    </div>
+                    <button id="startButton" class="game-btn">START GAME</button>
+                </div>
+            </div>
+            <div id="gameOverScreen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2>GAME OVER</h2>
+                    <p>Score: <span id="finalScore">0</span></p>
+                    <button id="restartButton" class="game-btn">TRY AGAIN</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="js/game.js"></script>
+</body>
+
+</html>
