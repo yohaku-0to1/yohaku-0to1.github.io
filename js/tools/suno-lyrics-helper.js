@@ -3,6 +3,10 @@
 let kuroshiro;
 let isInitialized = false;
 let isInitializing = false;
+let lastRawInput = '';
+let conversionSegments = []; // Array of { start, end, mode }
+let lastConvertedLines = [];
+let lastTargetType = 'hiragana'; // This will become less relevant as segments have their own modes
 
 // DOM Elements
 const inputText = document.getElementById('input-text');
@@ -15,6 +19,8 @@ const copyBtn = document.getElementById('copy-btn');
 const clearBtn = document.getElementById('clear-input');
 const charCount = document.getElementById('char-count');
 const loadingIndicator = document.getElementById('loading-indicator');
+const checkRhyme = document.getElementById('check-rhyme');
+const saveStatus = document.getElementById('save-status');
 
 // Initialize Kuroshiro
 async function initKuroshiro() {
@@ -63,7 +69,7 @@ async function initKuroshiro() {
     } catch (err) {
         console.error("Kuroshiro initialization failed:", err);
         if (loadingIndicator) {
-            loadingIndicator.innerHTML = `<div class="text-xs text-red-400">辞書読み込みエラー: ${err.message}</div>`;
+            loadingIndicator.innerHTML = `< div class="text-xs text-red-400" > 辞書読み込みエラー: ${err.message}</div > `;
         }
         alert("辞書データの読み込みに失敗しました。ネットワーク接続を確認してください。");
     } finally {
@@ -74,6 +80,7 @@ async function initKuroshiro() {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     initKuroshiro();
+    loadDraft();
 });
 
 btnHiragana.addEventListener('click', () => convertText('hiragana'));
@@ -81,28 +88,70 @@ btnKatakana.addEventListener('click', () => convertText('katakana'));
 btnRomaji.addEventListener('click', () => convertText('romaji'));
 
 clearBtn.addEventListener('click', () => {
-    inputText.value = '';
-    outputDiv.innerHTML = '';
-    updateCharCount();
+    if (confirm("入力内容をすべて消去しますか？")) {
+        inputText.value = '';
+        outputDiv.innerHTML = '';
+        updateCharCount();
+        saveDraft();
+        lastRawInput = '';
+        conversionSegments = []; // Clear segments on clear
+    }
 });
 
-inputText.addEventListener('input', updateCharCount);
+inputText.addEventListener('input', () => {
+    updateCharCount();
+    saveDraft();
+});
+
+checkRhyme.addEventListener('change', () => {
+    if (lastConvertedLines.length > 0) {
+        renderOutput(lastConvertedLines); // No targetType needed here anymore
+    }
+});
 
 copyBtn.addEventListener('click', () => {
-    if (!outputDiv.innerText) return;
-    navigator.clipboard.writeText(outputDiv.innerText).then(() => {
+    // Custom copy logic to exclude mora count and handle newlines
+    const lines = [];
+    const lineDivs = outputDiv.querySelectorAll('div'); // Get all line divs
+
+    lineDivs.forEach(div => {
+        let lineText = '';
+        div.childNodes.forEach(node => {
+            // Skip mora count spans
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('mora-count')) {
+                return;
+            }
+            // For rhyme wrappers, we need to get the text inside
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('rounded')) { // Rhyme wrapper has 'rounded'
+                lineText += node.textContent;
+                return;
+            }
+
+            lineText += node.textContent;
+        });
+        lines.push(lineText);
+    });
+
+    const textToCopy = lines.join('\n');
+
+    if (!textToCopy) return;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
         const originalHTML = copyBtn.innerHTML;
         copyBtn.classList.add('bg-emerald-400');
         setTimeout(() => {
             copyBtn.classList.remove('bg-emerald-400');
         }, 200);
     });
+});
 
-    // Tag Insertion
-    tagBtns.forEach(btn => {
+// Tag Insertion
+tagBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
         const tag = btn.getAttribute('data-tag');
         insertAtCursor(inputText, tag + "\n");
         updateCharCount();
+        saveDraft();
     });
 });
 
@@ -122,6 +171,23 @@ function updateCharCount() {
     charCount.textContent = `${count} 文字`;
 }
 
+// Auto-Save Logic
+function saveDraft() {
+    localStorage.setItem('suno_lyrics_draft', inputText.value);
+    saveStatus.classList.remove('opacity-0');
+    setTimeout(() => {
+        saveStatus.classList.add('opacity-0');
+    }, 1000);
+}
+
+function loadDraft() {
+    const draft = localStorage.getItem('suno_lyrics_draft');
+    if (draft) {
+        inputText.value = draft;
+        updateCharCount();
+    }
+}
+
 // Main Conversion Logic
 async function convertText(targetType) {
     if (!isInitialized) {
@@ -130,32 +196,111 @@ async function convertText(targetType) {
     }
 
     const raw = inputText.value;
-    if (!raw.trim()) return;
+    if (!raw) return;
 
     outputDiv.innerHTML = '<div class="text-gray-400">変換中...</div>';
 
     try {
-        // Split by lines to process line-by-line
-        // This often helps with tokenizer stability and preserving line breaks
-        const lines = raw.split('\n');
-        const convertedLines = [];
+        const start = inputText.selectionStart;
+        const end = inputText.selectionEnd;
+        const hasSelection = start !== end;
 
-        for (const line of lines) {
-            if (!line.trim()) {
-                convertedLines.push('');
-                continue;
-            }
-
-            // Convert the line
-            const result = await kuroshiro.convert(line, {
-                to: targetType,
-                mode: 'spaced', // Keep spaced to detect particles
-                romajiSystem: 'hepburn'
-            });
-            convertedLines.push(result);
+        // 1. Initialize or Reset Segments if input changed
+        if (raw !== lastRawInput) {
+            conversionSegments = [{ start: 0, end: raw.length, mode: null }];
+            lastRawInput = raw;
         }
 
-        renderOutput(convertedLines, targetType);
+        // 2. Update Segments based on selection
+        if (!hasSelection) {
+            // Convert ALL to targetType
+            conversionSegments = [{ start: 0, end: raw.length, mode: targetType }];
+        } else {
+            // Split and update range
+            updateSegments(start, end, targetType);
+        }
+
+        // 3. Process Segments
+        // We need to reconstruct lines from the segments
+        // Each segment might contain newlines
+
+        const processedSegments = [];
+
+        for (const seg of conversionSegments) {
+            const text = raw.substring(seg.start, seg.end);
+            if (!text) continue;
+
+            if (seg.mode) {
+                // Convert
+                // We split by newline to convert line-by-line for stability
+                const lines = text.split('\n');
+                const convertedParts = [];
+                for (const line of lines) {
+                    if (line) {
+                        const res = await kuroshiro.convert(line, {
+                            to: seg.mode,
+                            mode: 'spaced',
+                            romajiSystem: 'hepburn'
+                        });
+                        convertedParts.push(res);
+                    } else {
+                        convertedParts.push('');
+                    }
+                }
+                // Join back with newlines to preserve structure within segment
+                // But wait, we want to output lines structure for renderOutput
+                // Let's store the result as text for now
+                processedSegments.push({
+                    text: convertedParts.join('\n'),
+                    isConverted: true,
+                    mode: seg.mode
+                });
+            } else {
+                // Raw
+                processedSegments.push({
+                    text: text,
+                    isConverted: false,
+                    mode: null
+                });
+            }
+        }
+
+        // 4. Assemble into Lines for RenderOutput
+        // We have a list of chunks (some converted, some raw) that might contain newlines.
+        // We need to flow them into a line-based structure: [[seg1, seg2], [seg3], ...]
+
+        const finalLines = [];
+        let currentLineSegs = [];
+
+        processedSegments.forEach(seg => {
+            const parts = seg.text.split('\n');
+            parts.forEach((part, index) => {
+                if (part) {
+                    currentLineSegs.push({
+                        text: part,
+                        isConverted: seg.isConverted,
+                        mode: seg.mode
+                    });
+                }
+
+                // If not the last part, it means we hit a newline
+                if (index < parts.length - 1) {
+                    finalLines.push(currentLineSegs);
+                    currentLineSegs = [];
+                }
+            });
+        });
+        // Push the last line buffer
+        if (currentLineSegs.length > 0 || processedSegments.length === 0) { // Ensure empty lines are pushed if input was empty or ended with newline
+            finalLines.push(currentLineSegs);
+        }
+
+
+        // Update state for re-rendering (rhyme toggle)
+        lastConvertedLines = finalLines;
+        lastTargetType = targetType; // This is less relevant now as we have mixed types
+
+        renderOutput(finalLines);
 
     } catch (err) {
         console.error("Conversion error:", err);
@@ -163,83 +308,200 @@ async function convertText(targetType) {
     }
 }
 
+function updateSegments(start, end, newMode) {
+    const newSegments = [];
+
+    // Sort conversionSegments by start for safety, though they should already be sorted.
+    conversionSegments.sort((a, b) => a.start - b.start);
+
+    for (const seg of conversionSegments) {
+        // Case 1: Segment is entirely before the selection [start, end]
+        if (seg.end <= start) {
+            newSegments.push(seg);
+        }
+        // Case 2: Segment is entirely after the selection [start, end]
+        else if (seg.start >= end) {
+            newSegments.push(seg);
+        }
+        // Case 3: Segment overlaps with the selection [start, end]
+        else {
+            // Part before the selection (if any)
+            if (seg.start < start) {
+                newSegments.push({ start: seg.start, end: start, mode: seg.mode });
+            }
+
+            // The selected part (intersection of seg and [start, end])
+            const intersectionStart = Math.max(seg.start, start);
+            const intersectionEnd = Math.min(seg.end, end);
+            if (intersectionStart < intersectionEnd) {
+                newSegments.push({ start: intersectionStart, end: intersectionEnd, mode: newMode });
+            }
+
+            // Part after the selection (if any)
+            if (seg.end > end) {
+                newSegments.push({ start: end, end: seg.end, mode: seg.mode });
+            }
+        }
+    }
+
+    // Merge adjacent segments with the same mode
+    const mergedSegments = [];
+    if (newSegments.length > 0) {
+        mergedSegments.push(newSegments[0]);
+        for (let i = 1; i < newSegments.length; i++) {
+            const lastMerged = mergedSegments[mergedSegments.length - 1];
+            const current = newSegments[i];
+
+            if (lastMerged.mode === current.mode && lastMerged.end === current.start) {
+                lastMerged.end = current.end; // Merge
+            } else {
+                mergedSegments.push(current);
+            }
+        }
+    }
+
+    conversionSegments = mergedSegments;
+}
+
 // Render Output
-function renderOutput(lines, targetType) {
+function renderOutput(lines) {
     outputDiv.innerHTML = '';
+    const showRhyme = checkRhyme.checked;
 
-    lines.forEach((line, lineIndex) => {
+    lines.forEach((segments, lineIndex) => {
         const lineDiv = document.createElement('div');
-        lineDiv.className = 'min-h-[1.5em]'; // Ensure empty lines have height
+        lineDiv.className = 'min-h-[1.5em] flex items-center flex-wrap';
 
-        if (!line) {
+        let fullLineText = segments.map(s => s.text).join('');
+        if (!fullLineText) {
             outputDiv.appendChild(lineDiv);
             return;
         }
 
-        const tokens = line.split(' ');
-
-        tokens.forEach((token, tokenIndex) => {
-            if (!token) return;
-
-            let el;
-
-            // Particle Detection Logic
-            // We want to support toggling between "ha" (Romaji) and "わ" (Hiragana)
-            // regardless of the mode, or maybe based on user preference?
-            // User said: "『ha』と『わ』の組み合わせで変えられるようにしてほしい"
-            // This implies they want to see "ha" or "わ" specifically.
-            // Let's make the toggle cycle: Original -> ha -> わ -> Original?
-            // Or just toggle between "ha" and "わ" if it was detected as a particle?
-
-            // Let's detect "ha", "wa", "は", "わ"
-            const isParticleCandidate = ['ha', 'wa', 'は', 'わ'].includes(token);
-
-            // Check for remaining Kanji (Unconverted)
-            const hasKanji = /[\u4e00-\u9faf]/.test(token);
-
-            if (hasKanji) {
-                el = document.createElement('span');
-                el.className = 'conversion-error';
-                el.textContent = token;
-                el.title = "変換できませんでした。クリックして手動で修正してください。";
-                el.onclick = () => {
-                    const range = document.createRange();
-                    range.selectNodeContents(el);
-                    const sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                };
-            } else if (isParticleCandidate) {
-                el = document.createElement('span');
-                el.className = 'particle-toggle';
-                el.textContent = token;
-                el.title = "クリックで「ha」⇔「わ」切り替え";
-                el.onclick = () => toggleParticleMixed(el);
-            } else {
-                el = document.createTextNode(token);
+        // Rhyme Detection
+        let rhymeClass = '';
+        if (showRhyme) {
+            const cleanLine = fullLineText.replace(/[.,!?:;。、！？\s]/g, '').trim();
+            if (cleanLine) {
+                const lastChar = cleanLine.slice(-1).toLowerCase();
+                if (['a', 'あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', 'が', 'ざ', 'だ', 'ば', 'ぱ', 'ゃ',
+                    'ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', 'マ', 'ヤ', 'ラ', 'ワ', 'ガ', 'ザ', 'ダ', 'バ', 'パ', 'ャ'].some(c => lastChar.endsWith(c))) rhymeClass = 'rhyme-highlight-a';
+                else if (['i', 'い', 'き', 'し', 'ち', 'に', 'ひ', 'み', 'り', 'ぎ', 'じ', 'ぢ', 'び', 'ぴ',
+                    'イ', 'キ', 'シ', 'チ', 'ニ', 'ヒ', 'ミ', 'リ', 'ギ', 'ジ', 'ヂ', 'ビ', 'ピ'].some(c => lastChar.endsWith(c))) rhymeClass = 'rhyme-highlight-i';
+                else if (['u', 'う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', 'ぐ', 'ず', 'づ', 'ぶ', 'ぷ', 'ゅ', 'っ',
+                    'ウ', 'ク', 'ス', 'ツ', 'ヌ', 'フ', 'ム', 'ユ', 'ル', 'グ', 'ズ', 'ヅ', 'ブ', 'プ', 'ュ', 'ッ'].some(c => lastChar.endsWith(c))) rhymeClass = 'rhyme-highlight-u';
+                else if (['e', 'え', 'け', 'せ', 'て', 'ね', 'へ', 'め', 'れ', 'げ', 'ぜ', 'で', 'べ', 'ぺ',
+                    'エ', 'ケ', 'セ', 'テ', 'ネ', 'ヘ', 'メ', 'レ', 'ゲ', 'ゼ', 'デ', 'ベ', 'ペ'].some(c => lastChar.endsWith(c))) rhymeClass = 'rhyme-highlight-e';
+                else if (['o', 'お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を', 'ご', 'ぞ', 'ど', 'ぼ', 'ぽ', 'ょ',
+                    'オ', 'コ', 'ソ', 'ト', 'ノ', 'ホ', 'モ', 'ヨ', 'ロ', 'ヲ', 'ゴ', 'ゾ', 'ド', 'ボ', 'ポ', 'ョ'].some(c => lastChar.endsWith(c))) rhymeClass = 'rhyme-highlight-o';
+                else if (['n', 'ん', 'ン'].includes(lastChar)) rhymeClass = 'rhyme-highlight-n';
             }
+        }
 
-            lineDiv.appendChild(el);
+        let totalMoraCount = 0;
 
-            // Space handling
-            if (targetType === 'romaji') {
-                if (tokenIndex < tokens.length - 1) {
-                    lineDiv.appendChild(document.createTextNode(' '));
+        segments.forEach((segment, segIndex) => {
+            // If Raw, just append text
+            if (!segment.isConverted) {
+                const span = document.createElement('span');
+                span.textContent = segment.text;
+                if (rhymeClass && segIndex === segments.length - 1) {
+                    span.className = rhymeClass + ' rounded px-1';
                 }
+                lineDiv.appendChild(span);
+                return;
             }
+
+            // If Converted
+            const tokens = segment.text.split(' ');
+
+            tokens.forEach((token, tokenIndex) => {
+                if (!token) return;
+
+                let el;
+                const isParticleCandidate = ['ha', 'wa', 'は', 'わ', 'ハ', 'ワ'].includes(token);
+                const hasKanji = /[\u4e00-\u9faf]/.test(token);
+
+                // Count Moras
+                if (segment.mode !== 'romaji') {
+                    const cleanToken = token.replace(/[ゃゅょャュョ]/g, '');
+                    totalMoraCount += cleanToken.length;
+                } else {
+                    const vowels = token.match(/[aeiou]/gi);
+                    if (vowels) totalMoraCount += vowels.length;
+                }
+
+                if (hasKanji) {
+                    el = document.createElement('span');
+                    el.className = 'conversion-error';
+                    el.textContent = token;
+                    el.title = "変換できませんでした";
+                    el.onclick = () => {
+                        const range = document.createRange();
+                        range.selectNodeContents(el);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    };
+                } else if (isParticleCandidate) {
+                    el = document.createElement('span');
+                    el.className = 'particle-toggle';
+                    el.textContent = token;
+                    el.title = "クリックで読みを切り替え";
+                    el.onclick = () => toggleParticleMixed(el, segment.mode);
+                } else {
+                    el = document.createTextNode(token);
+                }
+
+                if (rhymeClass && segIndex === segments.length - 1 && tokenIndex === tokens.length - 1) {
+                    const wrapper = document.createElement('span');
+                    wrapper.className = rhymeClass + ' rounded px-1';
+                    wrapper.appendChild(el);
+                    lineDiv.appendChild(wrapper);
+                } else {
+                    lineDiv.appendChild(el);
+                }
+
+                if (segment.mode === 'romaji') {
+                    if (tokenIndex < tokens.length - 1) {
+                        lineDiv.appendChild(document.createTextNode(' '));
+                    }
+                }
+            });
         });
+
+        if (totalMoraCount > 0) {
+            const countSpan = document.createElement('span');
+            countSpan.className = 'mora-count';
+            countSpan.textContent = `(${totalMoraCount})`;
+            lineDiv.appendChild(countSpan);
+        }
 
         outputDiv.appendChild(lineDiv);
     });
 }
 
-function toggleParticleMixed(element) {
+function toggleParticleMixed(element, mode) {
     const current = element.textContent;
-    // Toggle between "ha" and "わ"
-    // If it's something else (like "wa" or "は"), default to "ha" first?
-    if (current === 'ha') {
-        element.textContent = 'わ';
-    } else {
-        element.textContent = 'ha';
+
+    // Default to hiragana behavior if mode is null (raw text)
+    const targetMode = mode || 'hiragana';
+
+    if (targetMode === 'romaji') {
+        // Romaji: ha <-> wa
+        if (current === 'ha') element.textContent = 'wa';
+        else element.textContent = 'ha';
+    }
+    else if (targetMode === 'katakana') {
+        // Katakana: ha <-> ワ (Initial 'ハ' -> ha)
+        if (current === 'ハ') element.textContent = 'ha';
+        else if (current === 'ha') element.textContent = 'ワ';
+        else element.textContent = 'ha';
+    }
+    else {
+        // Hiragana (and default): ha <-> わ (Initial 'は' -> ha)
+        if (current === 'は') element.textContent = 'ha';
+        else if (current === 'ha') element.textContent = 'わ';
+        else element.textContent = 'ha';
     }
 }

@@ -110,6 +110,44 @@
         .conversion-error:hover {
             background-color: rgba(234, 179, 8, 0.3);
         }
+
+        .mora-count {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            user-select: none;
+        }
+
+        .rhyme-highlight-a {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Red */
+        .rhyme-highlight-i {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        /* Blue */
+        .rhyme-highlight-u {
+            background-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Green */
+        .rhyme-highlight-e {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+
+        /* Orange */
+        .rhyme-highlight-o {
+            background-color: rgba(139, 92, 246, 0.2);
+        }
+
+        /* Purple */
+        .rhyme-highlight-n {
+            background-color: rgba(236, 72, 153, 0.2);
+        }
+
+        /* Pink */
     </style>
 </head>
 
@@ -146,7 +184,11 @@
             <div class="glass-panel rounded-xl p-4 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-2">
                     <label class="text-sm font-medium text-gray-300">歌詞入力 (日本語)</label>
-                    <button id="clear-input" class="text-xs text-gray-400 hover:text-white">クリア</button>
+                    <div class="flex items-center gap-2">
+                        <span id="save-status"
+                            class="text-xs text-emerald-400 opacity-0 transition-opacity">保存しました</span>
+                        <button id="clear-input" class="text-xs text-gray-400 hover:text-white">クリア</button>
+                    </div>
                 </div>
                 <textarea id="input-text" class="flex-grow w-full p-4 rounded-lg resize-none text-base leading-relaxed"
                     placeholder="ここに歌詞を入力してください...&#10;例：&#10;夜の街を歩く&#10;光が溢れてる"></textarea>
@@ -189,9 +231,49 @@
 
                 <hr class="border-white/10 my-1">
 
+                <div class="flex items-center justify-between px-1">
+                    <label class="text-xs text-gray-300 cursor-pointer select-none flex items-center gap-2">
+                        <input type="checkbox" id="check-rhyme"
+                            class="rounded bg-gray-700 border-gray-600 text-indigo-500 focus:ring-indigo-500">
+                        韻を表示
+                    </label>
+                </div>
+
                 <div class="text-xs text-gray-400 text-center space-y-1">
                     <p>変換後、<span class="text-indigo-400 font-bold">青い文字</span>をクリックすると「ha/わ」を切り替えられます。</p>
                     <p><span class="text-yellow-400 font-bold">黄色い文字</span>は変換できなかった漢字です。クリックして修正してください。</p>
+                </div>
+
+                <!-- Usage Guide -->
+                <div class="mt-4 border-t border-white/10 pt-4">
+                    <details class="text-xs text-gray-400">
+                        <summary
+                            class="cursor-pointer hover:text-white transition-colors font-medium mb-2 focus:outline-none">
+                            使い方・ヒント・注意点</summary>
+                        <ul class="list-disc list-inside space-y-2 pl-1 text-left">
+                            <li>
+                                <span class="font-bold text-indigo-300">部分変換</span>:
+                                テキストを選択して変換すると、<span
+                                    class="text-white">選択範囲のみ</span>が変換されます。他の部分の変換状態（ひらがな/ローマ字など）は維持されるため、混在させることが可能です。
+                            </li>
+                            <li>
+                                <span class="font-bold text-yellow-300">読み間違いの可能性</span>:
+                                自動変換は完璧ではありません。特に人名、地名、造語などは意図しない読み方になる場合があります。必ず変換結果を確認し、必要に応じて手動で修正してください。
+                            </li>
+                            <li>
+                                <span class="font-bold text-indigo-300">韻とモーラ数</span>:
+                                韻の判定やモーラ（音節）数のカウントは簡易的なものです。小さい「っ」や長音の扱いなどで、実際の感覚とズレる場合があります。あくまで目安としてご利用ください。
+                            </li>
+                            <li>
+                                <span class="font-bold text-indigo-300">動作環境</span>:
+                                お使いのブラウザや端末の性能によっては、長いテキストの変換に時間がかかる場合があります。
+                            </li>
+                            <li>
+                                <span class="font-bold text-indigo-300">自動保存</span>:
+                                入力内容はブラウザに保存されますが、キャッシュの削除などで消える可能性があります。重要なデータは別途保存することをお勧めします。
+                            </li>
+                        </ul>
+                    </details>
                 </div>
 
                 <div id="loading-indicator" class="hidden mt-2 flex justify-center">
