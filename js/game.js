@@ -167,7 +167,8 @@ const state = {
     buildings: [],
     speedLines: [],
     shake: 0,
-    lastObstacleTime: 0
+    lastObstacleTime: 0,
+    scoreSubmitted: false // Prevent duplicate submissions
 };
 
 // --- Scene Setup ---
@@ -578,6 +579,7 @@ function updateWorld(dt) {
 
 function gameOver() {
     state.running = false;
+    state.scoreSubmitted = false; // Reset submission flag
     audio.stopBGM();
     audio.playExplosion();
     document.getElementById('gameOverScreen').classList.remove('hidden');
@@ -586,8 +588,8 @@ function gameOver() {
 
     // Reset input form
     document.getElementById('nameInputSection').innerHTML = `
-        <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" style="padding: 10px; font-size: 1rem; border: 2px solid #db2777; background: rgba(15, 23, 42, 0.8); color: white; border-radius: 8px; text-align: center;">
-        <button id="submitScore" class="game-btn" style="margin-top: 10px;">SUBMIT SCORE</button>
+        <input type="text" id="playerName" placeholder="名前を入力" maxlength="20" style="padding: 10px; font-size: 1rem; border: 2px solid #db2777; background: rgba(15, 23, 42, 0.8); color: white; border-radius: 8px; text-align: center;">
+        <button id="submitScore" class="game-btn" style="margin-top: 10px;">スコアを送信</button>
     `;
 
     // Re-attach event listeners
@@ -605,7 +607,7 @@ function gameOver() {
 // --- Ranking Functions ---
 async function loadRankings() {
     const list = document.getElementById('rankingsList');
-    list.innerHTML = '<p style="color: #94a3b8;">Loading rankings...</p>';
+    list.innerHTML = '<p style="color: #94a3b8;">ランキング読み込み中...</p>';
 
     try {
         const response = await fetch(RANKING_API_URL + '?t=' + Date.now()); // Cache bust
@@ -619,15 +621,23 @@ async function loadRankings() {
         if (data.success && data.rankings) {
             displayRankings(data.rankings);
         } else {
-            list.innerHTML = '<p style="color: #94a3b8;">No rankings yet. Be the first!</p>';
+            list.innerHTML = '<p style="color: #94a3b8;">まだランキングがありません。最初の記録者になろう！</p>';
         }
     } catch (error) {
         console.error('Failed to load rankings:', error);
-        list.innerHTML = '<p style="color: #ef4444;">Failed to load rankings. Please check your connection.</p>';
+        list.innerHTML = '<p style="color: #ef4444;">ランキングの読み込みに失敗しました。</p>';
     }
 }
 
 async function submitScore(name, score, coins) {
+    // Prevent duplicate submissions
+    if (state.scoreSubmitted) {
+        return;
+    }
+
+    state.scoreSubmitted = true;
+    document.getElementById('submitScore').disabled = true;
+
     try {
         // Use GET with query parameters to avoid CORS
         const url = `${RANKING_API_URL}?name=${encodeURIComponent(name)}&score=${score}&coins=${coins}&t=${Date.now()}`;
@@ -640,7 +650,7 @@ async function submitScore(name, score, coins) {
         const data = await response.json();
 
         if (data.success) {
-            document.getElementById('nameInputSection').innerHTML = '<p style="color: #10b981;">✓ Score submitted!</p>';
+            document.getElementById('nameInputSection').innerHTML = '<p style="color: #10b981;">✓ スコアを送信しました！</p>';
             // Reload rankings after submit
             setTimeout(() => loadRankings(), 1500);
         } else {
@@ -648,7 +658,8 @@ async function submitScore(name, score, coins) {
         }
     } catch (error) {
         console.error('Failed to submit score:', error);
-        alert('Failed to submit score. Please try again.');
+        alert('スコアの送信に失敗しました。もう一度お試しください。');
+        state.scoreSubmitted = false;
     }
 }
 
@@ -656,7 +667,7 @@ function displayRankings(rankings) {
     const list = document.getElementById('rankingsList');
 
     if (!rankings || rankings.length === 0) {
-        list.innerHTML = '<p style="color: #94a3b8;">No rankings yet. Be the first!</p>';
+        list.innerHTML = '<p style="color: #94a3b8;">まだランキングがありません。</p>';
         return;
     }
 
@@ -779,8 +790,11 @@ document.getElementById('restartButton').addEventListener('click', initGame);
 function handleSubmitScore() {
     const name = document.getElementById('playerName').value.trim();
     if (!name) {
-        alert('Please enter your name!');
+        alert('名前を入力してください！');
         return;
+    }
+    if (state.scoreSubmitted) {
+        return; // Already submitted
     }
     submitScore(name, Math.floor(state.score), state.coins);
 }

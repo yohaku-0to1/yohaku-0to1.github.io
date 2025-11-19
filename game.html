@@ -56,32 +56,33 @@
 
             <div id="startScreen" class="overlay">
                 <div class="overlay-content">
-                    <h2>READY?</h2>
+                    <h2>準備はいい？</h2>
                     <div class="controls-hint">
-                        <div><span class="key-badge">SPACE / CLICK</span> JUMP</div>
-                        <div><span class="key-badge">SHIFT / R-CLICK</span> DASH ATTACK</div>
+                        <div><span class="key-badge">スペース / ↑</span> ジャンプ</div>
+                        <div><span class="key-badge">Shift</span> ダッシュ攻撃</div>
+                        <div><span class="key-badge">← →</span> レーン移動</div>
                     </div>
-                    <button id="startButton" class="game-btn">START GAME</button>
+                    <button id="startButton" class="game-btn">ゲーム開始</button>
                 </div>
             </div>
             <div id="gameOverScreen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h2>GAME OVER</h2>
-                    <p>Score: <span id="finalScore">0</span></p>
-                    <p>Coins: <span id="finalCoins">0</span></p>
+                    <h2>ゲームオーバー</h2>
+                    <p>スコア: <span id="finalScore">0</span></p>
+                    <p>コイン: <span id="finalCoins">0</span></p>
 
                     <div id="nameInputSection" style="margin: 20px 0;">
-                        <input type="text" id="playerName" placeholder="Enter your name" maxlength="20"
+                        <input type="text" id="playerName" placeholder="名前を入力" maxlength="20"
                             style="padding: 10px; font-size: 1rem; border: 2px solid #db2777; background: rgba(15, 23, 42, 0.8); color: white; border-radius: 8px; text-align: center;">
-                        <button id="submitScore" class="game-btn" style="margin-top: 10px;">SUBMIT SCORE</button>
+                        <button id="submitScore" class="game-btn" style="margin-top: 10px;">スコアを送信</button>
                     </div>
 
                     <div id="rankingsSection" style="margin: 20px 0; max-height: 300px; overflow-y: auto;">
-                        <h3 style="color: #fbbf24; margin-bottom: 10px;">🏆 GLOBAL RANKINGS</h3>
+                        <h3 style="color: #fbbf24; margin-bottom: 10px;">🏆 世界ランキング</h3>
                         <div id="rankingsList"></div>
                     </div>
 
-                    <button id="restartButton" class="game-btn">TRY AGAIN</button>
+                    <button id="restartButton" class="game-btn">もう一度</button>
                 </div>
             </div>
         </main>
