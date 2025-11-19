@@ -3,6 +3,10 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
+// --- Ranking API ---
+const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycbz-OCSOH7izMYeLYu1wP3ZPClXLqfbwDauGvbLVGWAqdl2SW9TSo9Y5Bif5ROr4dQD5/exec';
+
+
 // --- Audio System (Procedural) ---
 class AudioSynth {
     constructor() {
@@ -577,6 +581,97 @@ function gameOver() {
     audio.playExplosion();
     document.getElementById('gameOverScreen').classList.remove('hidden');
     document.getElementById('finalScore').innerText = Math.floor(state.score);
+    document.getElementById('finalCoins').innerText = state.coins;
+
+    // Reset input form
+    document.getElementById('nameInputSection').innerHTML = `
+        <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" style="padding: 10px; font-size: 1rem; border: 2px solid #db2777; background: rgba(15, 23, 42, 0.8); color: white; border-radius: 8px; text-align: center;">
+        <button id="submitScore" class="game-btn" style="margin-top: 10px;">SUBMIT SCORE</button>
+    `;
+
+    // Re-attach event listeners
+    document.getElementById('submitScore').addEventListener('click', handleSubmitScore);
+    document.getElementById('playerName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('submitScore').click();
+        }
+    });
+
+    // Load rankings
+    loadRankings();
+}
+
+// --- Ranking Functions ---
+async function loadRankings() {
+    const list = document.getElementById('rankingsList');
+    list.innerHTML = '<p style="color: #94a3b8;">Loading rankings...</p>';
+
+    try {
+        const response = await fetch(RANKING_API_URL + '?t=' + Date.now()); // Cache bust
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.rankings) {
+            displayRankings(data.rankings);
+        } else {
+            list.innerHTML = '<p style="color: #94a3b8;">No rankings yet. Be the first!</p>';
+        }
+    } catch (error) {
+        console.error('Failed to load rankings:', error);
+        list.innerHTML = '<p style="color: #ef4444;">Failed to load rankings. Please check your connection.</p>';
+    }
+}
+
+async function submitScore(name, score, coins) {
+    try {
+        const response = await fetch(RANKING_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, score, coins })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('nameInputSection').innerHTML = '<p style="color: #10b981;">✓ Score submitted!</p>';
+            // Reload rankings after submit
+            setTimeout(() => loadRankings(), 1500);
+        } else {
+            throw new Error(data.error || 'Failed to submit');
+        }
+    } catch (error) {
+        console.error('Failed to submit score:', error);
+        alert('Failed to submit score. Please try again.');
+    }
+}
+
+function displayRankings(rankings) {
+    const list = document.getElementById('rankingsList');
+
+    if (!rankings || rankings.length === 0) {
+        list.innerHTML = '<p style="color: #94a3b8;">No rankings yet. Be the first!</p>';
+        return;
+    }
+
+    let html = '<div style="text-align: left; font-size: 0.9rem;">';
+    rankings.slice(0, 10).forEach((entry, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        html += `
+            <div style="padding: 8px; margin: 4px 0; background: rgba(15, 23, 42, 0.5); border-radius: 4px; display: flex; justify-content: space-between;">
+                <span>${medal} ${entry.name}</span>
+                <span style="color: #fbbf24;">${entry.score.toLocaleString()} pts</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    list.innerHTML = html;
 }
 
 // --- Input ---
@@ -678,6 +773,16 @@ function initGame() {
 
 document.getElementById('startButton').addEventListener('click', initGame);
 document.getElementById('restartButton').addEventListener('click', initGame);
+
+// Submit score handler (will be reattached on each game over)
+function handleSubmitScore() {
+    const name = document.getElementById('playerName').value.trim();
+    if (!name) {
+        alert('Please enter your name!');
+        return;
+    }
+    submitScore(name, Math.floor(state.score), state.coins);
+}
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;

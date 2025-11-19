@@ -68,6 +68,19 @@
                 <div class="overlay-content">
                     <h2>GAME OVER</h2>
                     <p>Score: <span id="finalScore">0</span></p>
+                    <p>Coins: <span id="finalCoins">0</span></p>
+
+                    <div id="nameInputSection" style="margin: 20px 0;">
+                        <input type="text" id="playerName" placeholder="Enter your name" maxlength="20"
+                            style="padding: 10px; font-size: 1rem; border: 2px solid #db2777; background: rgba(15, 23, 42, 0.8); color: white; border-radius: 8px; text-align: center;">
+                        <button id="submitScore" class="game-btn" style="margin-top: 10px;">SUBMIT SCORE</button>
+                    </div>
+
+                    <div id="rankingsSection" style="margin: 20px 0; max-height: 300px; overflow-y: auto;">
+                        <h3 style="color: #fbbf24; margin-bottom: 10px;">🏆 GLOBAL RANKINGS</h3>
+                        <div id="rankingsList"></div>
+                    </div>
+
                     <button id="restartButton" class="game-btn">TRY AGAIN</button>
                 </div>
             </div>
