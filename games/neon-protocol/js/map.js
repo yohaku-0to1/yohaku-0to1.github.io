@@ -284,14 +284,20 @@ function showTreasureNode() {
     title.textContent = 'Data Cache';
     title.style.color = 'var(--text-primary)';
 
+    // ランダムにレリックを獲得
+    const relic = getRandomRelic();
+    gameState.player.relics.push(relic);
+
     const message = document.createElement('p');
-    message.textContent = 'レリックを獲得！（実装予定）';
+    message.innerHTML = `<strong style="color: var(--accent-cyan); font-size: 1.3rem;">${relic.name}</strong> を獲得！<br><br>${relic.description}`;
+    message.style.marginBottom = '2rem';
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'btn-primary';
     closeBtn.textContent = '続ける';
     closeBtn.onclick = () => {
         modal.remove();
+        autoSave();
         proceedToNextLayer();
     };
 
@@ -336,6 +342,7 @@ function showCardUpgradeScreen() {
 // 次のLayerへ進む
 function proceedToNextLayer() {
     gameState.map.currentLayer++;
+    autoSave();
     updateUI();
     showMapScreen();
 }
