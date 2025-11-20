@@ -249,6 +249,26 @@ body::before {
     transform: none;
 }
 
+.btn-secondary {
+    padding: 0.8rem 2rem;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: rgba(122, 138, 163, 0.3);
+    color: var(--text-light);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.btn-secondary:hover {
+    background: rgba(122, 138, 163, 0.5);
+    border-color: var(--text-secondary);
+}
+
 .pile-info {
     display: flex;
     gap: 2rem;

@@ -42,6 +42,12 @@ function generateMap() {
 
 // マップ画面を表示
 function showMapScreen() {
+    // Layer 15をクリアした場合、ゲームクリア
+    if (gameState.map.currentLayer > 15) {
+        showScoreSubmitScreen();
+        return;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'map-screen';
