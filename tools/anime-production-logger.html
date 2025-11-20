@@ -497,7 +497,8 @@
                     ...base,
                     type: 'story',
                     scene: '',
-                    cut: ''
+                    cut: '',
+                    dialogue: ''
                 };
             } else {
                 return {
@@ -592,6 +593,10 @@
                             <input type="text" value="${entry.cut}" oninput="updateEntry('${entry.id}', 'cut', this.value)" placeholder="1">
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label>セリフ</label>
+                        <input type="text" value="${entry.dialogue || ''}" oninput="updateEntry('${entry.id}', 'dialogue', this.value)" placeholder="キャラクターのセリフ...">
+                    </div>
                 `;
                 } else {
                     fieldsHTML = `
@@ -639,7 +644,7 @@
                     <button class="btn-icon" onclick="removeEntry('${entry.id}')" title="削除">✕</button>
                 </div>
                 ${fieldsHTML}
-                
+
                 <div class="form-group">
                     <label style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                         画像生成プロセス
@@ -676,6 +681,9 @@
             state.entries.forEach((entry, index) => {
                 if (state.mode === 'story') {
                     md += `## Scene ${entry.scene || '?'} - Cut ${entry.cut || '?'}\n\n`;
+                    if (entry.dialogue) {
+                        md += `🗣️ **セリフ**: ${entry.dialogue}\n\n`;
+                    }
                 } else {
                     md += `## [${entry.timestampStart || '0:00'} - ${entry.timestampEnd || '?'}] ${entry.lyrics || 'Segment'}\n\n`;
                 }
@@ -768,6 +776,10 @@
                             if (entry.videoTool === undefined) {
                                 entry.videoTool = '';
                             }
+                            // Ensure dialogue exists for old entries (story mode)
+                            if (entry.type === 'story' && entry.dialogue === undefined) {
+                                entry.dialogue = '';
+                            }
                         });
                     }
 
@@ -799,4 +811,3 @@
 </body>
 
 </html>
-```
