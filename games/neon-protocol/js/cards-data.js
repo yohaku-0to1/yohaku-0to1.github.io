@@ -210,6 +210,299 @@ const CARD_DATABASE = {
             costReduction: 1,
             duration: 1
         }
+    },
+
+    // === 追加カード（汎用） ===
+
+    "firewall_burst": {
+        id: "firewall_burst",
+        name: "Firewall Burst",
+        type: "skill",
+        cost: 2,
+        description: "Firewall 12 を獲得",
+        tags: ["defense"],
+        effect: {
+            firewall: 12
+        }
+    },
+
+    "counter_attack": {
+        id: "counter_attack",
+        name: "Counter Attack",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 8\n自分のFirewallの数だけダメージ増加",
+        tags: ["attack", "defense"],
+        effect: {
+            damage: 8,
+            firewallBonus: true
+        }
+    },
+
+    "malware": {
+        id: "malware",
+        name: "Malware",
+        type: "skill",
+        cost: 2,
+        description: "敵全体に Virus 3 を付与",
+        tags: ["skill", "debuff", "virus"],
+        effect: {
+            virusAll: 3
+        }
+    },
+
+    "encryption": {
+        id: "encryption",
+        name: "Encryption",
+        type: "power",
+        cost: 2,
+        description: "ターン開始時、Firewall +3 を獲得",
+        tags: ["defense", "power"],
+        effect: {
+            permanentFirewall: 3
+        }
+    },
+
+    "rapid_fire": {
+        id: "rapid_fire",
+        name: "Rapid Fire",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 2 を 4回",
+        tags: ["attack"],
+        effect: {
+            damage: 2,
+            hits: 4
+        }
+    },
+
+    "reboot": {
+        id: "reboot",
+        name: "Reboot",
+        type: "skill",
+        cost: 1,
+        description: "Integrity 8 回復\nデバフを全て解除",
+        tags: ["skill", "utility"],
+        effect: {
+            heal: 8,
+            cleanse: true
+        }
+    },
+
+    "overclock_boost": {
+        id: "overclock_boost",
+        name: "Overclock Boost",
+        type: "skill",
+        cost: 1,
+        description: "Overclock +3 を獲得\n1ターン持続",
+        tags: ["skill", "aggressive"],
+        effect: {
+            overclock: 3,
+            duration: 1
+        }
+    },
+
+    "exploit": {
+        id: "exploit",
+        name: "Exploit",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 10\n敵がExposedなら2倍",
+        tags: ["attack", "debuff"],
+        effect: {
+            damage: 10,
+            exploitExposed: true
+        }
+    },
+
+    "shield_protocol": {
+        id: "shield_protocol",
+        name: "Shield Protocol",
+        type: "power",
+        cost: 3,
+        description: "Protocol Shield +2 を永続獲得",
+        tags: ["defense", "power"],
+        effect: {
+            permanentProtocolShield: 2
+        }
+    },
+
+    "data_leak": {
+        id: "data_leak",
+        name: "Data Leak",
+        type: "skill",
+        cost: 0,
+        description: "敵に Exposed 2 を付与",
+        tags: ["skill", "debuff"],
+        effect: {
+            exposed: 2
+        }
+    },
+
+    "critical_strike": {
+        id: "critical_strike",
+        name: "Critical Strike",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 14\n敵のFirewallを無視",
+        tags: ["attack", "aggressive"],
+        effect: {
+            damage: 14,
+            piercing: true
+        }
+    },
+
+    "memory_dump": {
+        id: "memory_dump",
+        name: "Memory Dump",
+        type: "skill",
+        cost: 1,
+        description: "カードを 3枚 ドロー\n手札を 1枚 捨てる",
+        tags: ["skill", "utility"],
+        effect: {
+            draw: 3,
+            discard: 1
+        }
+    },
+
+    "firewall_transfer": {
+        id: "firewall_transfer",
+        name: "Firewall Transfer",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 6 を獲得\nOverclock +1",
+        tags: ["defense", "aggressive"],
+        effect: {
+            firewall: 6,
+            overclock: 1
+        }
+    },
+
+    "virus_bomb": {
+        id: "virus_bomb",
+        name: "Virus Bomb",
+        type: "attack",
+        cost: 3,
+        description: "全ての敵のVirusの値分ダメージ\nVirusを消費",
+        tags: ["attack", "virus"],
+        effect: {
+            virusBurst: true
+        }
+    },
+
+    "adaptive_defense": {
+        id: "adaptive_defense",
+        name: "Adaptive Defense",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 5 を獲得\n次に受けるダメージ-50%",
+        tags: ["defense"],
+        effect: {
+            firewall: 5,
+            damageReduction: 0.5,
+            duration: 1
+        }
+    },
+
+    "system_purge": {
+        id: "system_purge",
+        name: "System Purge",
+        type: "skill",
+        cost: 2,
+        description: "Cacheを全てProgram Stackに戻す\nシャッフル",
+        tags: ["skill", "utility"],
+        effect: {
+            reshuffleDiscard: true
+        }
+    },
+
+    "double_tap": {
+        id: "double_tap",
+        name: "Double Tap",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 6 を 2回\n手札にあと1枚攻撃カードがあれば3回",
+        tags: ["attack"],
+        effect: {
+            damage: 6,
+            hits: 2,
+            conditionalHit: true
+        }
+    },
+
+    "emergency_patch": {
+        id: "emergency_patch",
+        name: "Emergency Patch",
+        type: "skill",
+        cost: 0,
+        description: "Integrity 5 回復",
+        tags: ["skill", "utility"],
+        effect: {
+            heal: 5
+        }
+    },
+
+    "trojan_horse": {
+        id: "trojan_horse",
+        name: "Trojan Horse",
+        type: "skill",
+        cost: 2,
+        description: "敵に Virus 5 と Lag 2 を付与",
+        tags: ["skill", "debuff", "virus"],
+        effect: {
+            virus: 5,
+            lag: 2
+        }
+    },
+
+    "aggressive_scan": {
+        id: "aggressive_scan",
+        name: "Aggressive Scan",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 7\nカードを 1枚 ドロー",
+        tags: ["attack", "utility"],
+        effect: {
+            damage: 7,
+            draw: 1
+        }
+    },
+
+    "kernel_panic": {
+        id: "kernel_panic",
+        name: "Kernel Panic",
+        type: "attack",
+        cost: 3,
+        description: "ダメージ 25\nランダムな手札を 2枚 失う",
+        tags: ["attack", "aggressive"],
+        effect: {
+            damage: 25,
+            exhaustRandom: 2
+        }
+    },
+
+    "bandwidth_boost": {
+        id: "bandwidth_boost",
+        name: "Bandwidth Boost",
+        type: "skill",
+        cost: 0,
+        description: "次のターン、RAM +1",
+        tags: ["skill", "utility"],
+        effect: {
+            ramBoost: 1
+        }
+    },
+
+    "recursive_loop": {
+        id: "recursive_loop",
+        name: "Recursive Loop",
+        type: "power",
+        cost: 2,
+        description: "カードをプレイするたびにダメージ 1",
+        tags: ["power", "aggressive"],
+        effect: {
+            permanentDamageOnPlay: 1
+        }
     }
 };
 

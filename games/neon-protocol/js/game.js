@@ -67,9 +67,27 @@ function initGame() {
             integrity: bossData.integrity,
             maxIntegrity: bossData.integrity
         });
+    } else if (currentLayer === 10) {
+        // Layer 10: Neural Nexus ボス
+        const bossData = ENEMY_DATABASE['neural_nexus'];
+        spawnEnemy({
+            ...bossData,
+            integrity: bossData.integrity,
+            maxIntegrity: bossData.integrity
+        });
+    } else if (currentLayer === 15) {
+        // Layer 15: Core Mainframe 最終ボス
+        const bossData = ENEMY_DATABASE['core_mainframe'];
+        spawnEnemy({
+            ...bossData,
+            integrity: bossData.integrity,
+            maxIntegrity: bossData.integrity
+        });
     } else {
-        // 通常敵
-        const enemyData = ENEMY_DATABASE['security_bot'];
+        // 通常敵（ランダム）
+        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'attack_bot', 'data_miner'];
+        const enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
+        const enemyData = ENEMY_DATABASE[enemyKey];
         spawnEnemy({
             ...enemyData,
             integrity: enemyData.integrity,

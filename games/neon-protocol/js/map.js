@@ -166,9 +166,9 @@ function startBattleNode(node) {
         if (currentLayer === 5) {
             enemyKey = 'firewall_guardian';
         } else if (currentLayer === 10) {
-            enemyKey = 'firewall_guardian'; // TODO: 別のボス
+            enemyKey = 'neural_nexus';
         } else if (currentLayer === 15) {
-            enemyKey = 'firewall_guardian'; // TODO: 最終ボス
+            enemyKey = 'core_mainframe';
         }
     } else if (node.type === 'elite') {
         enemyKey = Math.random() > 0.5 ? 'firewall_module' : 'scanner_drone';
