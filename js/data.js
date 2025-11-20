@@ -12,7 +12,7 @@ const TOOLS_DATA = [
         name: "Suno Lyrics Helper",
         description: "Suno AI用に歌詞の読み仮名変換やタグ挿入を支援します。",
         url: "tools/suno-lyrics-helper.html",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>`
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>`
     },
     {
         name: "YouTube Studio Kit",
@@ -24,7 +24,7 @@ const TOOLS_DATA = [
         name: "MP4 Frame Extractor",
         description: "MP4動画からフレーム画像を抽出します。",
         url: "tools/frame-extractor.html",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0112.071 3 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
     },
     {
         name: "Clipboard Hub",
@@ -36,7 +36,13 @@ const TOOLS_DATA = [
         name: "LINEスタンプメーカー",
         description: "LINEスタンプ用の画像を編集・作成します。",
         url: "tools/line-stamp-editor.html",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0112.071 3 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
+    },
+    {
+        name: "Remotion Animation Lab",
+        description: "Remotionのアニメーションパラメータを実験・生成します。",
+        url: "tools/remotion-lab.html",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
     }
 ];
 

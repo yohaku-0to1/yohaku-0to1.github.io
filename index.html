@@ -34,7 +34,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+            rel="stylesheet">
+    </noscript>
+
+
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1GQRC5L80E"></script>
@@ -77,6 +84,8 @@
             </div>
         </section>
 
+
+
         <!-- Links Section -->
         <section id="links-section" class="card">
             <h2 class="card-header">Links</h2>
@@ -97,7 +106,7 @@
         <section id="chatbot-section" class="card">
             <h2 class="card-header">Chat with NEON</h2>
             <div id="neon-container" class="mb-4 flex justify-center">
-                <img id="neon-image" src="" alt="ネオン" class="w-32 h-32">
+                <img id="neon-image" src="" alt="ネオン" class="w-32 h-32" loading="lazy">
             </div>
             <div id="chat-log" class="h-64 p-4 overflow-y-auto mb-4">
                 <!-- Chat messages will appear here -->
@@ -135,8 +144,9 @@
     </main>
 
     <!-- External JavaScript -->
-    <script src="js/data.js"></script>
-    <script src="js/script.js"></script>
+    <script src="js/data.js" defer></script>
+    <script src="js/script.js" defer></script>
+
 </body>
 
 </html>

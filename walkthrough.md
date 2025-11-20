@@ -1,21 +1,31 @@
-# Walkthrough - Character Visibility Fix
+# 3D Skill Galaxy Implementation
 
-## Changes
+I have implemented the "Skill Galaxy" feature, a 3D interactive visualization of your tools and links using Three.js.
 
-### Character Rendering Fix
-- **[FIX] Canvas Processing**: シェーダーによる透過処理が不安定だったため、**Canvas API**を使用した確実な透過処理に変更しました。
-    - 画像を一度Canvasに描画し、ピクセルデータを走査して白色部分を透明化。
-    - その結果をテクスチャとしてThree.jsに渡すことで、確実に表示されるようにしました。
-- **[FIX] UV Mapping**: 画像の一部しか表示されない（または何も表示されない）可能性があったため、画像全体を表示するように設定をリセットしました。
+## Changes Made
 
-## Verification Results
+### 1. `index.html`
+- Added **Three.js** import map and ES module shims to the `<head>`.
+- Added a new **Skill Galaxy Section** (`#skill-galaxy-section`) above the Links section.
+- Imported `js/galaxy.js` as a module at the end of the body.
 
-### Manual Verification Steps
-1.  **キャラ表示**:
-    - キャラクターが画面中央に表示されているか。
-    - 背景が透明になっているか。
-2.  **ゲームプレイ**:
-    - キャラクターが見えた状態で、通常通りプレイできるか。
+### 2. `js/data.js`
+- Updated data declarations (`PROFILE_DATA`, `TOOLS_DATA`, `links`, etc.) to explicitly attach to the `window` object (e.g., `window.TOOLS_DATA = ...`). This ensures they are accessible to the module-based `galaxy.js`.
+
+### 3. `js/galaxy.js` (New File)
+- Implemented the 3D scene using **Three.js**.
+- Features:
+    - **Interactive Nodes**: Tools (Pink) and Links (Blue) are represented as 3D icosahedrons.
+    - **Orbit Controls**: Users can rotate, zoom, and pan the galaxy.
+    - **CSS2D Labels**: Text labels that always face the screen and are clickable.
+    - **Starfield Background**: A particle system for a space-like atmosphere.
+    - **Raycasting**: Hover effects (glow/scale up) and click-to-visit functionality.
+
+## Verification
+- **Visuals**: The galaxy should appear in the new section with a black background and floating nodes.
+- **Interaction**: Dragging should rotate the view. Hovering over a node should highlight it. Clicking a node or its label should open the corresponding URL.
+- **Data**: The nodes should correspond to the items in your `TOOLS_DATA` and `links` arrays.
 
 ## Next Steps
-- もし画像が「スプライトシート（複数の絵が並んでいる）」だった場合は、Canvasの描画範囲（`drawImage`の引数）を調整して、特定のポーズだけを切り抜く必要がある。現在は画像全体を表示している。
+- You can customize the colors, shapes, or animation speeds in `js/galaxy.js` (look for the `CONFIG` object).
+- If you add more tools or links to `js/data.js`, they will automatically appear in the galaxy.

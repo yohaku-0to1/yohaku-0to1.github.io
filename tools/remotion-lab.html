@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remotion Animation Lab - 0と1のすきま</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        /* Custom styles for the lab */
+        .lab-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .lab-header {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #00ffff;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .slider-container {
+            margin-bottom: 1rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .slider-value {
+            color: #00ffff;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .canvas-container {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ball {
+            width: 40px;
+            height: 40px;
+            background: #ff00ff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            color: #d4d4d4;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+            border: 1px solid #444;
+        }
+
+        .copy-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .tooltip {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans antialiased">
+
+    <!-- Header -->
+    <header class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="../index.html" class="text-2xl font-bold tracking-tighter hover:text-cyan-400 transition-colors">
+                0と1のすきま
+            </a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="../index.html#profile-section" class="hover:text-cyan-400 transition-colors">Profile</a>
+                <a href="../index.html#tools-section" class="hover:text-cyan-400 transition-colors">Tools</a>
+                <a href="../index.html#links-section" class="hover:text-cyan-400 transition-colors">Links</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 pt-24 pb-12 max-w-4xl">
+        <div class="text-center mb-12">
+            <h1
+                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                Remotion Animation Lab
+            </h1>
+            <p class="text-gray-400">
+                Remotionのアニメーションパラメータを実験し、AIへの指示プロンプトを生成するツール。<br>
+                Vibe Coding（AIとの対話開発）を加速させましょう。
+            </p>
+        </div>
+
+        <!-- 1. Spring Simulator -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Spring Simulator (バネ挙動)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>spring()</code> 関数のパラメータを調整して、理想の「弾み」を見つけましょう。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Controls -->
+                <div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Mass (質量)</span>
+                            <span id="mass-val" class="slider-value">1.0</span>
+                        </div>
+                        <input type="range" id="mass" min="0.1" max="10" step="0.1" value="1.0">
+                        <p class="tooltip">重さ。大きいほど動き出しが遅く、止まりにくい。</p>
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Damping (減衰)</span>
+                            <span id="damping-val" class="slider-value">10.0</span>
+                        </div>
+                        <input type="range" id="damping" min="1" max="50" step="0.5" value="10.0">
+                        <p class="tooltip">抵抗。大きいほど振動が少なく、すぐ止まる。</p>
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Stiffness (剛性)</span>
+                            <span id="stiffness-val" class="slider-value">100</span>
+                        </div>
+                        <input type="range" id="stiffness" min="1" max="500" step="10" value="100">
+                        <p class="tooltip">バネの硬さ。大きいほどキビキビ動く。</p>
+                    </div>
+
+                    <button id="replay-spring"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mt-4 transition-colors">
+                        Replay Animation
+                    </button>
+                </div>
+
+                <!-- Visualization -->
+                <div>
+                    <div class="canvas-container mb-4">
+                        <div id="spring-ball" class="ball" style="top: 20px;"></div>
+                        <div style="position: absolute; bottom: 20px; width: 100%; border-top: 1px dashed #555;"></div>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="relative">
+                        <div class="code-block" id="spring-code">
+                            const animation = spring({
+                            frame,
+                            fps,
+                            config: {
+                            mass: 1.0,
+                            damping: 10.0,
+                            stiffness: 100
+                            }
+                            });
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button id="copy-spring-code" class="copy-btn flex-1">Copy Code</button>
+                            <button id="copy-spring-prompt"
+                                class="copy-btn flex-1 bg-cyan-900 border-cyan-500 text-cyan-300">
+                                Copy AI Prompt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Interpolate Visualizer -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+                Interpolate Visualizer (補間)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>interpolate()</code> は「時間（フレーム）」を「値（不透明度や位置）」に変換します。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Inputs -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Input Range (Frames)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="input-start" value="0"
+                                class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                            <span class="text-gray-500 self-center">to</span>
+                            <input type="number" id="input-end" value="30"
+                                class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Output Range (Values)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="output-start" value="0"
+                                class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                            <span class="text-gray-500 self-center">to</span>
+                            <input type="number" id="output-end" value="1"
+                                class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Extrapolate</label>
+                        <select id="extrapolate"
+                            class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                            <option value="clamp">clamp (範囲外は固定)</option>
+                            <option value="extend">extend (範囲外も延長)</option>
+                            <option value="identity">identity (そのまま)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Graph -->
+                <div>
+                    <canvas id="interpolate-canvas" width="400" height="200"
+                        class="w-full bg-black border border-gray-700 rounded"></canvas>
+                    <div class="relative mt-4">
+                        <div class="code-block" id="interpolate-code">
+                            const opacity = interpolate(
+                            frame,
+                            [0, 30],
+                            [0, 1],
+                            { extrapolateRight: "clamp" }
+                            );
+                        </div>
+                        <button id="copy-interpolate-code" class="copy-btn w-full">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Time-to-Frame Calculator -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Time-to-Frame Calculator
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                BPMや秒数から、正確なフレーム数を計算します。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label class="block text-sm text-gray-300 mb-1">FPS</label>
+                    <input type="number" id="calc-fps" value="30"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-300 mb-1">BPM (Tempo)</label>
+                    <input type="number" id="calc-bpm" value="120"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-300 mb-1">Beats (拍数)</label>
+                    <input type="number" id="calc-beats" value="4"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white">
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-gray-800 rounded flex justify-between items-center">
+                <div>
+                    <span class="text-gray-400 text-sm">Result:</span>
+                    <div class="text-2xl font-bold text-cyan-400"><span id="result-frames">60</span> Frames</div>
+                    <div class="text-xs text-gray-500"><span id="result-seconds">2.00</span> Seconds</div>
+                </div>
+                <button id="copy-frames" class="copy-btn">Copy Frames</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-black py-8 text-center text-gray-500 text-sm">
+        <p>&copy; 2025 0と1のすきま. All rights reserved.</p>
+    </footer>
+
+    <script src="../js/tools/remotion-lab.js"></script>
+</body>
+
+</html>
