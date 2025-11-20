@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initInterpolateVisualizer();
     initEasingVisualizer();
     initColorVisualizer();
+    initEasingVisualizer();
+    initColorVisualizer();
+    initSequencePlanner();
+    initRandomVisualizer();
+    initAudioSimulator();
     initCalculator();
 });
 
@@ -443,7 +448,172 @@ const color = interpolateColors(
     update();
 }
 
-// --- 5. Calculator Logic ---
+// --- 5. Sequence & Series Planner Logic ---
+function initSequencePlanner() {
+    const modeSelect = document.getElementById('seq-mode');
+    const clipInputs = ['clip1-dur', 'clip2-dur', 'clip3-dur'].map(id => document.getElementById(id));
+    const timelineViz = document.getElementById('timeline-viz');
+    const codeBlock = document.getElementById('seq-code');
+    const copyBtn = document.getElementById('copy-seq-code');
+
+    function update() {
+        const mode = modeSelect.value;
+        const durations = clipInputs.map(i => parseInt(i.value) || 0);
+
+        timelineViz.innerHTML = '';
+
+        let currentFrame = 0;
+        const colors = ['#00ffff', '#ff00ff', '#ffff00'];
+
+        let code = mode === 'series'
+            ? 'import { Series } from "remotion";\n\n<Series>\n'
+            : 'import { Sequence } from "remotion";\n\n<>\n';
+
+        durations.forEach((dur, idx) => {
+            const bar = document.createElement('div');
+            bar.style.height = '30px';
+            bar.style.backgroundColor = colors[idx];
+            bar.style.position = 'absolute';
+            bar.style.top = `${idx * 40 + 10}px`;
+            bar.style.borderRadius = '4px';
+            bar.style.display = 'flex';
+            bar.style.alignItems = 'center';
+            bar.style.paddingLeft = '8px';
+            bar.style.color = '#000';
+            bar.style.fontSize = '12px';
+            bar.style.fontWeight = 'bold';
+            bar.textContent = `Clip ${idx + 1} (${dur}f)`;
+
+            // Scale: 1 frame = 2px
+            bar.style.width = `${dur * 2}px`;
+
+            if (mode === 'series') {
+                bar.style.left = `${currentFrame * 2}px`;
+                code += `  <Series.Sequence durationInFrames={${dur}}>\n    <Clip${idx + 1} />\n  </Series.Sequence>\n`;
+                currentFrame += dur;
+            } else {
+                // Sequence mode: Let's assume they are staggered by 10 frames for demo, or just sequential?
+                // "Sequence" usually implies manual 'from'.
+                // For this planner, let's visualize them simply stacking or cascading.
+                // Let's make them cascade with a fixed overlap or gap?
+                // Or just strictly sequential for comparison?
+                // Let's simulate "Sequence with from={...}" where from is cumulative.
+
+                const start = idx * 15; // Arbitrary stagger for demo
+                bar.style.left = `${start * 2}px`;
+                code += `  <Sequence from={${start}} durationInFrames={${dur}}>\n    <Clip${idx + 1} />\n  </Sequence>\n`;
+            }
+
+            timelineViz.appendChild(bar);
+        });
+
+        code += mode === 'series' ? '</Series>' : '</>';
+        codeBlock.textContent = code;
+    }
+
+    modeSelect.addEventListener('change', update);
+    clipInputs.forEach(i => i.addEventListener('input', update));
+
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(codeBlock.textContent);
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => copyBtn.textContent = originalText, 2000);
+    });
+
+    update();
+}
+
+// --- 6. Randomness Visualizer Logic ---
+function initRandomVisualizer() {
+    const seedInput = document.getElementById('rnd-seed');
+    const grid = document.getElementById('rnd-grid');
+    const codeBlock = document.getElementById('rnd-code');
+
+    // Simple seeded random function (LCG)
+    function seededRandom(seed) {
+        let val = 0;
+        for (let i = 0; i < seed.length; i++) {
+            val += seed.charCodeAt(i);
+        }
+
+        return function () {
+            val = (val * 9301 + 49297) % 233280;
+            return val / 233280;
+        };
+    }
+
+    function update() {
+        const seed = seedInput.value;
+        grid.innerHTML = '';
+        const rng = seededRandom(seed);
+
+        for (let i = 0; i < 10; i++) {
+            const val = rng();
+            const box = document.createElement('div');
+            box.style.height = '40px';
+            box.style.backgroundColor = `hsl(${val * 360}, 70%, 50%)`;
+            box.style.borderRadius = '4px';
+            box.title = val.toFixed(4);
+            grid.appendChild(box);
+        }
+
+        codeBlock.textContent = `import { random } from "remotion";
+
+// random(seed) returns a number between 0 and 1
+const val1 = random("${seed}"); // Deterministic!
+const val2 = random("${seed}2"); // Different seed needed for different value`;
+    }
+
+    seedInput.addEventListener('input', update);
+    update();
+}
+
+// --- 7. Audio Simulator Logic ---
+function initAudioSimulator() {
+    const playBtn = document.getElementById('play-audio-sim');
+    const viz = document.getElementById('audio-viz');
+    let animationId;
+
+    function play() {
+        if (animationId) cancelAnimationFrame(animationId);
+
+        let frame = 0;
+        const totalFrames = 180; // 3 seconds at 60fps
+
+        function animate() {
+            frame++;
+            viz.innerHTML = '';
+
+            // Generate dummy frequency bars
+            // Simulate a beat every 30 frames
+            const beat = (frame % 30) < 5 ? 1.0 : 0.2;
+
+            for (let i = 0; i < 10; i++) {
+                const bar = document.createElement('div');
+                bar.style.width = '100%';
+                bar.style.backgroundColor = '#00ffff';
+
+                // Random-ish height based on beat + noise
+                const noise = Math.random() * 0.3;
+                const height = (beat * 0.7 + noise) * 100;
+
+                bar.style.height = `${height}%`;
+                bar.style.opacity = 0.5 + (height / 200);
+                viz.appendChild(bar);
+            }
+
+            if (frame < totalFrames) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        animate();
+    }
+
+    playBtn.addEventListener('click', play);
+}
+
+// --- 8. Calculator Logic ---
 function initCalculator() {
     const fpsInput = document.getElementById('calc-fps');
     const bpmInput = document.getElementById('calc-bpm');

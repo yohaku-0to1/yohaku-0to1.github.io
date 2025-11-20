@@ -451,7 +451,150 @@
             </div>
         </section>
 
-        <!-- 5. Time-to-Frame Calculator -->
+        <!-- 5. Sequence & Series Planner -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Sequence & Series Planner (構成)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>&lt;Sequence&gt;</code> (絶対配置/相対配置) と <code>&lt;Series&gt;</code> (順次配置) の違いを視覚化します。<br>
+                <span class="text-cyan-400 font-bold">Pro Tip:</span> クリップを順番に並べたいだけなら <code>Series</code>
+                が便利ですが、重ね合わせるなら <code>Sequence</code> が必須です。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Controls -->
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Layout Mode</label>
+                    <select id="seq-mode"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4">
+                        <option value="sequence">Sequence (from指定で配置)</option>
+                        <option value="series">Series (自動で順番に配置)</option>
+                    </select>
+
+                    <div class="space-y-2 mb-4">
+                        <p class="text-xs text-gray-400">Clip Durations (Frames)</p>
+                        <div class="flex gap-2">
+                            <input type="number" id="clip1-dur" value="30"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="Clip 1">
+                            <input type="number" id="clip2-dur" value="45"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="Clip 2">
+                            <input type="number" id="clip3-dur" value="20"
+                                class="w-full bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="Clip 3">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization -->
+                <div>
+                    <div class="bg-black border border-gray-700 rounded p-4 mb-4 h-40 relative overflow-hidden"
+                        id="timeline-viz">
+                        <!-- Timeline bars will be injected here -->
+                    </div>
+
+                    <!-- Output -->
+                    <div class="relative">
+                        <div class="code-block" id="seq-code">
+                            // Code preview
+                        </div>
+                        <button id="copy-seq-code" class="copy-btn w-full">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Randomness Visualizer -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                Randomness Visualizer (乱数)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                Remotionの <code>random()</code> は「シード値」が同じなら常に同じ結果を返します。<br>
+                これにより、レンダリングのたびに映像が変わってしまうのを防ぎます。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Controls -->
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Seed (種)</label>
+                    <input type="text" id="rnd-seed" value="hello"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4">
+                    <p class="text-xs text-gray-500 mb-4">シードを変えると、生成される乱数のパターンが一変します。</p>
+                </div>
+
+                <!-- Visualization -->
+                <div>
+                    <div class="grid grid-cols-5 gap-2 mb-4" id="rnd-grid">
+                        <!-- Random boxes -->
+                    </div>
+
+                    <!-- Output -->
+                    <div class="relative">
+                        <div class="code-block" id="rnd-code">
+                            import { random } from "remotion";
+                            const val = random("hello"); // Always same
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Audio Data Simulator -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                </svg>
+                Audio Data Simulator (音響連動)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>useAudioData()</code> のシミュレーションです。音量（振幅）に合わせて要素が動く仕組みを学びます。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Controls -->
+                <div>
+                    <button id="play-audio-sim"
+                        class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded transition-colors mb-4">
+                        Play Dummy Audio
+                    </button>
+                    <p class="text-xs text-gray-500">※実際には音は鳴りません。波形データのみシミュレートします。</p>
+                </div>
+
+                <!-- Visualization -->
+                <div>
+                    <div class="h-32 bg-black border border-gray-700 rounded flex items-end justify-center gap-1 p-2 mb-4"
+                        id="audio-viz">
+                        <!-- Bars -->
+                    </div>
+
+                    <!-- Output -->
+                    <div class="relative">
+                        <div class="code-block">
+                            const audioData = useAudioData(audioSrc);
+                            const volume = audioData ? visualizeAudio(audioData) : 0;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. Time-to-Frame Calculator -->
         <section class="lab-card">
             <h2 class="lab-header">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
