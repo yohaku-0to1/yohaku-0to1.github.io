@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Protocol - サイバーパンク・ローグライク</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/battle.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="game-ui">
+            <!-- ヘッダー -->
+            <div id="header">
+                <div class="header-left">
+                    <span class="layer-display">Layer <span id="current-layer">1</span></span>
+                </div>
+                <div class="header-center">
+                    <h1 class="game-title">NEON PROTOCOL</h1>
+                </div>
+                <div class="header-right">
+                    <div class="stat-display">
+                        <span class="stat-label">RAM</span>
+                        <span class="stat-value"><span id="current-ram">4</span>/<span id="max-ram">4</span></span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Integrity</span>
+                        <span class="stat-value"><span id="current-integrity">90</span>/<span
+                                id="max-integrity">90</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 戦闘エリア -->
+            <div id="battle-area">
+                <!-- 敵エリア -->
+                <div id="enemies-container">
+                    <!-- 敵はJSで動的に生成 -->
+                </div>
+
+                <!-- プレイヤーエリア -->
+                <div id="player-area">
+                    <div id="player-character">
+                        <div class="character-name">子供ネオン</div>
+                        <div class="character-stats">
+                            <div class="stat-row" id="player-firewall-display" style="display: none;">
+                                <span class="stat-icon">🛡️</span>
+                                <span>Firewall: <span id="player-firewall">0</span></span>
+                            </div>
+                            <div class="stat-row" id="player-overclock-display" style="display: none;">
+                                <span class="stat-icon">⚡</span>
+                                <span>Overclock: +<span id="player-overclock">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手札エリア -->
+            <div id="hand-area">
+                <div id="hand-container">
+                    <!-- カードはJSで動的に生成 -->
+                </div>
+            </div>
+
+            <!-- アクションエリア -->
+            <div id="action-area">
+                <button id="end-turn-btn" class="btn-primary">ターン終了</button>
+                <div class="pile-info">
+                    <span>Stack: <span id="deck-count">0</span></span>
+                    <span>Cache: <span id="discard-count">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲームオーバー画面 -->
+        <div id="game-over-screen" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2 class="glitch">SYSTEM FAILURE</h2>
+                <p>Integrity compromised. Forced logout.</p>
+                <button onclick="location.reload()" class="btn-primary">Restart</button>
+            </div>
+        </div>
+
+        <!-- 勝利画面 -->
+        <div id="victory-screen" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2 class="glitch">ACCESS GRANTED</h2>
+                <p>Layer cleared. Proceeding to next node...</p>
+                <div id="card-rewards">
+                    <!-- カード報酬はJSで生成 -->
+                </div>
+                <button id="continue-btn" class="btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/cards-data.js"></script>
+    <script src="js/enemies-data.js"></script>
+    <script src="js/evolution.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/battle.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+
+</html>

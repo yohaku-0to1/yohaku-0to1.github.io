@@ -1,0 +1,215 @@
+/* 手札エリア */
+#hand-area {
+    min-height: 240px;
+    padding: 1rem;
+    background: rgba(26, 31, 53, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+#hand-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* カード（ワイド型 16:10） */
+.card {
+    width: 200px;
+    height: 125px;
+    background: linear-gradient(135deg, rgba(26, 31, 53, 0.95), rgba(19, 24, 41, 0.95));
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* カード背景グリッドエフェクト */
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0, 255, 159, 0.05) 4px, rgba(0, 255, 159, 0.05) 8px),
+        repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0, 217, 255, 0.05) 4px, rgba(0, 217, 255, 0.05) 8px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 255, 159, 0.4);
+    border-color: var(--text-primary);
+}
+
+.card.insufficient-ram {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.card.insufficient-ram:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* カードタイプ別の色 */
+.card.type-attack {
+    border-color: var(--damage-color);
+}
+
+.card.type-attack:hover {
+    box-shadow: 0 10px 30px rgba(255, 0, 110, 0.4);
+    border-color: var(--damage-color);
+}
+
+.card.type-skill {
+    border-color: var(--accent-cyan);
+}
+
+.card.type-skill:hover {
+    box-shadow: 0 10px 30px rgba(0, 217, 255, 0.4);
+    border-color: var(--accent-cyan);
+}
+
+.card.type-power {
+    border-color: var(--accent-pink);
+}
+
+.card.type-power:hover {
+    box-shadow: 0 10px 30px rgba(255, 0, 110, 0.4);
+    border-color: var(--accent-pink);
+}
+
+/* カードヘッダー */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.card-name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-light);
+    line-height: 1.2;
+}
+
+.card-cost {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    background: rgba(0, 255, 159, 0.2);
+    border: 2px solid var(--text-primary);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card.type-attack .card-cost {
+    color: var(--damage-color);
+    background: rgba(255, 0, 110, 0.2);
+    border-color: var(--damage-color);
+}
+
+.card.type-skill .card-cost {
+    color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.2);
+    border-color: var(--accent-cyan);
+}
+
+/* カード説明 */
+.card-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* カードフッター（タグ表示） */
+.card-footer {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+}
+
+.card-tag {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(122, 138, 163, 0.3);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* カード報酬 */
+#card-rewards {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.reward-card {
+    width: 200px;
+    height: 125px;
+    background: linear-gradient(135deg, rgba(26, 31, 53, 0.95), rgba(19, 24, 41, 0.95));
+    border: 2px solid var(--text-primary);
+    border-radius: 8px;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.reward-card:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 255, 159, 0.6);
+}
+
+/* プレイアニメーション */
+@keyframes cardPlay {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2) rotate(5deg);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(0.8) translateY(-100px);
+        opacity: 0;
+    }
+}
+
+.card.playing {
+    animation: cardPlay 0.5s ease-out forwards;
+}

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressText = document.getElementById('progressText');
     const downloadCard = document.getElementById('downloadCard');
     const downloadArea = document.getElementById('downloadArea');
-    
+
     const fpsInput = document.getElementById('fpsInput');
     const formatInput = document.getElementById('formatInput');
     const startTimeInput = document.getElementById('startTimeInput');
@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     video.pause();
                     video.currentTime = 0;
                     video.muted = originalMuted;
-                    
+
                     const duration = frameTimes[frameTimes.length - 1] - frameTimes[0];
                     const avgFps = duration > 0 ? (frameTimes.length - 1) / duration : 0;
-                    
+
                     resolve(avgFps > 0 ? avgFps : null);
                 } else {
                     video.requestVideoFrameCallback(callback);
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (videoFile) {
             const url = URL.createObjectURL(videoFile);
             videoPlayer.src = url;
-            
+
             videoPlayer.addEventListener('loadedmetadata', async () => {
                 videoInfo.textContent = `解像度: ${videoPlayer.videoWidth}x${videoPlayer.videoHeight}, 長さ: ${videoPlayer.duration.toFixed(2)}秒`;
                 endTimeInput.value = videoPlayer.duration.toFixed(2);
@@ -103,11 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function setupWorker() {
-        worker = new Worker('frame-worker.js');
-        
+        worker = new Worker('../js/tools/frame-worker.js');
+
         worker.onmessage = (e) => {
             const { type, payload } = e.data;
-            switch(type) {
+            switch (type) {
                 case 'progress':
                     progressText.innerText = `フレーム ${payload.frameNumber} / ${totalFrames} を処理中`;
                     break;
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             extractButton.disabled = false;
             extractButton.innerText = '再試行';
             isExtracting = false;
-            if(worker) worker.terminate();
+            if (worker) worker.terminate();
         };
     }
 
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         extractButton.innerText = '停止';
         statusArea.style.display = 'block';
         statusText.innerText = 'フレーム抽出中...';
-        
+
         if (!canvas) {
             canvas = document.createElement('canvas');
         }
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isExtracting = false;
                 return;
             }
-            
+
             videoPlayer.currentTime = currentTime;
 
             await new Promise(resolve => {
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
+
             worker.postMessage({
                 type: 'frame',
                 payload: { imageData, frameNumber: frameCount }
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             frameCount++;
             currentTime += interval;
-            
+
             requestAnimationFrame(captureFrame);
         }
 
@@ -236,16 +236,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const zipUrl = URL.createObjectURL(zipBlob);
         const downloadLink = document.createElement('a');
         downloadLink.href = zipUrl;
-        
+
         const baseName = videoFile.name.split('.').slice(0, -1).join('.') || 'video';
         downloadLink.download = `${baseName}_frames.zip`;
-        
+
         downloadLink.innerText = `ダウンロード: ${baseName}_frames.zip`;
         downloadLink.className = 'text-emerald-400 hover:text-emerald-300 font-medium underline';
-        
+
         downloadArea.innerHTML = '';
         downloadArea.appendChild(downloadLink);
-        
+
         statusArea.style.display = 'none';
         downloadCard.style.display = 'block';
         extractButton.disabled = false;
