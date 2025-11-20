@@ -232,6 +232,45 @@
             background: var(--accent-hover);
         }
 
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Image Step Styles */
+        .image-step {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
         /* Preview Section */
         .preview-section {
             position: sticky;
@@ -386,6 +425,21 @@
 
     <div id="toast" class="toast">クリップボードにコピーしました！</div>
 
+    <datalist id="tools-list">
+        <option value="Midjourney">
+        <option value="Nijijourney">
+        <option value="NanoBanana">
+        <option value="Runway Gen-2">
+        <option value="Runway Gen-3">
+        <option value="Pika">
+        <option value="Luma Dream Machine">
+        <option value="Kling">
+        <option value="DomoAI">
+        <option value="Haiper">
+        <option value="Photoshop">
+        <option value="After Effects">
+    </datalist>
+
     <script>
         // State
         let state = {
@@ -428,28 +482,30 @@
 
         function createEntryObject() {
             const id = Date.now().toString();
+            const base = {
+                id,
+                imageSteps: [
+                    { id: Date.now() + '1', tool: 'Midjourney', prompt: '' }
+                ],
+                videoTool: '',
+                videoPrompt: '',
+                note: ''
+            };
+
             if (state.mode === 'story') {
                 return {
-                    id,
+                    ...base,
                     type: 'story',
                     scene: '',
-                    cut: '',
-                    imgPrompt: '',
-                    videoPrompt: '',
-                    tool: 'Midjourney',
-                    note: ''
+                    cut: ''
                 };
             } else {
                 return {
-                    id,
+                    ...base,
                     type: 'mv',
                     timestampStart: '',
                     timestampEnd: '',
-                    lyrics: '',
-                    imgPrompt: '',
-                    videoPrompt: '',
-                    tool: 'Midjourney',
-                    note: ''
+                    lyrics: ''
                 };
             }
         }
@@ -474,6 +530,43 @@
                 entry[field] = value;
                 updatePreview();
                 saveState();
+            }
+        }
+
+        // Image Step Functions
+        function addImageStep(entryId) {
+            const entry = state.entries.find(e => e.id === entryId);
+            if (entry) {
+                entry.imageSteps.push({
+                    id: Date.now().toString(),
+                    tool: '',
+                    prompt: ''
+                });
+                renderEntries();
+                updatePreview();
+                saveState();
+            }
+        }
+
+        function removeImageStep(entryId, stepId) {
+            const entry = state.entries.find(e => e.id === entryId);
+            if (entry && entry.imageSteps.length > 1) {
+                entry.imageSteps = entry.imageSteps.filter(s => s.id !== stepId);
+                renderEntries();
+                updatePreview();
+                saveState();
+            }
+        }
+
+        function updateImageStep(entryId, stepId, field, value) {
+            const entry = state.entries.find(e => e.id === entryId);
+            if (entry) {
+                const step = entry.imageSteps.find(s => s.id === stepId);
+                if (step) {
+                    step[field] = value;
+                    updatePreview();
+                    saveState();
+                }
             }
         }
 
@@ -519,34 +612,46 @@
                 `;
                 }
 
+                // Image Steps HTML
+                let imageStepsHTML = '';
+                entry.imageSteps.forEach((step, stepIndex) => {
+                    imageStepsHTML += `
+                    <div class="image-step">
+                        <div class="step-header">
+                            <span class="step-label">Step ${stepIndex + 1}</span>
+                            ${entry.imageSteps.length > 1 ? `<button class="btn-icon" onclick="removeImageStep('${entry.id}', '${step.id}')">✕</button>` : ''}
+                        </div>
+                        <div class="form-group">
+                            <label>使用ツール</label>
+                            <input type="text" list="tools-list" value="${step.tool}" oninput="updateImageStep('${entry.id}', '${step.id}', 'tool', this.value)" placeholder="例: Midjourney">
+                        </div>
+                        <div class="form-group">
+                            <label>プロンプト</label>
+                            <textarea oninput="updateImageStep('${entry.id}', '${step.id}', 'prompt', this.value)" placeholder="プロンプトを入力...">${step.prompt}</textarea>
+                        </div>
+                    </div>
+                `;
+                });
+
                 el.innerHTML = `
                 <div class="entry-header">
                     <span class="entry-title">#${index + 1}</span>
                     <button class="btn-icon" onclick="removeEntry('${entry.id}')" title="削除">✕</button>
                 </div>
                 ${fieldsHTML}
+                
                 <div class="form-group">
-                    <label>画像プロンプト</label>
-                    <textarea oninput="updateEntry('${entry.id}', 'imgPrompt', this.value)" placeholder="画像のプロンプトを入力...">${entry.imgPrompt}</textarea>
+                    <label style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        画像生成プロセス
+                        <button class="btn-secondary" onclick="addImageStep('${entry.id}')" style="padding: 2px 8px; font-size: 0.75rem;">+ ステップ追加</button>
+                    </label>
+                    ${imageStepsHTML}
                 </div>
+
                 <div class="form-group">
-                    <label>動画プロンプト / モーション</label>
+                    <label>動画生成 (ツール & プロンプト)</label>
+                    <input type="text" list="tools-list" value="${entry.videoTool || ''}" oninput="updateEntry('${entry.id}', 'videoTool', this.value)" placeholder="使用ツール (例: Kling)" style="margin-bottom: 0.5rem;">
                     <textarea oninput="updateEntry('${entry.id}', 'videoPrompt', this.value)" placeholder="カメラワークやモーションバケットなど...">${entry.videoPrompt}</textarea>
-                </div>
-                <div class="row">
-                    <div class="col form-group">
-                        <label>使用ツール</label>
-                        <input type="text" list="tools-list" value="${entry.tool}" oninput="updateEntry('${entry.id}', 'tool', this.value)">
-                        <datalist id="tools-list">
-                            <option value="Midjourney">
-                            <option value="Nijijourney">
-                            <option value="Runway Gen-2">
-                            <option value="Runway Gen-3">
-                            <option value="Pika">
-                            <option value="Luma Dream Machine">
-                            <option value="Kling">
-                        </datalist>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label>メモ / 備考</label>
@@ -575,16 +680,16 @@
                     md += `## [${entry.timestampStart || '0:00'} - ${entry.timestampEnd || '?'}] ${entry.lyrics || 'Segment'}\n\n`;
                 }
 
-                if (entry.imgPrompt) {
-                    md += `### 🎨 画像プロンプト\n\`\`\`\n${entry.imgPrompt}\n\`\`\`\n\n`;
+                if (entry.imageSteps && entry.imageSteps.length > 0) {
+                    md += `### 🎨 画像生成プロセス\n`;
+                    entry.imageSteps.forEach((step, i) => {
+                        md += `**Step ${i + 1}: ${step.tool || 'Unknown Tool'}**\n`;
+                        md += `\`\`\`\n${step.prompt}\n\`\`\`\n\n`;
+                    });
                 }
 
-                if (entry.videoPrompt) {
-                    md += `### 🎥 動画プロンプト\n\`\`\`\n${entry.videoPrompt}\n\`\`\`\n\n`;
-                }
-
-                if (entry.tool) {
-                    md += `**使用ツール**: ${entry.tool}\n\n`;
+                if (entry.videoPrompt || entry.videoTool) {
+                    md += `### 🎥 動画生成 (${entry.videoTool || 'Unknown Tool'})\n\`\`\`\n${entry.videoPrompt}\n\`\`\`\n\n`;
                 }
 
                 if (entry.note) {
@@ -645,7 +750,27 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    // Merge to ensure new fields exist if schema changes
+                    // Migration Logic
+                    if (parsed.entries) {
+                        parsed.entries.forEach(entry => {
+                            // If old format (imgPrompt exists, imageSteps missing)
+                            if (!entry.imageSteps && (entry.imgPrompt !== undefined || entry.tool !== undefined)) {
+                                entry.imageSteps = [{
+                                    id: Date.now() + Math.random().toString(),
+                                    tool: entry.tool || 'Midjourney',
+                                    prompt: entry.imgPrompt || ''
+                                }];
+                                // Clean up old fields
+                                delete entry.imgPrompt;
+                                delete entry.tool;
+                            }
+                            // Ensure videoTool exists for old entries
+                            if (entry.videoTool === undefined) {
+                                entry.videoTool = '';
+                            }
+                        });
+                    }
+
                     state = { ...state, ...parsed };
                 } catch (e) {
                     console.error('Failed to load state', e);
@@ -674,3 +799,4 @@
 </body>
 
 </html>
+```

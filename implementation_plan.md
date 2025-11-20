@@ -1,45 +1,43 @@
-# Implementation Plan - Star Glitcher 3D: True Identity & Rhythm
+# 実装計画 - アニメ制作ログメーカー
 
-ユーザーの「キャラが違う」「スペースキーのバグ」「つまらない」というフィードバックに対し、根本的な修正とエンターテイメント性の向上を行います。
+目的は、アニメ制作中のプロンプトやメモを記録し、Obsidianへのエクスポートや最終的なnote記事作成を支援するブラウザベースのツールを作成することです。このツールは、通常のストーリーベースのアニメとミュージックビデオ（MV）の両方をサポートします。
 
-## Goal Description
-1.  **Character Restoration**: 元の画像ファイル (`assets/images/character_sheet.png`) を使用し、Canvas処理で背景を透明化した上で、Three.jsのテクスチャとして適用します。これで「本物」のキャラが3D空間を走ります。
-2.  **Input Fix**: スタートボタン等のフォーカスを解除（`.blur()`）し、スペースキーでの意図しないリスタートを防ぎます。
-3.  **Game Feel (Juice)**:
-    *   **Procedural Audio**: Web Audio APIを使用し、BGMと効果音（ジャンプ、コイン、爆発）を自動生成します。音があるだけで面白さは倍増します。
-    *   **Phase System**: スコアに応じて世界の色（パレット）と障害物のパターンが変化する「フェーズ」制を導入し、飽きさせない展開を作ります。
+## ユーザーレビュー必須事項
+> [!IMPORTANT]
+> 「ストーリーモード」と「MVモード」を切り替える「モードスイッチャー」を追加しました。MVモードの特定のフィールド（歌詞、タイムスタンプ）が十分かどうか確認してください。
 
-## User Review Required
-> [!NOTE]
-> ブラウザの仕様上、音声を再生するには一度画面をクリックする必要があります（スタートボタンで解決）。
+## 提案される変更
 
-## Proposed Changes
+### Tools ディレクトリ
+#### [NEW] [anime-production-logger.html](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/tools/anime-production-logger.html)
+- **技術スタック**: HTML, Vanilla JS, Vanilla CSS (埋め込み、またはメインスタイルへのリンク)。
+- **機能**:
+    - **プロジェクト情報**: タイトル、日付、カテゴリ（ストーリー/MV）。
+    - **モード切替**:
+        - **ストーリーモード**: シーン番号、カット番号。
+        - **MVモード**: タイムスタンプ（開始/終了）、歌詞セグメント。
+    - **共通フィールド**:
+        - 画像プロンプト（ポジティブ/ネガティブ）。
+        - 動画プロンプト（モーションバケット、カメラコントロールなど）。
+        - 使用ツール（ドロップダウン/タグ: Midjourney, Nijijourney, Runway, Pikaなど）。
+        - メモ/備考。
+    - **プレビュー**: リアルタイムMarkdownプレビュー。
+    - **アクション**: クリップボードにコピー、.mdファイルのダウンロード、データのクリア。
+    - **永続化**: LocalStorageへの自動保存。
 
-### Character Rendering
-#### [MODIFY] [js/game.js](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/js/game.js)
-- `createCharacterTexture` を廃止し、`assets/images/character_sheet.png` を読み込んでクロマキー処理（背景透過）を行う `loadProcessedTexture` 関数を実装。
+## 検証計画
 
-### Input Handling
-#### [MODIFY] [js/game.js](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/js/game.js)
-- ボタンクリック時に `this.blur()` を呼び出す。
-- `keydown` イベントで `e.target.tagName` をチェックし、ボタンへの入力を無視する。
+### 自動テスト
+- なし（単一ファイルツールのため）。
 
-### Audio System
-#### [MODIFY] [js/game.js](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/js/game.js)
-- `class AudioSynth`: オシレーターを使ったシンセサイザー。
-    - `playBGM()`: ベースラインとメロディをループ再生。
-    - `playSFX(type)`: ジャンプ（矩形波）、爆発（ノイズ）、アイテム（サイン波）の音を生成。
-
-### Gameplay Loop
-#### [MODIFY] [js/game.js](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/js/game.js)
-- **Phase System**:
-    - Phase 1: Neon Pink (Normal)
-    - Phase 2: Cyber Gold (Fast)
-    - Phase 3: Glitch Red (Hard)
-- **Obstacle Patterns**: 単純なランダムではなく、リズムに合わせた配置（BGMのビートと同期）。
-
-## Verification Plan
-- [ ] **キャラ表示**: 元の画像が背景透明で表示されているか。
-- [ ] **操作**: スペースキーを連打してもリスタートしないか。
-- [ ] **音**: BGMとSEが鳴るか。
-- [ ] **面白さ**: 色の変化や音の同期で「ノれる」ゲームになっているか。
+### 手動検証
+- ブラウザでツールを開く。
+- **ストーリーモードテスト**:
+    - シーン、プロンプト、メモを入力する。
+    - Markdown出力がヘッダー付きで正しくフォーマットされることを確認する。
+- **MVモードテスト**:
+    - MVモードに切り替える。
+    - 歌詞とタイムスタンプを入力する。
+    - Markdown出力にこれらの特定のフィールドが含まれていることを確認する。
+- **永続化テスト**:
+    - ページをリロードし、データが残っていることを確認する。
