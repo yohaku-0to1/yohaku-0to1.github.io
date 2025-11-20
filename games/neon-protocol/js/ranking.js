@@ -1,8 +1,7 @@
 // ランキングシステム
 
-// Google Apps Script のデプロイURL（ユーザーが設定）
-// 設定方法: GASをデプロイ後、下記のURLを更新してください
-const RANKING_API_URL = 'YOUR_GAS_DEPLOYMENT_URL_HERE';
+// Google Apps Script のデプロイURL
+const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycby5duJXDuJeq6nVfZcbSNDKp6_GBNrxkugbRU47_-c4FUHBZib0ZFXRSOtgDQS033wY1Q/exec';
 
 // スコア計算
 function calculateFinalScore() {
