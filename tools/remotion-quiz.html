@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remotion Knowledge Quiz - 0と1のすきま</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .quiz-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            color: #e5e7eb;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .option-btn.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #374151;
+            border-radius: 2px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #00ffff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans antialiased">
+
+    <!-- Header -->
+    <header class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="../index.html" class="text-2xl font-bold tracking-tighter hover:text-cyan-400 transition-colors">
+                0と1のすきま
+            </a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="remotion-hub.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400">Remotion Hub</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 pt-32 pb-20">
+        <div class="mb-8 text-center">
+            <a href="remotion-hub.html"
+                class="text-gray-400 hover:text-white inline-flex items-center gap-2 mb-4 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Hub
+            </a>
+            <h1 class="text-3xl font-bold mb-2">Remotion Knowledge Quiz</h1>
+            <p class="text-gray-400">全5問。あなたのRemotion力を試してみましょう。</p>
+        </div>
+
+        <div class="quiz-card" id="quiz-container">
+            <!-- Progress -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <!-- Question -->
+            <div id="question-box">
+                <h2 class="text-xl font-bold mb-6" id="question-text">Loading...</h2>
+                <div id="options-container">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+
+            <!-- Result (Hidden initially) -->
+            <div id="result-box" class="hidden text-center">
+                <h2 class="text-2xl font-bold mb-4">Quiz Completed!</h2>
+                <p class="text-4xl font-bold text-cyan-400 mb-6"><span id="score">0</span> / 5</p>
+                <p class="text-gray-400 mb-8" id="result-msg">Good job!</p>
+                <button id="retry-btn"
+                    class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-colors">
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/tools/remotion-quiz.js"></script>
+</body>
+
+</html>

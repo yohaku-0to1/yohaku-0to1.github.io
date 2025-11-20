@@ -39,10 +39,10 @@ const TOOLS_DATA = [
         icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1-1m6-3l-2-2m5.121 8.121A9 9 0 0112.07 21 9.003 9.003 0 013 12.071 9.003 9.003 0 0121 12.071a9.003 9.003 0 01-2.879 6.05z" /></svg>`
     },
     {
-        name: "Remotion Animation Lab",
-        description: "Remotionのアニメーションパラメータを実験・生成します。",
-        url: "tools/remotion-lab.html",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+        name: "Remotion Learning Hub",
+        description: "Remotionの学習リソース（ガイド、ラボ、クイズ）をまとめたポータル。",
+        url: "tools/remotion-hub.html",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>`
     }
 ];
 

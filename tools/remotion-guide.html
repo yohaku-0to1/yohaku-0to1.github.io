@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remotion 学習ガイド - 0と1のすきま</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .guide-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ffff;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .guide-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .guide-content p {
+            color: #d1d5db;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .guide-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+
+        .guide-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .guide-content code {
+            background: #1f2937;
+            color: #00ffff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .guide-content pre {
+            background: #111827;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid #374151;
+        }
+
+        .guide-content pre code {
+            background: transparent;
+            color: #e5e7eb;
+            padding: 0;
+            font-size: 0.9rem;
+        }
+
+        .guide-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background: #1f2937;
+        }
+
+        .guide-content th,
+        .guide-content td {
+            border: 1px solid #374151;
+            padding: 0.75rem;
+            text-align: left;
+            color: #d1d5db;
+        }
+
+        .guide-content th {
+            background: #111827;
+            color: #00ffff;
+        }
+
+        .note-box {
+            background: rgba(255, 165, 0, 0.1);
+            border-left: 4px solid orange;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #ffdcb0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans antialiased">
+
+    <!-- Header -->
+    <header class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="../index.html" class="text-2xl font-bold tracking-tighter hover:text-cyan-400 transition-colors">
+                0と1のすきま
+            </a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="../index.html#profile-section" class="hover:text-cyan-400 transition-colors">Profile</a>
+                <a href="../index.html#tools-section" class="hover:text-cyan-400 transition-colors">Tools</a>
+                <a href="remotion-hub.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400">Remotion Hub</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 pt-28 pb-12 max-w-4xl">
+        <div class="mb-8">
+            <a href="remotion-hub.html"
+                class="text-gray-400 hover:text-white flex items-center gap-2 mb-4 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Hub
+            </a>
+            <h1
+                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                Remotion 学習ガイド
+            </h1>
+            <p class="text-gray-400 text-lg">
+                Reactで動画を作るためのフレームワーク「Remotion」の基礎知識まとめ。
+            </p>
+        </div>
+
+        <div class="guide-content bg-gray-800/50 p-8 rounded-xl border border-gray-700 backdrop-blur-sm">
+
+            <!-- 1. Remotionとは -->
+            <section>
+                <h2>1. Remotionとは</h2>
+                <p>
+                    <strong>Remotion</strong>は、動画編集ソフトを使わずに <strong>React (HTML/CSS/JavaScript)</strong>
+                    のコードを書いて動画を作成するフレームワークです。
+                </p>
+                <ul>
+                    <li><strong>仕組み:</strong> Headless Chrome（ブラウザ）を裏で動かし、コマごとに描画した結果をFFmpegで結合して動画にします。</li>
+                    <li><strong>特徴:</strong> プレビューが高速、データ連動（API/JSON）が得意、Gitでバージョン管理が可能。</li>
+                </ul>
+            </section>
+
+            <!-- 2. 前提環境とセットアップ -->
+            <section>
+                <h2>2. 前提環境とセットアップ</h2>
+
+                <h3>2.1. 必須環境</h3>
+                <ul>
+                    <li><strong>Node.js:</strong> v16以上 (LTS推奨)</li>
+                    <li><strong>OS:</strong> macOS, Windows, Linux</li>
+                    <li><strong>FFmpeg:</strong> <strong>インストール不要</strong>（Remotion v4が内部で自動管理してくれます）。<br>
+                        <span class="text-sm text-gray-500">※特殊な環境設定をしたい場合のみ手動インストールしますが、基本は不要です。</span>
+                    </li>
+                </ul>
+
+                <h3>2.2. インストール手順</h3>
+                <p>ターミナルでプロジェクトを作りたいフォルダへ移動し、以下を実行します。</p>
+                <pre><code>npx create-video@latest</code></pre>
+                <p>対話形式で設定を聞かれます。推奨設定は以下の通りです。</p>
+                <ul>
+                    <li><strong>Project name:</strong> 任意の名前（例: <code>my-video</code>）</li>
+                    <li><strong>Template:</strong> <code>Hello World</code> (構成が最も分かりやすいため推奨)</li>
+                    <li><strong>Language:</strong> <code>TypeScript</code> (推奨) / JavaScript</li>
+                </ul>
+            </section>
+
+            <!-- 3. 開発ワークフロー -->
+            <section>
+                <h2>3. 開発ワークフロー</h2>
+
+                <h3>3.1. プレビュー画面 (Studio) の起動</h3>
+                <p>コードを書いている最中は、ブラウザ上のエディタ（Studio）で確認します。</p>
+                <pre><code>npm run dev</code></pre>
+                <ul>
+                    <li>ブラウザが自動で立ち上がります。</li>
+                    <li>コードを保存すると、ブラウザをリロードしなくても即座に反映されます（Fast Refresh）。</li>
+                    <li><span class="text-sm text-gray-500">※もしコマンドが動かない場合は、一度 <code>npm install</code>
+                            を実行してください。</span></li>
+                </ul>
+
+                <h3>3.2. ファイル構成とアーキテクチャ</h3>
+                <p><code>src</code> フォルダ内の主要ファイルの関係性は以下の通りです。</p>
+                <pre><code>src/
+├── index.ts          # 【エントリーポイント】 Reactをマウントする場所（通常は編集不要）
+├── Root.tsx          # 【マニフェスト】 動画全体の定義（FPS、サイズ、構成）
+├── Composition.tsx   # 【コンポーネント】 動画の中身（UI構築を行うメインの場所）
+└── HelloWorld/       # 部品となるコンポーネント群（タイトル、ロゴなど）</code></pre>
+
+                <h4><code>src/Root.tsx</code> の詳細</h4>
+                <p>動画の「設計図」です。ここで定義した <code>id</code> を書き出し時に使います。</p>
+                <pre><code>&lt;Composition
+  id="HelloWorld"          // 👈 書き出しコマンドで指定するID
+  component={HelloWorld}   // 👈 実際に表示するコンポーネント
+  durationInFrames={150}   // 👈 動画の長さ（フレーム数）
+  fps={30}                 // 👈 1秒あたりのフレーム数
+  width={1920}             // 👈 解像度（幅）
+  height={1080}            // 👈 解像度（高さ）
+  defaultProps={{
+    titleText: "Welcome",
+  }}
+/&gt;</code></pre>
+            </section>
+
+            <!-- 4. アニメーションの実装 -->
+            <section>
+                <h2>4. アニメーションの実装（Core Concepts）</h2>
+                <p>Remotionにおけるアニメーションは、「時間（フレーム）」を「数値（スタイル）」に変換することで実現します。</p>
+
+                <h3>4.1. 現在時刻の取得</h3>
+                <p><code>useCurrentFrame()</code> フックを使用します。</p>
+                <pre><code>import { useCurrentFrame } from 'remotion';
+
+const frame = useCurrentFrame(); 
+// frame変数は、0, 1, 2... と動画の進行に合わせて増えていく</code></pre>
+
+                <h3>4.2. 基本アニメーション（Interpolate）</h3>
+                <p>「フレーム 0〜30 の間に、不透明度を 0〜1 にしたい」といった制御には <code>interpolate</code> 関数を使います。</p>
+                <pre><code>import { interpolate, useCurrentFrame } from 'remotion';
+
+const frame = useCurrentFrame();
+
+const opacity = interpolate(
+    frame,
+    [0, 30],  // 入力範囲 (フレーム数)
+    [0, 1],   // 出力範囲 (不透明度)
+    {
+      extrapolateLeft: 'clamp',  // 0フレームより前は0のまま固定
+      extrapolateRight: 'clamp', // 30フレームより後は1のまま固定
+    }
+);
+
+return &lt;div style={{ opacity }}&gt;フェードインする文字&lt;/div&gt;;</code></pre>
+            </section>
+
+            <!-- 5. 動画の書き出し -->
+            <section>
+                <h2>5. 動画の書き出しとコマンドの使い分け（重要）</h2>
+                <p>Remotionには大きく分けて「動画ファイルを作るコマンド」と「Webアプリを作るコマンド」の2種類があります。目的に応じて使い分けます。</p>
+
+                <h3>5.1. MP4動画を作る場合 (<code>remotion render</code>)</h3>
+                <p>ローカルのPCで動画ファイル（.mp4）を生成したい場合は、このコマンドを使います。</p>
+                <pre><code>npx remotion render &lt;CompositionID&gt; &lt;出力ファイル名&gt;</code></pre>
+                <p><strong>実行例:</strong></p>
+                <pre><code>npx remotion render HelloWorld out.mp4</code></pre>
+
+                <div class="note-box">
+                    <strong>【重要】Mac (Apple Silicon) ユーザー向けの注意点</strong><br>
+                    M1 / M2 / M3 チップ搭載のMacを使っている場合、書き出し時にエラーが出たり画面が黒くなることがあります。その場合は <code>--gl=angle</code>
+                    オプションを付けてください。<br>
+                    <code>npx remotion render HelloWorld out.mp4 --gl=angle</code>
+                </div>
+
+                <h3>5.2. Webアプリとして書き出す場合 (<code>npm run build</code>)</h3>
+                <p><code>package.json</code> の <code>build</code> スクリプト（実体は
+                    <code>remotion bundle</code>）を実行した場合の挙動です。<br>
+                    <strong>MP4動画だけが欲しい場合は、この手順は不要です。</strong>
+                </p>
+                <pre><code>npm run build
+# または npx remotion bundle</code></pre>
+
+                <h4>生成されるものと使い道</h4>
+                <p>このコマンドを実行すると、通常 <code>out/</code> フォルダなどに以下のファイル群が生成されます。</p>
+                <ul>
+                    <li><strong>生成物:</strong> <code>index.html</code>, <code>bundle.js</code>, <code>style.css</code> など
+                    </li>
+                    <li><strong>正体:</strong> これは動画ファイルではなく、<strong>「ブラウザで動画を再生するためのWebアプリケーション（静的サイト）」</strong> です。</li>
+                    <li><strong>主な使い道:</strong>
+                        <ol class="list-decimal ml-6 mt-2">
+                            <li><strong>Web公開:</strong> GitHub Pages, Vercel, Netlify, S3などにアップロードし、Web上で動画プレイヤーとして公開する。
+                            </li>
+                            <li><strong>クラウドレンダリング:</strong> AWS
+                                Lambdaなどで大量の動画を自動生成する際、この「Webアプリ」をソースとして読み込ませてサーバー側でレンダリングさせる。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 6. ベストプラクティス・用語集 -->
+            <section>
+                <h2>6. ベストプラクティス・用語集</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用語 / コマンド</th>
+                            <th>解説</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Zod</strong></td>
+                            <td>データの型定義スキーマ。Remotionでは <code>props</code> の型定義に推奨されていますが、必須ではありません。型安全性を高めるために使います。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AbsoluteFill</strong></td>
+                            <td><code>&lt;div style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}}&gt;</code>
+                                の代わり。画面いっぱいに配置するRemotion用コンポーネント。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sequence</strong></td>
+                            <td><code>&lt;Sequence from={30}&gt;</code> のように使い、子要素の開始時間をずらすコンポーネント。動画編集のタイムライン操作にあたります。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fast Refresh</strong></td>
+                            <td>コードを保存すると、動画の再生位置を維持したまま瞬時に画面が更新される機能。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>remotion render</strong></td>
+                            <td><strong>【動画作成用】</strong> 手元のPCでMP4動画そのものを生成するコマンド。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>remotion bundle</strong></td>
+                            <td><strong>【Web公開・クラウド用】</strong> 動画プレイヤー機能を持ったWebページ一式を出力するコマンド。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="bg-black py-8 text-center text-gray-500 text-sm">
+        <p>&copy; 2025 0と1のすきま. All rights reserved.</p>
+    </footer>
+
+</body>
+
+</html>
