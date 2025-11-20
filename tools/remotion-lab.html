@@ -308,7 +308,150 @@
             </div>
         </section>
 
-        <!-- 3. Time-to-Frame Calculator -->
+        <!-- 3. Easing Visualizer -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Easing Visualizer (緩急)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>Easing</code> 関数を使うと、動きに加速や減速をつけることができます。<br>
+                <span class="text-cyan-400 font-bold">Pro Tip:</span> 登場には <code>out</code>（減速して止まる）、退場には
+                <code>in</code>（加速して消える）を使うのが基本です。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Controls -->
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Easing Type</label>
+                    <select id="easing-type"
+                        class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4">
+                        <option value="linear">linear (等速)</option>
+                        <option value="ease">ease (滑らか)</option>
+                        <option value="in">in (加速)</option>
+                        <option value="out">out (減速)</option>
+                        <option value="inOut">inOut (加速して減速)</option>
+                        <option value="bezier">bezier (カスタム)</option>
+                    </select>
+
+                    <div id="bezier-controls"
+                        class="hidden space-y-2 mb-4 p-4 bg-gray-800 rounded border border-gray-700">
+                        <p class="text-xs text-gray-400 mb-2">Cubic Bezier Control Points (x1, y1, x2, y2)</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="bz-x1" value="0.42" step="0.01"
+                                class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="x1">
+                            <input type="number" id="bz-y1" value="0" step="0.01"
+                                class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="y1">
+                            <input type="number" id="bz-x2" value="0.58" step="0.01"
+                                class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="x2">
+                            <input type="number" id="bz-y2" value="1" step="0.01"
+                                class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-white text-sm"
+                                placeholder="y2">
+                        </div>
+                    </div>
+
+                    <button id="replay-easing"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors">
+                        Replay Animation
+                    </button>
+                </div>
+
+                <!-- Visualization -->
+                <div>
+                    <div class="canvas-container mb-4">
+                        <div id="easing-ball" class="ball" style="left: 20px; top: 50%; transform: translateY(-50%);">
+                        </div>
+                        <!-- Start/End markers -->
+                        <div style="position: absolute; left: 20px; height: 100%; border-left: 1px dashed #555;"></div>
+                        <div style="position: absolute; right: 20px; height: 100%; border-right: 1px dashed #555;">
+                        </div>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="relative">
+                        <div class="code-block" id="easing-code">
+                            import { Easing } from "remotion";
+
+                            const value = interpolate(frame, [0, 30], [0, 100], {
+                            easing: Easing.linear
+                            });
+                        </div>
+                        <button id="copy-easing-code" class="copy-btn w-full">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Color Interpolation -->
+        <section class="lab-card">
+            <h2 class="lab-header">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+                Color Interpolation (色の変化)
+            </h2>
+            <p class="text-sm text-gray-400 mb-6">
+                <code>interpolateColors()</code> を使うと、色を滑らかに変化させることができます。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Inputs -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Start Color</label>
+                        <div class="flex gap-2">
+                            <input type="color" id="color-start" value="#00ffff"
+                                class="h-10 w-10 bg-transparent border-none cursor-pointer">
+                            <input type="text" id="color-start-text" value="#00ffff"
+                                class="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">End Color</label>
+                        <div class="flex gap-2">
+                            <input type="color" id="color-end" value="#ff00ff"
+                                class="h-10 w-10 bg-transparent border-none cursor-pointer">
+                            <input type="text" id="color-end-text" value="#ff00ff"
+                                class="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div>
+                    <div class="h-32 w-full rounded mb-4 flex items-center justify-center border border-gray-700"
+                        id="color-preview-box">
+                        <span class="text-black font-bold bg-white/50 px-2 py-1 rounded">Preview</span>
+                    </div>
+                    <div class="h-4 w-full rounded bg-gradient-to-r from-cyan-400 to-purple-500 mb-4"
+                        id="color-gradient-bar"></div>
+
+                    <div class="relative">
+                        <div class="code-block" id="color-code">
+                            import { interpolateColors } from "remotion";
+
+                            const color = interpolateColors(
+                            frame,
+                            [0, 30],
+                            ["#00ffff", "#ff00ff"]
+                            );
+                        </div>
+                        <button id="copy-color-code" class="copy-btn w-full">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Time-to-Frame Calculator -->
         <section class="lab-card">
             <h2 class="lab-header">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
