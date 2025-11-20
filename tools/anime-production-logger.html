@@ -163,6 +163,15 @@
             padding: 1.5rem;
             position: relative;
             animation: slideIn 0.3s ease-out;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .entry-card.collapsed .entry-body {
+            display: none;
+        }
+
+        .entry-card.collapsed {
+            padding-bottom: 0.5rem;
         }
 
         @keyframes slideIn {
@@ -186,9 +195,26 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        .entry-card.collapsed .entry-header {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
         .entry-title {
             font-weight: 600;
             color: var(--accent-color);
+            flex: 1;
+            margin-left: 0.5rem;
+        }
+
+        .entry-summary {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-left: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
         }
 
         .btn-icon {
@@ -196,14 +222,28 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 4px;
+            padding: 4px 8px;
             border-radius: 4px;
             transition: color 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-icon:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-icon.danger:hover {
             color: var(--danger-color);
             background: rgba(239, 68, 68, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
         }
 
         .row {
@@ -213,6 +253,13 @@
 
         .col {
             flex: 1;
+        }
+
+        .duration-display {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin-left: 0.5rem;
+            font-weight: 600;
         }
 
         .btn-primary {
@@ -484,6 +531,7 @@
             const id = Date.now().toString();
             const base = {
                 id,
+                isCollapsed: false,
                 imageSteps: [
                     { id: Date.now() + '1', tool: 'Midjourney', prompt: '' }
                 ],
@@ -529,8 +577,72 @@
             const entry = state.entries.find(e => e.id === id);
             if (entry) {
                 entry[field] = value;
+
+                // Recalculate duration if timestamp changes
+                if (field === 'timestampStart' || field === 'timestampEnd') {
+                    renderDuration(entry.id);
+                }
+
                 updatePreview();
                 saveState();
+            }
+        }
+
+        function toggleCollapse(id) {
+            const entry = state.entries.find(e => e.id === id);
+            if (entry) {
+                entry.isCollapsed = !entry.isCollapsed;
+                renderEntries();
+                saveState();
+            }
+        }
+
+        function moveEntry(index, direction) {
+            if (direction === 'up' && index > 0) {
+                const temp = state.entries[index];
+                state.entries[index] = state.entries[index - 1];
+                state.entries[index - 1] = temp;
+            } else if (direction === 'down' && index < state.entries.length - 1) {
+                const temp = state.entries[index];
+                state.entries[index] = state.entries[index + 1];
+                state.entries[index + 1] = temp;
+            }
+            renderEntries();
+            updatePreview();
+            saveState();
+        }
+
+        // Duration Calculation
+        function parseTime(timeStr) {
+            if (!timeStr) return 0;
+            // Handle mm:ss or just ss
+            const parts = timeStr.split(':');
+            if (parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+            }
+            return parseFloat(timeStr);
+        }
+
+        function formatDuration(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '';
+            return `(${seconds.toFixed(1)}s)`;
+        }
+
+        function getDurationText(entry) {
+            const start = parseTime(entry.timestampStart);
+            const end = parseTime(entry.timestampEnd);
+            if (end > start) {
+                return formatDuration(end - start);
+            }
+            return '';
+        }
+
+        function renderDuration(id) {
+            const entry = state.entries.find(e => e.id === id);
+            if (!entry) return;
+            const el = document.getElementById(`duration-${id}`);
+            if (el) {
+                el.textContent = getDurationText(entry);
             }
         }
 
@@ -577,11 +689,13 @@
 
             state.entries.forEach((entry, index) => {
                 const el = document.createElement('div');
-                el.className = 'entry-card';
+                el.className = `entry-card ${entry.isCollapsed ? 'collapsed' : ''}`;
 
                 let fieldsHTML = '';
+                let summaryText = '';
 
                 if (state.mode === 'story') {
+                    summaryText = `Scene ${entry.scene || '?'} - Cut ${entry.cut || '?'}`;
                     fieldsHTML = `
                     <div class="row">
                         <div class="col form-group">
@@ -599,6 +713,8 @@
                     </div>
                 `;
                 } else {
+                    const durationText = getDurationText(entry);
+                    summaryText = `${entry.timestampStart || '0:00'} - ${entry.timestampEnd || '?'} ${entry.lyrics || ''}`;
                     fieldsHTML = `
                     <div class="row">
                         <div class="col form-group">
@@ -606,7 +722,7 @@
                             <input type="text" value="${entry.timestampStart}" oninput="updateEntry('${entry.id}', 'timestampStart', this.value)" placeholder="0:00">
                         </div>
                         <div class="col form-group">
-                            <label>終了時間</label>
+                            <label>終了時間 <span id="duration-${entry.id}" class="duration-display">${durationText}</span></label>
                             <input type="text" value="${entry.timestampEnd}" oninput="updateEntry('${entry.id}', 'timestampEnd', this.value)" placeholder="0:05">
                         </div>
                     </div>
@@ -640,27 +756,40 @@
 
                 el.innerHTML = `
                 <div class="entry-header">
-                    <span class="entry-title">#${index + 1}</span>
-                    <button class="btn-icon" onclick="removeEntry('${entry.id}')" title="削除">✕</button>
+                    <div style="display: flex; align-items: center; flex: 1;">
+                        <button class="btn-icon" onclick="toggleCollapse('${entry.id}')" title="${entry.isCollapsed ? '展開' : '折りたたみ'}">
+                            ${entry.isCollapsed ? '▶' : '▼'}
+                        </button>
+                        <span class="entry-title">#${index + 1}</span>
+                        ${entry.isCollapsed ? `<span class="entry-summary">${summaryText}</span>` : ''}
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="moveEntry(${index}, 'up')" title="上へ移動" ${index === 0 ? 'disabled' : ''} style="${index === 0 ? 'opacity: 0.3' : ''}">↑</button>
+                        <button class="btn-icon" onclick="moveEntry(${index}, 'down')" title="下へ移動" ${index === state.entries.length - 1 ? 'disabled' : ''} style="${index === state.entries.length - 1 ? 'opacity: 0.3' : ''}">↓</button>
+                        <button class="btn-icon danger" onclick="removeEntry('${entry.id}')" title="削除" style="margin-left: 0.5rem;">✕</button>
+                    </div>
                 </div>
-                ${fieldsHTML}
+                
+                <div class="entry-body">
+                    ${fieldsHTML}
+                    
+                    <div class="form-group">
+                        <label style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            画像生成プロセス
+                            <button class="btn-secondary" onclick="addImageStep('${entry.id}')" style="padding: 2px 8px; font-size: 0.75rem;">+ ステップ追加</button>
+                        </label>
+                        ${imageStepsHTML}
+                    </div>
 
-                <div class="form-group">
-                    <label style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                        画像生成プロセス
-                        <button class="btn-secondary" onclick="addImageStep('${entry.id}')" style="padding: 2px 8px; font-size: 0.75rem;">+ ステップ追加</button>
-                    </label>
-                    ${imageStepsHTML}
-                </div>
-
-                <div class="form-group">
-                    <label>動画生成 (ツール & プロンプト)</label>
-                    <input type="text" list="tools-list" value="${entry.videoTool || ''}" oninput="updateEntry('${entry.id}', 'videoTool', this.value)" placeholder="使用ツール (例: Kling)" style="margin-bottom: 0.5rem;">
-                    <textarea oninput="updateEntry('${entry.id}', 'videoPrompt', this.value)" placeholder="カメラワークやモーションバケットなど...">${entry.videoPrompt}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>メモ / 備考</label>
-                    <textarea oninput="updateEntry('${entry.id}', 'note', this.value)" placeholder="制作メモ、苦労した点など" style="min-height: 60px;">${entry.note}</textarea>
+                    <div class="form-group">
+                        <label>動画生成 (ツール & プロンプト)</label>
+                        <input type="text" list="tools-list" value="${entry.videoTool || ''}" oninput="updateEntry('${entry.id}', 'videoTool', this.value)" placeholder="使用ツール (例: Kling)" style="margin-bottom: 0.5rem;">
+                        <textarea oninput="updateEntry('${entry.id}', 'videoPrompt', this.value)" placeholder="カメラワークやモーションバケットなど...">${entry.videoPrompt}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>メモ / 備考</label>
+                        <textarea oninput="updateEntry('${entry.id}', 'note', this.value)" placeholder="制作メモ、苦労した点など" style="min-height: 60px;">${entry.note}</textarea>
+                    </div>
                 </div>
             `;
                 container.appendChild(el);
@@ -685,7 +814,8 @@
                         md += `🗣️ **セリフ**: ${entry.dialogue}\n\n`;
                     }
                 } else {
-                    md += `## [${entry.timestampStart || '0:00'} - ${entry.timestampEnd || '?'}] ${entry.lyrics || 'Segment'}\n\n`;
+                    const duration = getDurationText(entry);
+                    md += `## [${entry.timestampStart || '0:00'} - ${entry.timestampEnd || '?'}] ${duration ? duration + ' ' : ''}${entry.lyrics || 'Segment'}\n\n`;
                 }
 
                 if (entry.imageSteps && entry.imageSteps.length > 0) {
@@ -779,6 +909,10 @@
                             // Ensure dialogue exists for old entries (story mode)
                             if (entry.type === 'story' && entry.dialogue === undefined) {
                                 entry.dialogue = '';
+                            }
+                            // Ensure isCollapsed exists
+                            if (entry.isCollapsed === undefined) {
+                                entry.isCollapsed = false;
                             }
                         });
                     }
