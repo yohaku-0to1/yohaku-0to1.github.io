@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remotion 学習ガイド - 0と1のすきま</title>
+    <title>Remotion Academy - 0と1のすきま</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,92 +13,197 @@
         rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        .guide-content h2 {
+        /* Layout */
+        .academy-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 8rem;
+            padding-bottom: 4rem;
+        }
+
+        @media (max-width: 1024px) {
+            .academy-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+                /* Mobile menu to be added if needed, for now simplified */
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 6rem;
+            height: calc(100vh - 8rem);
+            overflow-y: auto;
+            padding-right: 1rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 0.4rem 0;
+            color: #d1d5db;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            color: #00ffff;
+        }
+
+        .sidebar-link.active {
+            color: #00ffff;
+            font-weight: 600;
+            border-left: 2px solid #00ffff;
+            padding-left: 0.8rem;
+            margin-left: -0.9rem;
+        }
+
+        /* Content */
+        .content-area {
+            min-width: 0;
+            /* Prevent overflow */
+        }
+
+        .chapter {
+            margin-bottom: 4rem;
+            scroll-margin-top: 8rem;
+        }
+
+        .chapter h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter h3 {
             font-size: 1.5rem;
             font-weight: 700;
             color: #00ffff;
             margin-top: 2.5rem;
             margin-bottom: 1rem;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-            padding-bottom: 0.5rem;
         }
 
-        .guide-content h3 {
-            font-size: 1.25rem;
+        .chapter h4 {
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #e0e0e0;
-            margin-top: 2rem;
+            color: #e5e7eb;
+            margin-top: 1.5rem;
             margin-bottom: 0.75rem;
         }
 
-        .guide-content p {
+        .chapter p {
             color: #d1d5db;
             line-height: 1.8;
             margin-bottom: 1rem;
         }
 
-        .guide-content ul {
-            list-style-type: disc;
+        .chapter ul,
+        .chapter ol {
+            color: #d1d5db;
+            margin-bottom: 1.5rem;
             padding-left: 1.5rem;
-            margin-bottom: 1rem;
-            color: #d1d5db;
         }
 
-        .guide-content li {
+        .chapter ul {
+            list-style-type: disc;
+        }
+
+        .chapter ol {
+            list-style-type: decimal;
+        }
+
+        .chapter li {
             margin-bottom: 0.5rem;
+            line-height: 1.6;
         }
 
-        .guide-content code {
-            background: #1f2937;
-            color: #00ffff;
-            padding: 0.2rem 0.4rem;
-            border-radius: 0.25rem;
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-
-        .guide-content pre {
+        /* Code Blocks */
+        .code-block {
             background: #111827;
-            padding: 1rem;
-            border-radius: 0.5rem;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
             overflow-x: auto;
-            margin-bottom: 1.5rem;
-            border: 1px solid #374151;
-        }
-
-        .guide-content pre code {
-            background: transparent;
-            color: #e5e7eb;
-            padding: 0;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
             font-size: 0.9rem;
+            line-height: 1.5;
+            color: #e5e7eb;
         }
 
-        .guide-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-            background: #1f2937;
+        .code-keyword {
+            color: #c678dd;
         }
 
-        .guide-content th,
-        .guide-content td {
-            border: 1px solid #374151;
-            padding: 0.75rem;
-            text-align: left;
-            color: #d1d5db;
+        .code-function {
+            color: #61afef;
         }
 
-        .guide-content th {
-            background: #111827;
-            color: #00ffff;
+        .code-string {
+            color: #98c379;
         }
 
-        .note-box {
-            background: rgba(255, 165, 0, 0.1);
-            border-left: 4px solid orange;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            color: #ffdcb0;
+        .code-comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+
+        .code-tag {
+            color: #e06c75;
+        }
+
+        .code-attr {
+            color: #d19a66;
+        }
+
+        /* Callouts */
+        .callout {
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #bfdbfe;
+        }
+
+        .callout-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+            color: #fde68a;
+        }
+
+        .callout-tip {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #a7f3d0;
         }
     </style>
 </head>
@@ -106,235 +211,734 @@
 <body class="bg-gray-900 text-white font-sans antialiased">
 
     <!-- Header -->
-    <header class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+    <header
+        class="fixed w-full z-50 top-0 transition-all duration-300 bg-gray-900/90 backdrop-blur-md border-b border-gray-800"
+        id="navbar">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="../index.html" class="text-2xl font-bold tracking-tighter hover:text-cyan-400 transition-colors">
-                0と1のすきま
-            </a>
+            <div class="flex items-center gap-6">
+                <a href="../index.html"
+                    class="text-2xl font-bold tracking-tighter hover:text-cyan-400 transition-colors">
+                    0と1のすきま
+                </a>
+                <span class="text-gray-600">/</span>
+                <a href="remotion-hub.html" class="font-bold text-gray-300 hover:text-white transition-colors">
+                    Remotion Hub
+                </a>
+            </div>
             <nav class="hidden md:flex space-x-8">
-                <a href="../index.html#profile-section" class="hover:text-cyan-400 transition-colors">Profile</a>
-                <a href="../index.html#tools-section" class="hover:text-cyan-400 transition-colors">Tools</a>
-                <a href="remotion-hub.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400">Remotion Hub</a>
+                <a href="remotion-lab.html" class="text-gray-400 hover:text-cyan-400 transition-colors">Lab</a>
+                <a href="remotion-creator.html" class="text-gray-400 hover:text-cyan-400 transition-colors">Studio</a>
+                <span class="text-cyan-400 font-bold border-b-2 border-cyan-400">Academy</span>
             </nav>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-6 pt-28 pb-12 max-w-4xl">
-        <div class="mb-8">
-            <a href="remotion-hub.html"
-                class="text-gray-400 hover:text-white flex items-center gap-2 mb-4 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Hub
-            </a>
-            <h1
-                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-                Remotion 学習ガイド
-            </h1>
-            <p class="text-gray-400 text-lg">
-                Reactで動画を作るためのフレームワーク「Remotion」の基礎知識まとめ。
-            </p>
-        </div>
+    <div class="academy-container px-6">
 
-        <div class="guide-content bg-gray-800/50 p-8 rounded-xl border border-gray-700 backdrop-blur-sm">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Getting Started</h4>
+                <a href="#intro" class="sidebar-link">Remotionとは</a>
+                <a href="#setup" class="sidebar-link">環境構築</a>
+                <a href="#workflow" class="sidebar-link">開発ワークフロー</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Core Concepts</h4>
+                <a href="#rendering" class="sidebar-link">レンダリングの仕組み</a>
+                <a href="#lifecycle" class="sidebar-link">Reactライフサイクル</a>
+                <a href="#props" class="sidebar-link">Propsとパラメータ</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Timeline & Layout</h4>
+                <a href="#sequence" class="sidebar-link">SequenceとSeries</a>
+                <a href="#absolutefill" class="sidebar-link">AbsoluteFillとレイアウト</a>
+                <a href="#assets" class="sidebar-link">画像・フォントの読み込み</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Animation</h4>
+                <a href="#interpolate" class="sidebar-link">Interpolate (補間)</a>
+                <a href="#spring" class="sidebar-link">Spring (物理挙動)</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Advanced</h4>
+                <a href="#async" class="sidebar-link">非同期データ (delayRender)</a>
+                <a href="#random" class="sidebar-link">乱数生成 (Randomness)</a>
+                <a href="#audio" class="sidebar-link">オーディオ可視化</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Production</h4>
+                <a href="#rendering" class="sidebar-link">動画の書き出し</a>
+                <a href="#performance" class="sidebar-link">パフォーマンス最適化</a>
+            </div>
+            <div class="sidebar-group">
+                <h4 class="sidebar-title">Cookbook</h4>
+                <a href="#recipes" class="sidebar-link">実践レシピ集</a>
+            </div>
+        </aside>
 
-            <!-- 1. Remotionとは -->
-            <section>
-                <h2>1. Remotionとは</h2>
-                <p>
-                    <strong>Remotion</strong>は、動画編集ソフトを使わずに <strong>React (HTML/CSS/JavaScript)</strong>
-                    のコードを書いて動画を作成するフレームワークです。
+        <!-- Main Content -->
+        <main class="content-area">
+
+            <div class="mb-12">
+                <h1
+                    class="text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                    Remotion Academy
+                </h1>
+                <p class="text-xl text-gray-400 mb-8">
+                    Reactエンジニアのための、動画生成フレームワーク完全ガイド。<br>
+                    基礎からプロダクションレベルの実装パターンまでを網羅。
                 </p>
-                <ul>
-                    <li><strong>仕組み:</strong> Headless Chrome（ブラウザ）を裏で動かし、コマごとに描画した結果をFFmpegで結合して動画にします。</li>
-                    <li><strong>特徴:</strong> プレビューが高速、データ連動（API/JSON）が得意、Gitでバージョン管理が可能。</li>
-                </ul>
-            </section>
-
-            <!-- 2. 前提環境とセットアップ -->
-            <section>
-                <h2>2. 前提環境とセットアップ</h2>
-
-                <h3>2.1. 必須環境</h3>
-                <ul>
-                    <li><strong>Node.js:</strong> v16以上 (LTS推奨)</li>
-                    <li><strong>OS:</strong> macOS, Windows, Linux</li>
-                    <li><strong>FFmpeg:</strong> <strong>インストール不要</strong>（Remotion v4が内部で自動管理してくれます）。<br>
-                        <span class="text-sm text-gray-500">※特殊な環境設定をしたい場合のみ手動インストールしますが、基本は不要です。</span>
-                    </li>
-                </ul>
-
-                <h3>2.2. インストール手順</h3>
-                <p>ターミナルでプロジェクトを作りたいフォルダへ移動し、以下を実行します。</p>
-                <pre><code>npx create-video@latest</code></pre>
-                <p>対話形式で設定を聞かれます。推奨設定は以下の通りです。</p>
-                <ul>
-                    <li><strong>Project name:</strong> 任意の名前（例: <code>my-video</code>）</li>
-                    <li><strong>Template:</strong> <code>Hello World</code> (構成が最も分かりやすいため推奨)</li>
-                    <li><strong>Language:</strong> <code>TypeScript</code> (推奨) / JavaScript</li>
-                </ul>
-            </section>
-
-            <!-- 3. 開発ワークフロー -->
-            <section>
-                <h2>3. 開発ワークフロー</h2>
-
-                <h3>3.1. プレビュー画面 (Studio) の起動</h3>
-                <p>コードを書いている最中は、ブラウザ上のエディタ（Studio）で確認します。</p>
-                <pre><code>npm run dev</code></pre>
-                <ul>
-                    <li>ブラウザが自動で立ち上がります。</li>
-                    <li>コードを保存すると、ブラウザをリロードしなくても即座に反映されます（Fast Refresh）。</li>
-                    <li><span class="text-sm text-gray-500">※もしコマンドが動かない場合は、一度 <code>npm install</code>
-                            を実行してください。</span></li>
-                </ul>
-
-                <h3>3.2. ファイル構成とアーキテクチャ</h3>
-                <p><code>src</code> フォルダ内の主要ファイルの関係性は以下の通りです。</p>
-                <pre><code>src/
-├── index.ts          # 【エントリーポイント】 Reactをマウントする場所（通常は編集不要）
-├── Root.tsx          # 【マニフェスト】 動画全体の定義（FPS、サイズ、構成）
-├── Composition.tsx   # 【コンポーネント】 動画の中身（UI構築を行うメインの場所）
-└── HelloWorld/       # 部品となるコンポーネント群（タイトル、ロゴなど）</code></pre>
-
-                <h4><code>src/Root.tsx</code> の詳細</h4>
-                <p>動画の「設計図」です。ここで定義した <code>id</code> を書き出し時に使います。</p>
-                <pre><code>&lt;Composition
-  id="HelloWorld"          // 👈 書き出しコマンドで指定するID
-  component={HelloWorld}   // 👈 実際に表示するコンポーネント
-  durationInFrames={150}   // 👈 動画の長さ（フレーム数）
-  fps={30}                 // 👈 1秒あたりのフレーム数
-  width={1920}             // 👈 解像度（幅）
-  height={1080}            // 👈 解像度（高さ）
-  defaultProps={{
-    titleText: "Welcome",
-  }}
-/&gt;</code></pre>
-            </section>
-
-            <!-- 4. アニメーションの実装 -->
-            <section>
-                <h2>4. アニメーションの実装（Core Concepts）</h2>
-                <p>Remotionにおけるアニメーションは、「時間（フレーム）」を「数値（スタイル）」に変換することで実現します。</p>
-
-                <h3>4.1. 現在時刻の取得</h3>
-                <p><code>useCurrentFrame()</code> フックを使用します。</p>
-                <pre><code>import { useCurrentFrame } from 'remotion';
-
-const frame = useCurrentFrame(); 
-// frame変数は、0, 1, 2... と動画の進行に合わせて増えていく</code></pre>
-
-                <h3>4.2. 基本アニメーション（Interpolate）</h3>
-                <p>「フレーム 0〜30 の間に、不透明度を 0〜1 にしたい」といった制御には <code>interpolate</code> 関数を使います。</p>
-                <pre><code>import { interpolate, useCurrentFrame } from 'remotion';
-
-const frame = useCurrentFrame();
-
-const opacity = interpolate(
-    frame,
-    [0, 30],  // 入力範囲 (フレーム数)
-    [0, 1],   // 出力範囲 (不透明度)
-    {
-      extrapolateLeft: 'clamp',  // 0フレームより前は0のまま固定
-      extrapolateRight: 'clamp', // 30フレームより後は1のまま固定
-    }
-);
-
-return &lt;div style={{ opacity }}&gt;フェードインする文字&lt;/div&gt;;</code></pre>
-            </section>
-
-            <!-- 5. 動画の書き出し -->
-            <section>
-                <h2>5. 動画の書き出しとコマンドの使い分け（重要）</h2>
-                <p>Remotionには大きく分けて「動画ファイルを作るコマンド」と「Webアプリを作るコマンド」の2種類があります。目的に応じて使い分けます。</p>
-
-                <h3>5.1. MP4動画を作る場合 (<code>remotion render</code>)</h3>
-                <p>ローカルのPCで動画ファイル（.mp4）を生成したい場合は、このコマンドを使います。</p>
-                <pre><code>npx remotion render &lt;CompositionID&gt; &lt;出力ファイル名&gt;</code></pre>
-                <p><strong>実行例:</strong></p>
-                <pre><code>npx remotion render HelloWorld out.mp4</code></pre>
-
-                <div class="note-box">
-                    <strong>【重要】Mac (Apple Silicon) ユーザー向けの注意点</strong><br>
-                    M1 / M2 / M3 チップ搭載のMacを使っている場合、書き出し時にエラーが出たり画面が黒くなることがあります。その場合は <code>--gl=angle</code>
-                    オプションを付けてください。<br>
-                    <code>npx remotion render HelloWorld out.mp4 --gl=angle</code>
+                <div class="callout callout-tip">
+                    <strong>このガイドでできるようになること</strong>
+                    <ul class="mt-2">
+                        <li>Reactだけでアニメーション動画を作れる</li>
+                        <li>APIやDBから値を受け取って<strong>自動動画生成</strong>ができる</li>
+                        <li>オーディオに合わせてビジュアライザーを作れる</li>
+                        <li>Web公開 / MP4出力のやり方が分かる</li>
+                        <li>動画生成を<strong>高速化して安定させる方法</strong>が分かる</li>
+                    </ul>
                 </div>
+            </div>
 
-                <h3>5.2. Webアプリとして書き出す場合 (<code>npm run build</code>)</h3>
-                <p><code>package.json</code> の <code>build</code> スクリプト（実体は
-                    <code>remotion bundle</code>）を実行した場合の挙動です。<br>
-                    <strong>MP4動画だけが欲しい場合は、この手順は不要です。</strong>
+            <!-- 1. Intro -->
+            <section id="intro" class="chapter">
+                <h2>Remotionとは</h2>
+                <p>
+                    Remotionは、<strong>「ReactのコンポーネントをMP4動画として書き出す」</strong>ためのフレームワークです。
+                    従来の動画編集ソフト（Premiere ProやAfter Effects）とは異なり、すべてをコードで制御します。
                 </p>
-                <pre><code>npm run build
-# または npx remotion bundle</code></pre>
-
-                <h4>生成されるものと使い道</h4>
-                <p>このコマンドを実行すると、通常 <code>out/</code> フォルダなどに以下のファイル群が生成されます。</p>
-                <ul>
-                    <li><strong>生成物:</strong> <code>index.html</code>, <code>bundle.js</code>, <code>style.css</code> など
-                    </li>
-                    <li><strong>正体:</strong> これは動画ファイルではなく、<strong>「ブラウザで動画を再生するためのWebアプリケーション（静的サイト）」</strong> です。</li>
-                    <li><strong>主な使い道:</strong>
-                        <ol class="list-decimal ml-6 mt-2">
-                            <li><strong>Web公開:</strong> GitHub Pages, Vercel, Netlify, S3などにアップロードし、Web上で動画プレイヤーとして公開する。
-                            </li>
-                            <li><strong>クラウドレンダリング:</strong> AWS
-                                Lambdaなどで大量の動画を自動生成する際、この「Webアプリ」をソースとして読み込ませてサーバー側でレンダリングさせる。</li>
-                        </ol>
-                    </li>
-                </ul>
+                <div class="callout callout-info">
+                    <strong>なぜRemotionなのか？</strong><br>
+                    <ul>
+                        <li><strong>プログラマブル:</strong> APIデータを使って1000本の動画を自動生成する、といったことが可能です。</li>
+                        <li><strong>Web技術の活用:</strong> CSS Flexbox/Grid、SVG、Canvas、WebGLなど、Webの表現力をそのまま動画に使えます。</li>
+                        <li><strong>バージョン管理:</strong> 動画プロジェクトをGitで管理できます。</li>
+                    </ul>
+                </div>
             </section>
 
-            <!-- 6. ベストプラクティス・用語集 -->
-            <section>
-                <h2>6. ベストプラクティス・用語集</h2>
+            <!-- 2. Setup -->
+            <section id="setup" class="chapter">
+                <h2>環境構築</h2>
+                <p>
+                    <strong>Node.js (v18以上 LTS推奨)</strong> が必要です。<br>
+                    FFmpegは、Remotionが動画レンダリング・バンドル処理に必要なものを内部で管理するため、基本的には手動インストール不要です。
+                </p>
+                <div class="callout callout-info">
+                    <strong>FFmpegの自動ダウンロード:</strong><br>
+                    Remotionの初回起動時に、必要なFFmpegが自動的にダウンロードされます。<br>
+                    ただし、<strong>CI/CD環境（Docker、GitHub Actions、Vercel、Renderなど）やプロキシ環境</strong>では、自動ダウンロードが失敗する場合があります。
+                    その際は手動でFFmpegをインストールする必要があります。詳細は公式ドキュメントを参照してください。
+                </div>
+                <div class="callout callout-tip">
+                    <strong>Apple Siliconユーザーへ:</strong><br>
+                    M1/M2/M3 Mac では、Homebrew経由でFFmpegをインストールしておくとトラブルが少なくなります。<br>
+                    <code>brew install ffmpeg</code>
+                </div>
+                <div class="code-block">
+                    <span class="code-comment"># 新規プロジェクトの作成</span><br>
+                    npx create-video@latest
+                </div>
+                <p>
+                    テンプレートは <code>Hello World</code> (TypeScript) を推奨します。最もシンプルで構造を理解しやすいためです。
+                </p>
+                <div class="callout callout-tip">
+                    <strong>学習チェックリスト - まずはここまでやればOK！</strong>
+                    <ul class="mt-2">
+                        <li>☑ Node.js 18以上をインストール</li>
+                        <li>☑ <code>npx create-video@latest</code> でプロジェクト作成</li>
+                        <li>☑ <code>npm run dev</code> でStudioを起動してプレビュー</li>
+                        <li>☑ <code>useCurrentFrame()</code> と <code>interpolate()</code> でシンプルなフェードインを作成</li>
+                        <li>☑ <code>Sequence</code> で複数クリップを配置</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 2.5. Minimal Example -->
+            <section id="minimal" class="chapter">
+                <h2>最小の動作コンポーネント例</h2>
+                <p>
+                    Remotionの最小構成を理解するため、完全に動作するシンプルな例を示します。
+                    以下は1つのプロジェクトの基本構造です。
+                </p>
+                <h3>src/Root.tsx（動画の設計図）</h3>
+                <p class="text-sm text-gray-500 mb-2">📝 TypeScript</p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { Composition } <span class="code-keyword">from</span>
+                    <span class="code-string">'remotion'</span>;<br>
+                    <span class="code-keyword">import</span> { MyVideo } <span class="code-keyword">from</span> <span
+                        class="code-string">'./MyVideo'</span>;<br>
+                    <br>
+                    <span class="code-keyword">export</span> <span class="code-keyword">const</span> RemotionRoot = ()
+                    => {<br>
+                    &nbsp;&nbsp;<span class="code-keyword">return</span> (<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="code-tag">Composition</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">id</span>="MyVideo"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">component</span>={MyVideo}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">durationInFrames</span>={150}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">fps</span>={30}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">width</span>={1920}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-attr">height</span>={1080}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+                    &nbsp;&nbsp;);<br>
+                    };
+                </div>
+                <h3>src/MyVideo.tsx（実際の映像）</h3>
+                <p class="text-sm text-gray-500 mb-2">📝 TypeScript</p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { useCurrentFrame, interpolate } <span
+                        class="code-keyword">from</span> <span class="code-string">'remotion'</span>;<br>
+                    <br>
+                    <span class="code-keyword">export</span> <span class="code-keyword">const</span> MyVideo = () =>
+                    {<br>
+                    &nbsp;&nbsp;<span class="code-keyword">const</span> frame = <span
+                        class="code-function">useCurrentFrame</span>();<br>
+                    &nbsp;&nbsp;<span class="code-keyword">const</span> opacity = <span
+                        class="code-function">interpolate</span>(frame, [0, 30], [0, 1]);<br>
+                    <br>
+                    &nbsp;&nbsp;<span class="code-keyword">return</span> (<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="code-tag">div</span> <span
+                        class="code-attr">style</span>={{ opacity, fontSize: 80 }}&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hello Remotion!<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span class="code-tag">div</span>&gt;<br>
+                    &nbsp;&nbsp;);<br>
+                    };
+                </div>
+                <p>
+                    このコードで、30フレーム（1秒）かけてフェードインするテキストが完成します。<br>
+                    <code>useCurrentFrame()</code> と <code>useVideoConfig()</code> から取得できる <code>fps</code> などの値は、
+                    上記の <code>Composition</code> で定義した設定から自動的に提供されます。
+                </p>
+                <div class="callout callout-info">
+                    <strong>複数のCompositionを管理:</strong><br>
+                    実際のプロジェクトでは、複数の <code>Composition</code> を同時に管理できます。<br>
+                    例えば、本編・サムネイル・TikTok版・YouTube版などを1つのプロジェクトで作成可能です。
+                    <p class="text-sm text-gray-500 mb-2 mt-2">📝 TypeScript</p>
+                    <div class="code-block mt-2">
+                        &lt;<span class="code-tag">Composition</span> <span class="code-attr">id</span>="Main" ...
+                        /&gt;<br>
+                        &lt;<span class="code-tag">Composition</span> <span class="code-attr">id</span>="Thumbnail" ...
+                        /&gt;<br>
+                        &lt;<span class="code-tag">Composition</span> <span class="code-attr">id</span>="TikTok" ...
+                        /&gt;
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Workflow -->
+            <section id="workflow" class="chapter">
+                <h2>開発ワークフロー</h2>
+                <p>
+                    Remotionでの開発は、ブラウザ上のプレビューツール「Remotion Studio」を中心に行います。
+                </p>
+                <p class="text-sm text-gray-500 mb-2">💻 Shell</p>
+                <div class="code-block">
+                    npm run dev
+                </div>
+                <p>
+                    このコマンドを実行すると、ローカルサーバーが立ち上がり、ブラウザで動画をプレビューできます。
+                    コードを保存すると即座に反映される「Fast Refresh」機能があるため、効率的に試行錯誤できます。
+                </p>
+                <h3>使い分けガイド</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>用語 / コマンド</th>
-                            <th>解説</th>
+                            <th>やりたいこと</th>
+                            <th>使うコマンド／ツール</th>
+                            <th>出力物</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Zod</strong></td>
-                            <td>データの型定義スキーマ。Remotionでは <code>props</code> の型定義に推奨されていますが、必須ではありません。型安全性を高めるために使います。</td>
+                            <td>動きを確認したい</td>
+                            <td><code>npm run dev</code></td>
+                            <td>ブラウザプレビュー（Remotion Studio）</td>
                         </tr>
                         <tr>
-                            <td><strong>AbsoluteFill</strong></td>
-                            <td><code>&lt;div style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}}&gt;</code>
-                                の代わり。画面いっぱいに配置するRemotion用コンポーネント。</td>
+                            <td>動画ファイル（MP4）を書き出したい</td>
+                            <td><code>npx remotion render</code></td>
+                            <td>MP4ファイル</td>
                         </tr>
                         <tr>
-                            <td><strong>Sequence</strong></td>
-                            <td><code>&lt;Sequence from={30}&gt;</code> のように使い、子要素の開始時間をずらすコンポーネント。動画編集のタイムライン操作にあたります。
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Fast Refresh</strong></td>
-                            <td>コードを保存すると、動画の再生位置を維持したまま瞬時に画面が更新される機能。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>remotion render</strong></td>
-                            <td><strong>【動画作成用】</strong> 手元のPCでMP4動画そのものを生成するコマンド。</td>
-                        </tr>
-                        <tr>
-                            <td><strong>remotion bundle</strong></td>
-                            <td><strong>【Web公開・クラウド用】</strong> 動画プレイヤー機能を持ったWebページ一式を出力するコマンド。</td>
+                            <td>Webで公開したい</td>
+                            <td><code>npm run build</code></td>
+                            <td>静的Webページ（WebBundle）</td>
                         </tr>
                     </tbody>
                 </table>
+                <div class="callout callout-info">
+                    <strong>Studio と Render の違い:</strong><br>
+                    <ul class="mt-2">
+                        <li><strong>Studio (dev)</strong>: ブラウザでリアルタイム描画。開発・デバッグ用。</li>
+                        <li><strong>Render</strong>: 1フレームずつ正確に再描画してMP4化。フレームの順番は保証されない（並列処理のため）。</li>
+                    </ul>
+                    これは「ReactのSSR（サーバーサイドレンダリング）」に似た世界です。
+                    だからこそ <code>useEffect</code> による状態管理ではなく、<code>useCurrentFrame()</code> ベースの純粋関数的なコンポーネント設計が必須になります。
+                </div>
             </section>
 
-        </div>
-    </main>
+            <!-- 3. Core Concepts: Rendering -->
+            <section id="rendering" class="chapter">
+                <h2>レンダリングの仕組み (The Frame Loop)</h2>
+                <p>
+                    Remotionの核心は<strong>「現在のフレーム数 (frame) に基づいてUIを描画する」</strong>ことです。
+                    動画再生中、Remotionは毎秒30回（30fpsの場合）、コンポーネントを再レンダリングし、その都度 <code>useCurrentFrame()</code> の値を更新します。
+                </p>
+                <p class="text-sm text-gray-500 mb-2">📝 TypeScript / JavaScript</p>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> frame = <span
+                        class="code-function">useCurrentFrame</span>();<br>
+                    <span class="code-comment">// frame: 0 -> 1 -> 2 -> 3 ...</span>
+                </div>
+                <p>
+                    この <code>frame</code> の値を使って、不透明度や位置などのスタイルを計算します。これがアニメーションの原理です。
+                </p>
+            </section>
 
-    <footer class="bg-black py-8 text-center text-gray-500 text-sm">
+            <!-- 4. Core Concepts: Lifecycle -->
+            <section id="lifecycle" class="chapter">
+                <h2>Reactライフサイクルと動画</h2>
+                <div class="callout callout-warning">
+                    <strong>useEffect の注意点:</strong><br>
+                    <code>useEffect</code> を<strong>アニメーション状態（動画の内容）</strong>に使うのはNGです。<br>
+                    ただし、<code>delayRender</code> のような「完了通知用途」では問題ありません。
+                    <ul class="mt-2">
+                        <li>❌ NG: <code>useEffect</code> でカウントアップしてアニメーション</li>
+                        <li>✅ OK: <code>useEffect</code> + <code>delayRender</code> でデータ読み込み完了を通知</li>
+                    </ul>
+                    <strong>理由:</strong> Studio（プレビュー）では動きますが、render（MP4書き出し）時に破綻します。
+                </div>
+                <p>
+                    したがって、<strong>「時間の経過とともに状態が変化する」ロジック（例: <code>setInterval</code> や <code>useEffect</code>
+                        でのカウントアップ）は使ってはいけません。</strong>
+                    常に <code>useCurrentFrame()</code> から一意に定まる「純粋関数」のようなコンポーネントを作る必要があります。
+                </p>
+                <div class="callout callout-warning">
+                    <strong>❌ ダメな例：フレーム順が保証されない</strong>
+                    <p class="text-sm text-gray-500 mb-2 mt-2">📝 TypeScript / JavaScript</p>
+                    <div class="code-block mb-2">
+                        <span class="code-keyword">useEffect</span>(() => {<br>
+                        &nbsp;&nbsp;<span class="code-function">setCount</span>(c => c + 1); <span
+                            class="code-comment">// レンダリングのたびに結果が変わる！</span><br>
+                        }, []);
+                    </div>
+                    <strong>✅ 正しい例：frameに依存</strong>
+                    <p class="text-sm text-gray-500 mb-2 mt-2">📝 TypeScript / JavaScript</p>
+                    <div class="code-block">
+                        <span class="code-keyword">const</span> frame = <span
+                            class="code-function">useCurrentFrame</span>();<br>
+                        <span class="code-keyword">const</span> count = Math.<span
+                            class="code-function">floor</span>(frame / 10); <span class="code-comment">// 常に同じ結果</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4.5. Props -->
+            <section id="props" class="chapter">
+                <h2>Propsとパラメータ</h2>
+                <p>
+                    動画の内容を動的に変えるために、コンポーネントに <code>props</code> を渡すことができます。
+                    ルートの <code>Composition</code> でデフォルト値を設定し、レンダリング時に上書きすることが可能です。
+                </p>
+                <div class="code-block">
+                    &lt;<span class="code-tag">Composition</span><br>
+                    &nbsp;&nbsp;<span class="code-attr">id</span>="MyVideo"<br>
+                    &nbsp;&nbsp;<span class="code-attr">component</span>={MyVideo}<br>
+                    &nbsp;&nbsp;<span class="code-attr">defaultProps</span>={{ title: "Hello" }}<br>
+                    /&gt;
+                </div>
+            </section>
+
+            <!-- 5. Timeline: Sequence -->
+            <section id="sequence" class="chapter">
+                <h2>Sequence と Series（タイムライン制御）</h2>
+                <p>
+                    動画編集のタイムラインのように、クリップを配置するためのコンポーネントです。
+                </p>
+
+                <h3>Sequence</h3>
+                <p>
+                    絶対的な時間指定、または相対的な配置を行います。
+                    <code>from</code> で開始フレーム、<code>durationInFrames</code> で長さを指定します。
+                </p>
+                <div class="callout callout-info">
+                    <strong>ネスト時の挙動:</strong><br>
+                    Sequenceを入れ子にした場合、子のSequenceの <code>from</code> は親のSequenceの開始位置が基準になります。
+                </div>
+                <div class="code-block">
+                    &lt;<span class="code-tag">Sequence</span> <span class="code-attr">from</span>={0} <span
+                        class="code-attr">durationInFrames</span>={30}&gt;<br>
+                    &nbsp;&nbsp;&lt;<span class="code-tag">Title</span> /&gt;<br>
+                    &lt;/<span class="code-tag">Sequence</span>&gt;<br>
+                    &lt;<span class="code-tag">Sequence</span> <span class="code-attr">from</span>={30}&gt; <span
+                        class="code-comment">// 30フレーム目から開始</span><br>
+                    &nbsp;&nbsp;&lt;<span class="code-tag">Subtitle</span> /&gt;<br>
+                    &lt;/<span class="code-tag">Sequence</span>&gt;
+                </div>
+
+                <h3>Series</h3>
+                <p>
+                    「前のクリップが終わったら次」という風に、自動的に順番に並べてくれます。計算の手間が省けます。
+                </p>
+                <div class="code-block">
+                    &lt;<span class="code-tag">Series</span>&gt;<br>
+                    &nbsp;&nbsp;&lt;<span class="code-tag">Series.Sequence</span> <span
+                        class="code-attr">durationInFrames</span>={60}&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="code-tag">Scene1</span> /&gt;<br>
+                    &nbsp;&nbsp;&lt;/<span class="code-tag">Series.Sequence</span>&gt;<br>
+                    &nbsp;&nbsp;&lt;<span class="code-tag">Series.Sequence</span> <span
+                        class="code-attr">durationInFrames</span>={90}&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span class="code-tag">Scene2</span> /&gt; <span class="code-comment">//
+                        自動的に60フレーム目から開始</span><br>
+                    &nbsp;&nbsp;&lt;/<span class="code-tag">Series.Sequence</span>&gt;<br>
+                    &lt;/<span class="code-tag">Series</span>&gt;
+                </div>
+            </section>
+
+            <!-- 6. Layout: AbsoluteFill -->
+            <section id="absolutefill" class="chapter">
+                <h2>AbsoluteFillとレイアウト</h2>
+                <p>
+                    Remotionには <code>AbsoluteFill</code> という便利なコンポーネントがあります。
+                    これは以下のスタイルが適用された <code>div</code> です。
+                </p>
+                <div class="code-block">
+                    position: absolute;<br>
+                    top: 0; left: 0; right: 0; bottom: 0;<br>
+                    display: flex;<br>
+                    flex-direction: column;
+                </div>
+                <p>
+                    動画の各レイヤーは基本的に画面いっぱいに広がるべきなので、コンポーネントのルート要素として多用します。
+                </p>
+            </section>
+
+            <!-- 6.5. Assets -->
+            <section id="assets" class="chapter">
+                <h2>画像・フォントの読み込み</h2>
+                <p>
+                    画像や動画ファイルは <code>public/</code> フォルダに置き、<code>staticFile()</code> 関数を使ってパスを解決するのがベストプラクティスです。
+                </p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { staticFile } <span class="code-keyword">from</span> <span
+                        class="code-string">'remotion'</span>;<br>
+                    &lt;<span class="code-tag">Img</span> <span class="code-attr">src</span>={staticFile("logo.png")}
+                    /&gt;
+                </div>
+                <p>
+                    フォントは <code>@remotion/google-fonts</code> を使うと非常に簡単に導入できます。
+                </p>
+            </section>
+
+            <!-- 7. Animation: Interpolate -->
+            <section id="interpolate" class="chapter">
+                <h2>Interpolate (補間)</h2>
+                <p>
+                    数値をマッピングする関数です。アニメーションの基本中の基本です。
+                </p>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> opacity = <span
+                        class="code-function">interpolate</span>(<br>
+                    &nbsp;&nbsp;frame,<br>
+                    &nbsp;&nbsp;[0, 20], <span class="code-comment">// 入力: 0フレームから20フレームの間</span><br>
+                    &nbsp;&nbsp;[0, 1], <span class="code-comment">// 出力: 0(透明)から1(不透明)へ</span><br>
+                    &nbsp;&nbsp;{ extrapolateRight: <span class="code-string">'clamp'</span> } <span
+                        class="code-comment">// 20フレーム以降は1を維持</span><br>
+                    );
+                </div>
+            </section>
+
+            <!-- 7.5. Spring -->
+            <section id="spring" class="chapter">
+                <h2>Spring (物理挙動)</h2>
+                <h3>なぜspringが必要か？</h3>
+                <p>
+                    <code>interpolate</code> だけでもアニメーションは作れますが、線形的な動きは「機械的」に見えることがあります。
+                    <code>spring</code> を使うと、バネのような物理挙動（加速・減速・オーバーシュート）が自動生成され、
+                    見た目に自然でリッチな動きになります。
+                </p>
+                <div class="callout callout-tip">
+                    <strong>springが役立つ状況:</strong>
+                    <ul class="mt-2">
+                        <li>ロゴやテキストの登場に「弾む感じ」が欲しい時</li>
+                        <li>UI要素のアニメーションを心地よくする</li>
+                        <li>線形の <code>interpolate</code> だと動きが平板に感じる場合</li>
+                    </ul>
+                </div>
+                <div class="callout callout-info">
+                    <strong>注意:</strong> Remotionの <code>spring()</code> は独自の物理演算APIです。<code>react-spring</code>
+                    ライブラリとは別物です。
+                </div>
+                <p class="text-sm text-gray-500 mb-2">📝 TypeScript / JavaScript</p>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> scale = <span class="code-function">spring</span>({<br>
+                    &nbsp;&nbsp;frame,<br>
+                    &nbsp;&nbsp;fps,<br>
+                    &nbsp;&nbsp;config: {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;damping: 20, <span class="code-comment">// 低いほど跳ねる（推奨: 10-30）</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;stiffness: 200, <span class="code-comment">// 高いほど速い（推奨: 100-300）</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;mass: 1 <span class="code-comment">// 質量（通常は1で OK）</span><br>
+                    &nbsp;&nbsp;}<br>
+                    });
+                </div>
+                <p>
+                    <code>damping</code> だけでなく <code>stiffness</code> も調整することで、より自然な動きを実現できます。
+                    公式推奨値は <code>damping: 20, stiffness: 200</code> です。
+                </p>
+                <div class="callout callout-tip">
+                    <strong>Spring の動きイメージ（数値例）:</strong><br>
+                    <code>scale</code> を 0 → 1 にアニメーションさせた場合の推移例：
+                    <ul class="mt-2">
+                        <li>frame: 0 → scale: 0.00</li>
+                        <li>frame: 10 → scale: 1.12（オーバーシュート）</li>
+                        <li>frame: 20 → scale: 0.96（反動）</li>
+                        <li>frame: 40 → scale: 1.00（収束）</li>
+                    </ul>
+                    このように「跳ねて安定する」物理挙動が自動生成されます。
+                </div>
+            </section>
+
+            <!-- 8. Advanced: Async -->
+            <section id="async" class="chapter">
+                <h2>非同期データ読み込み (delayRender)</h2>
+                <h3>なぜdelayRenderが必要か？</h3>
+                <p>
+                    Remotionはフレームごとにコンポーネントをレンダリングしますが、
+                    APIからデータを取得したり、重いフォントを読み込む場合、データがそろう前にレンダリングが始まってしまうと、映像が欠けたりフリッカーしたりします。
+                </p>
+                <p>
+                    <code>delayRender</code> と <code>continueRender</code> を使うことで、「データが準備できるまでレンダリングを待機」させることができます。
+                </p>
+                <div class="callout callout-tip">
+                    <strong>使用状況:</strong>
+                    <ul class="mt-2">
+                        <li>APIからデータをfetchして動画に反映する場合</li>
+                        <li>カスタムフォントの読み込みを待つ必要がある場合</li>
+                        <li>画像や動画のプリロードを確実にする場合</li>
+                    </ul>
+                </div>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> [handle] = <span class="code-function">useState</span>(() =>
+                    <span class="code-function">delayRender</span>());<br>
+                    <br>
+                    <span class="code-function">useEffect</span>(() => {<br>
+                    &nbsp;&nbsp;<span class="code-function">fetchData</span>().<span
+                        class="code-function">then</span>(data => {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">setData</span>(data);<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">continueRender</span>(handle); <span
+                        class="code-comment">// 準備完了を通知</span><br>
+                    &nbsp;&nbsp;});<br>
+                    }, []);
+                </div>
+            </section>
+
+            <!-- 9. Advanced: Random -->
+            <section id="random" class="chapter">
+                <h2>乱数生成 (Randomness)</h2>
+                <h3>なぜMath.random()ではダメなのか？</h3>
+                <div class="callout callout-warning">
+                    <strong>Math.random() は禁止！</strong><br>
+                    Remotionのレンダリングは、複数のブラウザインスタンスで並列にフレームを描画します。
+                    <code>Math.random()</code> を使うと、同じフレームでもレンダリングのたびに異なる値が生成され、映像がフリッカーしたり、プレビューと書き出しで結果が変わる原因になります。
+                </div>
+                <p>
+                    解決策として、Remotionの <code>random()</code> 関数を使い、シード値を渡します。
+                    同じシード値からは常に同じ乱数が生成されるため（決定的乱数）、レンダリングのタイミングに関係なく一貫した結果を得られます。
+                </p>
+                <div class="callout callout-info">
+                    <strong>randomSeed() とは？</strong><br>
+                    <code>randomSeed()</code> は決定的な乱数ストリームを生成するシード値を返す関数です。<br>
+                    シード値は<strong>数値でも文字列でもOK</strong>です。同じシードからは常に同じ乱数系列が生成されます。<br>
+                    複数の乱数値を使いたい場合は、数値を加算したり文字列で区別します。
+                </div>
+                <div class="callout callout-tip">
+                    <strong>Compositionレベルでの乱数管理:</strong><br>
+                    <code>Composition</code> の <code>defaultProps</code> で <code>randomSeed</code> を指定すると、
+                    映像全体を統一された乱数系列で制御できます。これにより、書き出しごとに結果が変わることを防げます。
+                </div>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { random, randomSeed } <span
+                        class="code-keyword">from</span> <span class="code-string">'remotion'</span>;<br>
+                    <br>
+                    <span class="code-comment">// シンプルな使い方</span><br>
+                    <span class="code-keyword">const</span> x = <span class="code-function">random</span>(<span
+                        class="code-string">"my-seed"</span>) * 100;<br>
+                    <br>
+                    <span class="code-comment">// 複数の乱数値を管理する場合</span><br>
+                    <span class="code-keyword">const</span> seed = <span class="code-function">randomSeed</span>(1);
+                    <span class="code-comment">// 決定的な数値が返る</span><br>
+                    <span class="code-keyword">const</span> x = <span class="code-function">random</span>(seed) *
+                    100;<br>
+                    <span class="code-keyword">const</span> y = <span class="code-function">random</span>(seed + <span
+                        class="code-string">"b"</span>) *
+                    50; <span class="code-comment">// 文字列で区別</span>
+                </div>
+            </section>
+
+            <!-- 9.5. Audio -->
+            <section id="audio" class="chapter">
+                <h2>オーディオ可視化</h2>
+                <p>
+                    音楽に合わせて動くビジュアライザーを作るには、<code>@remotion/media-utils</code> の <code>useAudioData</code> を使います。
+                    オーディオファイルの波形データを取得し、フレームごとの音量を数値化できます。
+                </p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { useAudioData, visualizeAudio } <span
+                        class="code-keyword">from</span> <span class="code-string">'@remotion/media-utils'</span>;<br>
+                    <span class="code-keyword">import</span> { staticFile } <span class="code-keyword">from</span> <span
+                        class="code-string">'remotion'</span>;<br>
+                    <br>
+                    <span class="code-keyword">const</span> audioData = <span
+                        class="code-function">useAudioData</span>(<span class="code-function">staticFile</span>(<span
+                        class="code-string">"music.mp3"</span>));<br>
+                    <br>
+                    <span class="code-comment">// 読み込み中はnullになるためガード</span><br>
+                    <span class="code-keyword">if</span> (!audioData) <span class="code-keyword">return</span> <span
+                        class="code-keyword">null</span>;<br>
+                    <br>
+                    <span class="code-keyword">const</span> visualization = <span
+                        class="code-function">visualizeAudio</span>({<br>
+                    &nbsp;&nbsp;fps,<br>
+                    &nbsp;&nbsp;frame,<br>
+                    &nbsp;&nbsp;audioData,<br>
+                    &nbsp;&nbsp;numberOfSamples: 16<br>
+                    });
+                </div>
+                <div class="callout callout-tip">
+                    <strong>ヒント:</strong><br>
+                    <code>visualizeAudio()</code> 関数を使うと、特定の周波数帯域の音量を取り出すことも可能です。
+                    低音に合わせてベースを揺らす、といった表現ができます。<br>
+                    <br>
+                    <strong>実用例:</strong> 一瞬で「音楽に反応する円柱グラフ」や「PVのビジュアライザー」などが作れます。
+                </div>
+            </section>
+
+            <!-- 10. Rendering -->
+            <section id="rendering" class="chapter">
+                <h2>動画の書き出し</h2>
+                <p>
+                    Remotionで作った動画をMP4ファイルとして書き出すには、<code>remotion render</code> コマンドを使います。
+                </p>
+                <h3>基本的な使い方</h3>
+                <p>多くの場合、以下のシンプルな構文で書き出せます：</p>
+                <div class="code-block">
+                    npx remotion render &lt;CompositionID&gt; &lt;出力ファイル名&gt;
+                </div>
+                <p><strong>実行例:</strong></p>
+                <div class="code-block">
+                    npx remotion render HelloWorld out.mp4
+                </div>
+                <h3>正式な構文</h3>
+                <p>より明示的に指定する場合は、以下の正式構文を使用します：</p>
+                <div class="code-block">
+                    npx remotion render &lt;エントリーファイル&gt; &lt;CompositionID&gt; &lt;出力ファイル名&gt;
+                </div>
+                <p><strong>実行例:</strong></p>
+                <div class="code-block">
+                    npx remotion render src/index.tsx HelloWorld out.mp4
+                </div>
+                <div class="callout callout-warning">
+                    <strong>Mac (Apple Silicon) ユーザーへ:</strong><br>
+                    M1 / M2 / M3 チップ搭載のMacでは、書き出し時に画面が黒くなることがあります。<br>
+                    その場合は <code>--gl=angle</code> オプションを付けてください。<br>
+                    <code>npx remotion render HelloWorld out.mp4 --gl=angle</code><br>
+                    <br>
+                    また、Homebrew経由でFFmpegをインストールしておくとトラブルが減ります（環境構築セクション参照）。
+                </div>
+                <h3>Web公開 (Bundle)</h3>
+                <p>
+                    <strong>Remotionで生成したプロジェクトの場合</strong>、<code>npm run build</code>
+                    を実行すると、動画プレイヤー機能を持ったWebページ一式（WebBundle）が生成されます。
+                    これをGitHub PagesやVercelにデプロイすれば、ブラウザ上で動画を再生できます。
+                </p>
+                <div class="callout callout-tip">
+                    <strong>クラウドレンダリングでも使用:</strong><br>
+                    WebBundleは、Remotion LambdaなどのクラウドレンダリングAPI用途でも必要になることがあります。
+                </div>
+                <div class="callout callout-info">
+                    <strong>render と build の違い</strong><br>
+                    <code>render</code> = 動画ファイル（MP4）を書き出す<br>
+                    <code>build</code> = Webページとして再生できる形式を出力する（WebBundle）
+                </div>
+            </section>
+
+            <!-- 11. Performance -->
+            <section id="performance" class="chapter">
+                <h2>パフォーマンス最適化</h2>
+                <p>
+                    大規模な動画プロジェクトでは、レンダリング速度やメモリ使用量が問題になることがあります。以下のテクニックを活用しましょう。
+                </p>
+                <h3>OffthreadVideo</h3>
+                <p>
+                    動画ファイルを別スレッドでデコードすることで、メインスレッドの負荷を減らせます。
+                </p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { OffthreadVideo } <span class="code-keyword">from</span>
+                    <span class="code-string">'remotion'</span>;<br>
+                    &lt;<span class="code-tag">OffthreadVideo</span> <span class="code-attr">src</span>={videoSrc} /&gt;
+                </div>
+                <h3>prefetch() で読み込み高速化</h3>
+                <p>
+                    画像や動画を事前に読み込むことで、レンダリング時のフリーズを防げます。
+                    より確実に行うには、<code>delayRender</code> と組み合わせます。
+                </p>
+                <div class="code-block">
+                    <span class="code-keyword">import</span> { prefetch, delayRender, continueRender } <span
+                        class="code-keyword">from</span> <span class="code-string">'remotion'</span>;<br>
+                    <br>
+                    <span class="code-keyword">const</span> handle = <span
+                        class="code-function">delayRender</span>();<br>
+                    <br>
+                    <span class="code-function">prefetch</span>(<span class="code-function">staticFile</span>(<span
+                        class="code-string">"heavy-image.png"</span>))<br>
+                    &nbsp;&nbsp;.<span class="code-function">then</span>(() => <span
+                        class="code-function">continueRender</span>(handle));
+                </div>
+                <h3>その他のTips</h3>
+                <ul>
+                    <li><code>pauseAnimation</code>: 開発環境でCPU負荷を下げたい場合に使用（本番レンダリングには影響しません）</li>
+                    <li>未使用画像の解放: メモリリーク防止のため、不要な画像は参照を切る</li>
+                    <li>フレームレート調整: 60fps → 30fps にするだけで書き出し時間が半減</li>
+                </ul>
+            </section>
+
+            <!-- 12. Cookbook -->
+            <section id="recipes" class="chapter">
+                <h2>実践レシピ集</h2>
+
+                <h3>スライドイン・トランジション</h3>
+                <p>画面外から要素が入ってくる動き。</p>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> y = <span class="code-function">spring</span>({<br>
+                    &nbsp;&nbsp;frame,<br>
+                    &nbsp;&nbsp;fps,<br>
+                    &nbsp;&nbsp;from: 100, <span class="code-comment">// 下方向100pxから</span><br>
+                    &nbsp;&nbsp;to: 0 <span class="code-comment">// 定位置へ</span><br>
+                    });<br>
+                    <span class="code-keyword">return</span> &lt;<span class="code-tag">div</span> <span
+                        class="code-attr">style</span>={{ transform: `translateY(${y}px)` }} /&gt;;
+                </div>
+
+                <h3>オーディオ波形</h3>
+                <p><code>@remotion/media-utils</code> の <code>useAudioData</code> を使います。</p>
+                <div class="code-block">
+                    <span class="code-keyword">const</span> audioData = <span
+                        class="code-function">useAudioData</span>(audioSrc);<br>
+                    <span class="code-keyword">const</span> visualization = <span
+                        class="code-function">visualizeAudio</span>({<br>
+                    &nbsp;&nbsp;fps,<br>
+                    &nbsp;&nbsp;frame,<br>
+                    &nbsp;&nbsp;audioData,<br>
+                    &nbsp;&nbsp;numberOfSamples: 16<br>
+                    });
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="bg-black py-8 text-center text-gray-500 text-sm mt-12 border-t border-gray-800">
         <p>&copy; 2025 0と1のすきま. All rights reserved.</p>
     </footer>
 
