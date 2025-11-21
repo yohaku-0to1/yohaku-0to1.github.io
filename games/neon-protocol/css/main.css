@@ -509,3 +509,151 @@ body {
         padding: 1rem;
     }
 }
+
+/* マップ画面スタイル */
+.map-content {
+    width: 90%;
+    height: 90%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    background: rgba(10, 14, 26, 0.95);
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 50px rgba(0, 217, 255, 0.2);
+}
+
+#map-visual-container {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 1rem 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    /* スクロールバーのカスタマイズ */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-cyan) var(--bg-primary);
+}
+
+#map-visual-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#map-visual-container::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+#map-visual-container::-webkit-scrollbar-thumb {
+    background-color: var(--accent-cyan);
+    border-radius: 4px;
+}
+
+#map-nodes {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    padding: 50px 0;
+}
+
+#map-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.map-node {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--text-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+}
+
+.map-node:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    z-index: 2;
+}
+
+.map-node.available {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.map-node.completed {
+    border-color: var(--text-secondary);
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.map-node.current {
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 20px rgba(255, 190, 11, 0.8);
+    background: var(--accent-yellow);
+    color: var(--bg-primary);
+}
+
+.map-node.locked {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.map-node.boss {
+    width: 80px;
+    height: 80px;
+    border-color: var(--damage-color);
+    font-size: 2rem;
+}
+
+.map-connection {
+    stroke: var(--text-secondary);
+    stroke-width: 2;
+    opacity: 0.3;
+    fill: none;
+}
+
+.map-connection.available {
+    stroke: var(--accent-cyan);
+    opacity: 0.8;
+    stroke-dasharray: 5;
+    animation: dash 1s linear infinite;
+}
+
+.map-connection.completed {
+    stroke: var(--text-secondary);
+    opacity: 0.2;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 217, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 217, 255, 0);
+    }
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -10;
+    }
+}

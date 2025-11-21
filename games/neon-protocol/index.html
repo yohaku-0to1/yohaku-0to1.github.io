@@ -25,6 +25,19 @@
 
         <div id="turn-indicator" class="turn-indicator" style="display: none;">PLAYER TURN</div>
 
+        <div id="map-screen" class="modal" style="display: none;">
+            <div class="modal-content map-content">
+                <h2 id="map-title">Sector Map</h2>
+                <div id="map-visual-container">
+                    <!-- SVG for connections -->
+                    <svg id="map-connections" width="100%" height="100%"></svg>
+                    <!-- Nodes will be added here -->
+                    <div id="map-nodes"></div>
+                </div>
+                <button id="map-close-btn" class="btn-primary" style="display: none;">Close</button>
+            </div>
+        </div>
+
         <div id="game-ui">
             <!-- ヘッダー -->
             <div id="header">

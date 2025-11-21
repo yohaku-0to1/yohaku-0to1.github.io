@@ -221,3 +221,109 @@ function getRandomRelic(tier = null) {
     const randomKey = relicKeys[Math.floor(Math.random() * relicKeys.length)];
     return { ...RELIC_DATABASE[randomKey] };
 }
+
+// レリック効果を適用するヘルパー関数
+function applyRelicEffects(trigger, context = {}) {
+    if (!gameState.player.relics || gameState.player.relics.length === 0) {
+        return context;
+    }
+
+    const result = { ...context };
+
+    gameState.player.relics.forEach(relic => {
+        const effect = relic.effect;
+
+        switch (trigger) {
+            case 'GAME_INIT':
+                if (effect.maxIntegrityBonus) {
+                    result.maxIntegrityBonus = (result.maxIntegrityBonus || 0) + effect.maxIntegrityBonus;
+                }
+                if (effect.permanentRam) {
+                    result.permanentRam = (result.permanentRam || 0) + effect.permanentRam;
+                }
+                break;
+
+            case 'COMBAT_START':
+                if (effect.conditionalOverclock && effect.threshold) {
+                    const integrityPercent = gameState.player.integrity / gameState.player.maxIntegrity;
+                    if (integrityPercent <= effect.threshold) {
+                        result.overclock = (result.overclock || 0) + effect.conditionalOverclock;
+                    }
+                }
+                if (effect.startBattleFirewall) {
+                    result.firewall = (result.firewall || 0) + effect.startBattleFirewall;
+                }
+                if (effect.startBattleDraw) {
+                    result.extraDraw = (result.extraDraw || 0) + effect.startBattleDraw;
+                }
+                if (effect.startHandSize) {
+                    result.handSize = (result.handSize || 0) + effect.startHandSize;
+                }
+                break;
+
+            case 'TURN_START':
+                if (effect.firewallPerTurn) {
+                    result.firewall = (result.firewall || 0) + effect.firewallPerTurn;
+                }
+                if (effect.drawPerTurn) {
+                    result.extraDraw = (result.extraDraw || 0) + effect.drawPerTurn;
+                }
+                if (effect.earlyGameCostReduction && effect.duration) {
+                    if (gameState.combat.turn <= effect.duration) {
+                        result.costReduction = (result.costReduction || 0) + effect.earlyGameCostReduction;
+                    }
+                }
+                break;
+
+            case 'CARD_PLAY':
+                if (effect.damageOnCardPlay) {
+                    result.aoeDamage = (result.aoeDamage || 0) + effect.damageOnCardPlay;
+                }
+                break;
+
+            case 'ATTACK_DAMAGE':
+                if (effect.attackBonus && context.cardType === 'attack') {
+                    result.damageBonus = (result.damageBonus || 0) + effect.attackBonus;
+                }
+                break;
+
+            case 'DEFENSE_BONUS':
+                if (effect.defenseBonus && context.cardType === 'skill') {
+                    result.firewallBonus = (result.firewallBonus || 0) + effect.defenseBonus;
+                }
+                break;
+
+            case 'TAKE_DAMAGE':
+                if (effect.firstHitReduction && !gameState.combat.hasBeenHit) {
+                    result.damageReduction = (result.damageReduction || 0) + effect.firstHitReduction;
+                    gameState.combat.hasBeenHit = true;
+                }
+                if (effect.firewallOnHit && effect.threshold) {
+                    if (context.damage >= effect.threshold) {
+                        result.firewall = (result.firewall || 0) + effect.firewallOnHit;
+                    }
+                }
+                break;
+
+            case 'DECK_RESHUFFLE':
+                if (effect.drawOnReshuffle) {
+                    result.extraDraw = (result.extraDraw || 0) + effect.drawOnReshuffle;
+                }
+                break;
+
+            case 'CARD_REWARDS':
+                if (effect.cardRewardBonus) {
+                    result.extraRewards = (result.extraRewards || 0) + effect.cardRewardBonus;
+                }
+                break;
+
+            case 'REST_HEAL':
+                if (effect.healingBonus) {
+                    result.healBonus = (result.healBonus || 0) + effect.healingBonus;
+                }
+                break;
+        }
+    });
+
+    return result;
+}

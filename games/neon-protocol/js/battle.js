@@ -36,12 +36,25 @@ function playCard(card, targetEnemy = null) {
 function executeCardEffect(card, targetEnemy) {
     const effect = card.effect;
 
+    // レリック効果を適用（カードプレイ時）
+    const playEffects = applyRelicEffects('CARD_PLAY');
+    if (playEffects.aoeDamage) {
+        // 全体攻撃
+        gameState.enemies.forEach(enemy => {
+            dealDamageToEnemy(enemy, playEffects.aoeDamage);
+        });
+    }
+
     // ダメージ
     if (effect.damage) {
+        // レリック効果を適用（攻撃ダメージボーナス）
+        const attackEffects = applyRelicEffects('ATTACK_DAMAGE', { cardType: card.type });
+        const damageBonus = attackEffects.damageBonus || 0;
+
         const hits = effect.hits || 1;
         for (let i = 0; i < hits; i++) {
             if (targetEnemy) {
-                dealDamageToEnemy(targetEnemy, effect.damage);
+                dealDamageToEnemy(targetEnemy, effect.damage + damageBonus);
                 soundManager.playAttack();
 
                 // 攻撃パーティクル
@@ -78,7 +91,11 @@ function executeCardEffect(card, targetEnemy) {
 
     // Firewall
     if (effect.firewall) {
-        gameState.player.firewall += effect.firewall;
+        // レリック効果を適用（防御ボーナス）
+        const defenseEffects = applyRelicEffects('DEFENSE_BONUS', { cardType: card.type });
+        const firewallBonus = defenseEffects.firewallBonus || 0;
+
+        gameState.player.firewall += effect.firewall + firewallBonus;
         soundManager.playShield();
 
         // シールドパーティクル
@@ -224,13 +241,23 @@ function dealDamageToEnemy(enemy, baseDamage) {
 
 // プレイヤーにダメージを与える
 function dealDamageToPlayer(baseDamage, source) {
+    // レリック効果を適用（ダメージ受取時）
+    const damageEffects = applyRelicEffects('TAKE_DAMAGE', { damage: baseDamage });
+
+    // ダメージ軽減
+    let modifiedDamage = baseDamage;
+    if (damageEffects.damageReduction) {
+        modifiedDamage = Math.floor(baseDamage * (1 - damageEffects.damageReduction));
+        console.log(`Relic damage reduction: ${baseDamage} -> ${modifiedDamage}`);
+    }
+
     const target = {
         firewall: gameState.player.firewall,
         protocolShield: gameState.player.protocolShield,
         effects: gameState.player.effects
     };
 
-    const damageResult = calculateDamage(baseDamage, source, target);
+    const damageResult = calculateDamage(modifiedDamage, source, target);
 
     // Firewallを更新
     gameState.player.firewall = target.firewall;
@@ -252,6 +279,12 @@ function dealDamageToPlayer(baseDamage, source) {
         // ダメージパーティクル
         const rect = playerElement.getBoundingClientRect();
         createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'damage');
+
+        // レリック効果でFirewall付与
+        if (damageEffects.firewall) {
+            gameState.player.firewall += damageEffects.firewall;
+            console.log(`Relic firewall on hit: +${damageEffects.firewall}`);
+        }
     }
 
 

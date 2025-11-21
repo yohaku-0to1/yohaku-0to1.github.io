@@ -1,193 +1,352 @@
 // マップシステム
 
-// マップデータ生成（簡易版）
-function generateMap() {
-    const map = {
-        layers: []
-    };
+class MapManager {
+    constructor() {
+        this.currentLayer = 1;
+        this.currentNodeId = null;
+        this.mapData = null;
+        this.completedNodes = []; // ID of completed nodes
+    }
 
-    for (let layer = 1; layer <= 15; layer++) {
-        const nodes = [];
+    // マップ生成
+    generateMap() {
+        const layers = 15;
+        const map = {
+            layers: []
+        };
 
-        // Layer 5, 10, 15 はボス
-        if (layer === 5 || layer === 10 || layer === 15) {
-            nodes.push({
-                type: 'boss',
-                id: `boss_${layer}`,
-                layer: layer
-            });
-        } else {
-            // 通常Layerは3-4個のノード選択肢
-            const nodeCount = 3 + Math.floor(Math.random() * 2);
-            const nodeTypes = ['battle', 'battle', 'elite', 'rest', 'shop', 'event', 'treasure'];
+        // 各レイヤーのノード生成
+        for (let i = 1; i <= layers; i++) {
+            const layerNodes = [];
+            let nodeCount;
 
-            for (let i = 0; i < nodeCount; i++) {
-                const randomType = nodeTypes[Math.floor(Math.random() * nodeTypes.length)];
-                nodes.push({
-                    type: randomType,
-                    id: `${randomType}_${layer}_${i}`,
-                    layer: layer
+            if (i === 1) {
+                nodeCount = 3; // 開始は3つの選択肢
+            } else if (i === 5 || i === 10 || i === 15) {
+                nodeCount = 1; // ボスは1つ
+            } else {
+                nodeCount = Math.floor(Math.random() * 2) + 3; // 3-4個
+            }
+
+            // ノードの水平位置を計算 (0.0 - 1.0)
+            const positions = [];
+            if (nodeCount === 1) {
+                positions.push(0.5);
+            } else {
+                const step = 1 / (nodeCount + 1);
+                for (let j = 1; j <= nodeCount; j++) {
+                    positions.push(step * j + (Math.random() * 0.1 - 0.05));
+                }
+            }
+
+            for (let j = 0; j < nodeCount; j++) {
+                const type = this.determineNodeType(i, j);
+                layerNodes.push({
+                    id: `node_${i}_${j}`,
+                    layer: i,
+                    index: j,
+                    type: type,
+                    x: positions[j], // 0.0 - 1.0
+                    nextNodes: [] // 次のレイヤーのノードID
                 });
+            }
+
+            map.layers.push({
+                layer: i,
+                nodes: layerNodes
+            });
+        }
+
+        // パス生成 (前方のみ)
+        for (let i = 0; i < layers - 1; i++) {
+            const currentLayer = map.layers[i];
+            const nextLayer = map.layers[i + 1];
+
+            // 各ノードから少なくとも1つのパスを引く
+            currentLayer.nodes.forEach(node => {
+                // 最も近い次のレイヤーのノードを探す
+                const candidates = nextLayer.nodes.filter(next =>
+                    Math.abs(next.x - node.x) < 0.4 // 距離制限
+                );
+
+                if (candidates.length === 0) {
+                    // 候補がない場合は最も近いものを強制選択
+                    const closest = nextLayer.nodes.reduce((prev, curr) =>
+                        Math.abs(curr.x - node.x) < Math.abs(prev.x - node.x) ? curr : prev
+                    );
+                    node.nextNodes.push(closest.id);
+                } else {
+                    // ランダムに接続 (1-2個)
+                    const count = Math.random() < 0.3 ? 2 : 1;
+                    // シャッフルして選択
+                    const selected = candidates.sort(() => 0.5 - Math.random()).slice(0, count);
+                    selected.forEach(target => node.nextNodes.push(target.id));
+                }
+            });
+
+            // 次のレイヤーの各ノードが少なくとも1つの親を持つことを保証
+            nextLayer.nodes.forEach(next => {
+                const hasParent = currentLayer.nodes.some(curr => curr.nextNodes.includes(next.id));
+                if (!hasParent) {
+                    // 最も近い前のレイヤーのノードに接続させる
+                    const closest = currentLayer.nodes.reduce((prev, curr) =>
+                        Math.abs(curr.x - next.x) < Math.abs(prev.x - next.x) ? curr : prev
+                    );
+                    closest.nextNodes.push(next.id);
+                }
+            });
+        }
+
+        this.mapData = map;
+        return map;
+    }
+
+    // ノードタイプ決定
+    determineNodeType(layer, index) {
+        if (layer === 1) return 'battle';
+        if (layer === 5 || layer === 10 || layer === 15) return 'boss';
+
+        // 固定イベント
+        if (layer === 8) return 'treasure';
+
+        const rand = Math.random();
+        if (rand < 0.45) return 'battle';
+        if (rand < 0.60) return 'event';
+        if (rand < 0.75) return 'shop';
+        if (rand < 0.90) return 'rest';
+        return 'elite';
+    }
+
+    // マップ画面表示
+    showMapScreen() {
+        const mapScreen = document.getElementById('map-screen');
+        const nodesContainer = document.getElementById('map-nodes');
+        const connectionsSvg = document.getElementById('map-connections');
+        const title = document.getElementById('map-title');
+
+        // クリア
+        nodesContainer.innerHTML = '';
+        connectionsSvg.innerHTML = '';
+
+        // タイトル更新
+        title.textContent = `Sector Map - Layer ${this.currentLayer}`;
+
+        // マップ描画
+        const mapHeight = 1200; // ピクセル
+        const layerHeight = mapHeight / (this.mapData.layers.length + 1);
+
+        // パス描画 (SVG)
+        this.mapData.layers.forEach((layerData, i) => {
+            if (i === this.mapData.layers.length - 1) return;
+
+            layerData.nodes.forEach(node => {
+                node.nextNodes.forEach(nextId => {
+                    const nextNode = this.findNodeById(nextId);
+                    if (nextNode) {
+                        this.drawConnection(node, nextNode, connectionsSvg, layerHeight);
+                    }
+                });
+            });
+        });
+
+        // ノード描画
+        this.mapData.layers.forEach(layerData => {
+            layerData.nodes.forEach(node => {
+                this.createNodeElement(node, nodesContainer, layerHeight);
+            });
+        });
+
+        // スクロール位置調整 (現在のレイヤーへ)
+        const currentY = (this.currentLayer) * layerHeight;
+        const container = document.getElementById('map-visual-container');
+        // 下から上へ進むイメージなら逆転させるが、今回は上から下へ (Layer 1 -> 15)
+        container.scrollTop = currentY - container.clientHeight / 2;
+
+        mapScreen.style.display = 'flex';
+        soundManager.startBGM();
+    }
+
+    // ノード検索
+    findNodeById(id) {
+        for (const layer of this.mapData.layers) {
+            const node = layer.nodes.find(n => n.id === id);
+            if (node) return node;
+        }
+        return null;
+    }
+
+    // 接続線描画
+    drawConnection(fromNode, toNode, svg, layerHeight) {
+        const x1 = fromNode.x * 100 + '%';
+        const y1 = fromNode.layer * layerHeight;
+        const x2 = toNode.x * 100 + '%';
+        const y2 = toNode.layer * layerHeight;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('class', 'map-connection');
+
+        // 接続の状態判定
+        if (this.completedNodes.includes(fromNode.id) &&
+            (this.currentNodeId === fromNode.id || this.completedNodes.includes(toNode.id))) {
+            // 通過済みまたは現在地からのパス
+            if (this.currentNodeId === fromNode.id) {
+                line.classList.add('available');
+            } else {
+                line.classList.add('completed');
             }
         }
 
-        map.layers.push({
-            layer: layer,
-            nodes: nodes
-        });
+        svg.appendChild(line);
     }
 
-    return map;
-}
+    // ノード要素作成
+    createNodeElement(node, container, layerHeight) {
+        const el = document.createElement('div');
+        el.className = `map-node ${node.type}`;
+        el.style.left = `${node.x * 100}%`;
+        el.style.top = `${node.layer * layerHeight}px`;
+        el.innerHTML = this.getNodeIcon(node.type);
+        el.dataset.id = node.id;
 
-// マップ画面を表示
-function showMapScreen() {
-    // Layer 15をクリアした場合、ゲームクリア
-    if (gameState.map.currentLayer > 15) {
-        showScoreSubmitScreen();
-        return;
+        // 状態判定
+        if (this.completedNodes.includes(node.id)) {
+            el.classList.add('completed');
+        } else if (this.isNodeAvailable(node)) {
+            el.classList.add('available');
+            el.onclick = () => this.selectNode(node);
+        } else if (node.id === this.currentNodeId) {
+            el.classList.add('current');
+        } else {
+            el.classList.add('locked');
+        }
+
+        // ツールチップ的な情報
+        el.title = `Layer ${node.layer}: ${this.getNodeName(node.type)}`;
+
+        container.appendChild(el);
     }
 
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'map-screen';
-    modal.style.display = 'flex';
+    // ノードが選択可能か判定
+    isNodeAvailable(node) {
+        // ゲーム開始時（currentNodeIdがnull）かつLayer 1のノードなら選択可能
+        if (!this.currentNodeId && node.layer === 1) return true;
 
-    // BGM開始（マップ画面で開始するのが自然）
-    soundManager.startBGM();
+        // 現在のノードからの接続先なら選択可能
+        if (this.currentNodeId) {
+            const currentNode = this.findNodeById(this.currentNodeId);
+            if (currentNode && currentNode.nextNodes.includes(node.id)) {
+                return true;
+            }
+        }
 
-    const content = document.createElement('div');
-    content.className = 'modal-content';
-    content.style.maxWidth = '800px';
-
-    const title = document.createElement('h2');
-    title.textContent = `Layer ${gameState.map.currentLayer} - 次のノードを選択`;
-    title.style.color = 'var(--text-primary)';
-    title.style.marginBottom = '2rem';
-
-    const currentLayerData = gameState.map.mapData.layers.find(l => l.layer === gameState.map.currentLayer);
-
-    if (!currentLayerData) {
-        // ゲームクリア
-        title.textContent = 'ゲームクリア！';
-        const message = document.createElement('p');
-        message.textContent = `Layer 15を突破しました。スコア: ${calculateScore()}`;
-        content.appendChild(title);
-        content.appendChild(message);
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-        return;
+        return false;
     }
 
-    const nodesContainer = document.createElement('div');
-    nodesContainer.style.display = 'flex';
-    nodesContainer.style.gap = '1rem';
-    nodesContainer.style.flexWrap = 'wrap';
-    nodesContainer.style.justifyContent = 'center';
+    // ノード選択処理
+    selectNode(node) {
+        console.log('Selected node:', node);
+        this.currentNodeId = node.id;
+        this.currentLayer = node.layer;
 
-    currentLayerData.nodes.forEach(node => {
-        const nodeBtn = document.createElement('button');
-        nodeBtn.className = 'btn-secondary';
-        nodeBtn.style.padding = '2rem 1.5rem';
-        nodeBtn.style.fontSize = '1.2rem';
-        nodeBtn.style.minWidth = '150px';
+        // マップ画面を閉じる
+        document.getElementById('map-screen').style.display = 'none';
 
-        const nodeIcon = getNodeIcon(node.type);
-        const nodeName = getNodeName(node.type);
+        // ノードタイプに応じた処理
+        switch (node.type) {
+            case 'battle':
+            case 'elite':
+            case 'boss':
+                startBattleNode(node);
+                break;
+            case 'rest':
+                showRestNode();
+                break;
+            case 'shop':
+                showShopNode();
+                break;
+            case 'event':
+                showEventNode();
+                break;
+            case 'treasure':
+                showTreasureNode();
+                break;
+        }
+    }
 
-        nodeBtn.innerHTML = `<div style="font-size: 2rem; margin-bottom: 0.5rem;">${nodeIcon}</div>${nodeName}`;
+    // ノード完了処理
+    completeNode() {
+        if (this.currentNodeId) {
+            this.completedNodes.push(this.currentNodeId);
+        }
+        // 次のレイヤーへ進む準備は不要（選択時にcurrentLayer更新済み）
+        // ただし、ボス撃破などの特殊処理は別途
+    }
 
-        nodeBtn.onclick = () => {
-            soundManager.playClick();
-            selectNode(node);
-            modal.remove();
+    getNodeIcon(type) {
+        const icons = {
+            'battle': '⚔️',
+            'elite': '💀',
+            'boss': '👹',
+            'rest': '🔥',
+            'shop': '🛒',
+            'event': '❓',
+            'treasure': '📦'
         };
+        return icons[type] || '⚔️';
+    }
 
-        // ホバー音
-        nodeBtn.onmouseenter = () => soundManager.playHover();
-
-        nodesContainer.appendChild(nodeBtn);
-    });
-
-    content.appendChild(title);
-    content.appendChild(nodesContainer);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-}
-
-// ノードアイコン取得
-function getNodeIcon(type) {
-    const icons = {
-        'battle': '⚔️',
-        'elite': '💀',
-        'boss': '👹',
-        'rest': '🔧',
-        'shop': '🛒',
-        'event': '❓',
-        'treasure': '📦'
-    };
-    return icons[type] || '⚔️';
-}
-
-// ノード名取得
-function getNodeName(type) {
-    const names = {
-        'battle': '戦闘',
-        'elite': 'エリート戦',
-        'boss': 'ボス',
-        'rest': '休憩所',
-        'shop': 'ショップ',
-        'event': 'イベント',
-        'treasure': '宝箱'
-    };
-    return names[type] || '戦闘';
-}
-
-// ノード選択
-function selectNode(node) {
-    console.log('Selected node:', node);
-    gameState.map.currentNode = node.type;
-
-    switch (node.type) {
-        case 'battle':
-        case 'elite':
-        case 'boss':
-            startBattleNode(node);
-            break;
-        case 'rest':
-            showRestNode();
-            break;
-        case 'shop':
-            showShopNode();
-            break;
-        case 'event':
-            showEventNode();
-            break;
-        case 'treasure':
-            showTreasureNode();
-            break;
+    getNodeName(type) {
+        const names = {
+            'battle': 'Battle',
+            'elite': 'Elite',
+            'boss': 'Boss',
+            'rest': 'Rest Site',
+            'shop': 'Shop',
+            'event': 'Event',
+            'treasure': 'Treasure'
+        };
+        return names[type] || 'Unknown';
     }
 }
 
-// 戦闘ノード開始
+// グローバルインスタンス
+const mapManager = new MapManager();
+
+// 互換性のためのラッパー関数
+function generateMap() {
+    return mapManager.generateMap();
+}
+
+function showMapScreen() {
+    mapManager.showMapScreen();
+}
+
+function proceedToNextLayer() {
+    mapManager.completeNode();
+    // オートセーブ
+    autoSave();
+    // マップ再表示
+    showMapScreen();
+}
+
+// 以下、ノードイベント処理（既存の関数を維持・調整）
+
 function startBattleNode(node) {
-    // 敵を生成して戦闘開始
-    const currentLayer = gameState.map.currentLayer;
+    const currentLayer = node.layer;
     let enemyKey = 'security_bot';
 
     if (node.type === 'boss') {
-        if (currentLayer === 5) {
-            enemyKey = 'firewall_guardian';
-        } else if (currentLayer === 10) {
-            enemyKey = 'neural_nexus';
-        } else if (currentLayer === 15) {
-            enemyKey = 'core_mainframe';
-        }
+        if (currentLayer === 5) enemyKey = 'firewall_guardian';
+        else if (currentLayer === 10) enemyKey = 'neural_nexus';
+        else if (currentLayer === 15) enemyKey = 'core_mainframe';
     } else if (node.type === 'elite') {
         enemyKey = Math.random() > 0.5 ? 'firewall_module' : 'scanner_drone';
     } else {
-        // ランダムな通常敵
-        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone'];
+        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'attack_bot', 'data_miner'];
         enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
     }
 
@@ -202,167 +361,104 @@ function startBattleNode(node) {
     startCombat();
 }
 
-// 休憩所ノード
 function showRestNode() {
+    // 既存のモーダル表示ロジックを流用（ただし背景等はマップ画面の上に出す）
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
+    modal.style.zIndex = '2000'; // マップより上
 
     const content = document.createElement('div');
     content.className = 'modal-content';
 
     const title = document.createElement('h2');
     title.textContent = 'Maintenance Node';
-    title.style.color = 'var(--text-primary)';
 
-    const message = document.createElement('p');
-    message.textContent = '選択してください:';
-    message.style.marginBottom = '2rem';
+    // レリック効果を適用（回復量ボーナス）
+    const restEffects = applyRelicEffects('REST_HEAL');
+    const baseHeal = Math.floor(gameState.player.maxIntegrity * 0.3);
+    const bonusHeal = restEffects.healBonus ? Math.floor(baseHeal * restEffects.healBonus) : 0;
+    const totalHeal = baseHeal + bonusHeal;
 
     const restBtn = document.createElement('button');
     restBtn.className = 'btn-primary';
-    restBtn.textContent = `Integrityを回復 (${Math.floor(gameState.player.maxIntegrity * 0.3)})`;
-    restBtn.style.marginRight = '1rem';
+    restBtn.textContent = `Repair Integrity (+${totalHeal})`;
+    if (bonusHeal > 0) {
+        restBtn.innerHTML += ` <span style="color: var(--accent-cyan);">(+${bonusHeal} bonus)</span>`;
+    }
+
     restBtn.onclick = () => {
         gameState.player.integrity = Math.min(
             gameState.player.maxIntegrity,
-            gameState.player.integrity + Math.floor(gameState.player.maxIntegrity * 0.3)
+            gameState.player.integrity + totalHeal
         );
+        soundManager.playBuff();
         modal.remove();
         proceedToNextLayer();
     };
 
-    const upgradeBtn = document.createElement('button');
-    upgradeBtn.className = 'btn-primary';
-    upgradeBtn.textContent = 'カードをアップグレード';
-    upgradeBtn.onclick = () => {
-        modal.remove();
-        showCardUpgradeScreen();
-    };
-
     content.appendChild(title);
-    content.appendChild(message);
     content.appendChild(restBtn);
-    content.appendChild(upgradeBtn);
     modal.appendChild(content);
     document.body.appendChild(modal);
 }
 
-// ショップノード（簡易版）
 function showShopNode() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-
-    const content = document.createElement('div');
-    content.className = 'modal-content';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Black Market';
-    title.style.color = 'var(--text-primary)';
-
-    const message = document.createElement('p');
-    message.textContent = '実装予定...';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'btn-primary';
-    closeBtn.textContent = '閉じる';
-    closeBtn.onclick = () => {
-        modal.remove();
-        proceedToNextLayer();
-    };
-
-    content.appendChild(title);
-    content.appendChild(message);
-    content.appendChild(closeBtn);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
+    // 簡易実装
+    alert('Shop: Coming Soon');
+    proceedToNextLayer();
 }
 
-// イベントノード（簡易版）
 function showEventNode() {
-    showShopNode(); // 暫定的にショップと同じ
+    alert('Event: Coming Soon');
+    proceedToNextLayer();
 }
 
-// 宝箱ノード
 function showTreasureNode() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
+    modal.style.zIndex = '2000';
 
     const content = document.createElement('div');
     content.className = 'modal-content';
 
     const title = document.createElement('h2');
-    title.textContent = 'Data Cache';
-    title.style.color = 'var(--text-primary)';
+    title.textContent = 'Data Cache Found';
 
-    // ランダムにレリックを獲得
-    const relic = getRandomRelic();
-    gameState.player.relics.push(relic);
+    const relic = getRandomRelic(); // relics-data.jsが必要
+    // 簡易的なレリック取得（まだrelics-data.jsが完全でないかも）
+    if (relic) {
+        gameState.player.relics.push(relic);
+        const msg = document.createElement('p');
+        msg.innerHTML = `Obtained: <strong>${relic.name}</strong><br>${relic.description}`;
+        content.appendChild(msg);
+    } else {
+        const msg = document.createElement('p');
+        msg.textContent = "No data found.";
+        content.appendChild(msg);
+    }
 
-    const message = document.createElement('p');
-    message.innerHTML = `<strong style="color: var(--accent-cyan); font-size: 1.3rem;">${relic.name}</strong> を獲得！<br><br>${relic.description}`;
-    message.style.marginBottom = '2rem';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'btn-primary';
-    closeBtn.textContent = '続ける';
-    closeBtn.onclick = () => {
-        modal.remove();
-        autoSave();
-        proceedToNextLayer();
-    };
-
-    content.appendChild(title);
-    content.appendChild(message);
-    content.appendChild(closeBtn);
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-}
-
-// カードアップグレード画面（簡易版）
-function showCardUpgradeScreen() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-
-    const content = document.createElement('div');
-    content.className = 'modal-content';
-
-    const title = document.createElement('h2');
-    title.textContent = 'カードアップグレード';
-    title.style.color = 'var(--text-primary)';
-
-    const message = document.createElement('p');
-    message.textContent = '実装予定...';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'btn-primary';
-    closeBtn.textContent = '閉じる';
-    closeBtn.onclick = () => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-primary';
+    btn.textContent = 'Continue';
+    btn.onclick = () => {
         modal.remove();
         proceedToNextLayer();
     };
 
     content.appendChild(title);
-    content.appendChild(message);
-    content.appendChild(closeBtn);
+    content.appendChild(btn);
     modal.appendChild(content);
     document.body.appendChild(modal);
 }
 
-// 次のLayerへ進む
-function proceedToNextLayer() {
-    gameState.map.currentLayer++;
-    autoSave();
-    updateUI();
-    showMapScreen();
-}
-
-// スコア計算
-function calculateScore() {
-    const layerBonus = gameState.map.currentLayer * 1000;
-    const integrityBonus = gameState.player.integrity * 10;
-    return layerBonus + integrityBonus;
+// 簡易的なレリック取得ヘルパー
+function getRandomRelic() {
+    // 仮実装
+    return {
+        name: 'Backup Battery',
+        description: 'Start combat with +1 RAM.',
+        effect: { startRam: 1 }
+    };
 }

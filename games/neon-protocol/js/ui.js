@@ -293,11 +293,15 @@ function generateCardRewards() {
     const rewardsContainer = document.getElementById('card-rewards');
     rewardsContainer.innerHTML = '<p>新しいカードを1枚選択してください:</p>';
 
-    // ランダムに3枚のカードを提示
+    // レリック効果を適用（カード報酬数増加）
+    const rewardEffects = applyRelicEffects('CARD_REWARDS');
+    const rewardCount = 3 + (rewardEffects.extraRewards || 0);
+
+    // ランダムに指定枚数のカードを提示
     const allCards = Object.keys(CARD_DATABASE);
     const rewards = [];
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < rewardCount; i++) {
         const randomCard = allCards[Math.floor(Math.random() * allCards.length)];
         rewards.push(randomCard);
     }
@@ -332,9 +336,14 @@ function generateCardRewards() {
             // デッキにカードを追加
             gameState.player.programStack.push(createCardInstance(cardId));
             console.log(`Added ${cardData.name} to deck`);
+            soundManager.playBuff();
 
-            // 次の戦闘へ（今はリロード）
-            location.reload();
+            // 選択済みフィードバック
+            rewardsContainer.innerHTML = `<p><strong>${cardData.name}</strong> をデッキに追加しました。</p>`;
+
+            // Continueボタンを強調
+            const continueBtn = document.getElementById('continue-btn');
+            continueBtn.classList.add('pulse');
         });
 
         rewardsContainer.appendChild(rewardCard);

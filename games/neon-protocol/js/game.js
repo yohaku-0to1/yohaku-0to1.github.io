@@ -49,6 +49,17 @@ let gameState = {
 function initGame() {
     console.log('Initializing Neon Protocol...');
 
+    // レリック効果を適用（ゲーム開始時）
+    const initEffects = applyRelicEffects('GAME_INIT');
+    if (initEffects.maxIntegrityBonus) {
+        gameState.player.maxIntegrity += initEffects.maxIntegrityBonus;
+        gameState.player.integrity += initEffects.maxIntegrityBonus;
+    }
+    if (initEffects.permanentRam) {
+        gameState.player.maxRam += initEffects.permanentRam;
+        gameState.player.ram += initEffects.permanentRam;
+    }
+
     // マップを生成
     gameState.map.mapData = generateMap();
     console.log('Map generated:', gameState.map.mapData);
@@ -59,47 +70,8 @@ function initGame() {
     // デッキをシャッフル
     shuffleDeck();
 
-    // 現在のLayerに応じた敵を生成
-    const currentLayer = gameState.map.currentLayer;
-
-    if (currentLayer === 5) {
-        // Layer 5: Firewall Guardian ボス
-        const bossData = ENEMY_DATABASE['firewall_guardian'];
-        spawnEnemy({
-            ...bossData,
-            integrity: bossData.integrity,
-            maxIntegrity: bossData.integrity
-        });
-    } else if (currentLayer === 10) {
-        // Layer 10: Neural Nexus ボス
-        const bossData = ENEMY_DATABASE['neural_nexus'];
-        spawnEnemy({
-            ...bossData,
-            integrity: bossData.integrity,
-            maxIntegrity: bossData.integrity
-        });
-    } else if (currentLayer === 15) {
-        // Layer 15: Core Mainframe 最終ボス
-        const bossData = ENEMY_DATABASE['core_mainframe'];
-        spawnEnemy({
-            ...bossData,
-            integrity: bossData.integrity,
-            maxIntegrity: bossData.integrity
-        });
-    } else {
-        // 通常敵（ランダム）
-        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'attack_bot', 'data_miner'];
-        const enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
-        const enemyData = ENEMY_DATABASE[enemyKey];
-        spawnEnemy({
-            ...enemyData,
-            integrity: enemyData.integrity,
-            maxIntegrity: enemyData.integrity
-        });
-    }
-
-    // 戦闘開始
-    startCombat();
+    // マップ画面を表示してゲーム開始
+    showMapScreen();
 }
 
 // デッキシャッフル
@@ -124,6 +96,12 @@ function drawCards(count) {
             gameState.player.cache = [];
             shuffleDeck();
             console.log('Reshuffled discard pile into deck');
+
+            // レリック効果を適用（デッキリシャッフル時）
+            const reshuffleEffects = applyRelicEffects('DECK_RESHUFFLE');
+            if (reshuffleEffects.extraDraw) {
+                count += reshuffleEffects.extraDraw; // 追加ドローを現在のループに加算
+            }
         }
 
         const card = gameState.player.programStack.pop();
@@ -177,9 +155,25 @@ function startCombat() {
     gameState.combat.turn = 1;
     gameState.combat.playerTurn = true;
     gameState.ui.isProcessing = false; // 入力ロック解除
+    gameState.combat.hasBeenHit = false; // 被弾フラグリセット
+
+    // レリック効果を適用（戦闘開始時）
+    const combatEffects = applyRelicEffects('COMBAT_START');
+    if (combatEffects.overclock) {
+        gameState.player.overclock += combatEffects.overclock;
+    }
+    if (combatEffects.firewall) {
+        gameState.player.firewall += combatEffects.firewall;
+    }
 
     // 初期手札をドロー
-    drawCards(5);
+    const initialHandSize = 5 + (combatEffects.handSize || 0);
+    drawCards(initialHandSize);
+
+    // 追加ドロー
+    if (combatEffects.extraDraw) {
+        drawCards(combatEffects.extraDraw);
+    }
 
     // UIを更新
     updateUI();
@@ -204,6 +198,12 @@ function startPlayerTurn() {
     // Firewallをリセット
     gameState.player.firewall = 0;
 
+    // レリック効果を適用（ターン開始時）
+    const turnEffects = applyRelicEffects('TURN_START');
+    if (turnEffects.firewall) {
+        gameState.player.firewall += turnEffects.firewall;
+    }
+
     // Virusダメージ処理
     if (gameState.player.effects.virus > 0) {
         const virusDamage = gameState.player.effects.virus;
@@ -219,6 +219,11 @@ function startPlayerTurn() {
 
     // カードをドロー
     drawCards(5);
+
+    // 追加ドロー（レリック効果）
+    if (turnEffects.extraDraw) {
+        drawCards(turnEffects.extraDraw);
+    }
 
     updateUI();
 
