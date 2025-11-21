@@ -254,6 +254,84 @@ const RELIC_DATABASE = {
         effect: {
             shopDiscount: 0.2
         }
+    },
+
+    // === Phase 5: New Relics ===
+
+    // Tier 3: Legendary
+    "time_dilation_core": {
+        id: "time_dilation_core",
+        name: "Time Dilation Core",
+        tier: 3,
+        description: "毎ターン、ランダムなカードのコストが 0 になる",
+        effect: {
+            randomZeroCost: 1
+        }
+    },
+
+    "perpetual_engine": {
+        id: "perpetual_engine",
+        name: "Perpetual Engine",
+        tier: 3,
+        description: "カードを 5枚 プレイするたびに、RAM を 2 回復",
+        effect: {
+            ramOnCardPlay: {
+                threshold: 5,
+                amount: 2
+            }
+        }
+    },
+
+    // Tier 2: Rare
+    "exploit_library": {
+        id: "exploit_library",
+        name: "Exploit Library",
+        tier: 2,
+        description: "攻撃カードをプレイ時、10%の確率でコストが返還される",
+        effect: {
+            attackCostRefund: 0.1
+        }
+    },
+
+    "regenerative_mesh": {
+        id: "regenerative_mesh",
+        name: "Regenerative Mesh",
+        tier: 2,
+        description: "戦闘終了時、Max Integrity の 10% を回復",
+        effect: {
+            healOnWin: 0.1
+        }
+    },
+
+    "stack_overflow_module": {
+        id: "stack_overflow_module",
+        name: "Stack Overflow Module",
+        tier: 2,
+        description: "Program Stack が空になった時、Firewall 5 を獲得",
+        effect: {
+            firewallOnReshuffle: 5
+        }
+    },
+
+    // Tier 1: Common
+    "fragmentation_device": {
+        id: "fragmentation_device",
+        name: "Fragmentation Device",
+        tier: 1,
+        description: "カードを捨てるたびに、Firewall 1 を獲得",
+        effect: {
+            firewallOnDiscard: 1
+        }
+    },
+
+    "lag_injector": {
+        id: "lag_injector",
+        name: "Lag Injector",
+        tier: 1,
+        description: "戦闘開始時、敵全体に Lag 1 を付与",
+        effect: {
+            startBattleLag: 1
+        }
     }
 };
 
@@ -311,6 +389,9 @@ function applyRelicEffects(trigger, context = {}) {
                 if (effect.goldOnCombatStart) {
                     gameState.player.credits += effect.goldOnCombatStart;
                 }
+                if (effect.startBattleLag) {
+                    result.lagAll = (result.lagAll || 0) + effect.startBattleLag;
+                }
                 break;
 
             case 'TURN_START':
@@ -367,6 +448,9 @@ function applyRelicEffects(trigger, context = {}) {
                 if (effect.drawOnReshuffle) {
                     result.extraDraw = (result.extraDraw || 0) + effect.drawOnReshuffle;
                 }
+                if (effect.firewallOnReshuffle) {
+                    result.firewall = (result.firewall || 0) + effect.firewallOnReshuffle;
+                }
                 break;
 
             case 'CARD_REWARDS':
@@ -390,6 +474,15 @@ function applyRelicEffects(trigger, context = {}) {
             case 'SHOP_PRICE':
                 if (effect.shopDiscount) {
                     result.discount = (result.discount || 0) + effect.shopDiscount;
+                }
+                break;
+
+            // === Phase 5: New Relic Effects ===
+
+            case 'VICTORY':
+                if (effect.healOnWin) {
+                    const healAmount = Math.floor(gameState.player.maxIntegrity * effect.healOnWin);
+                    result.heal = (result.heal || 0) + healAmount;
                 }
                 break;
         }

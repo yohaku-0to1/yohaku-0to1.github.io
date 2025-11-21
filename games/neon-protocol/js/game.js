@@ -121,6 +121,13 @@ function discardCard(card) {
     if (index !== -1) {
         gameState.player.activeMemory.splice(index, 1);
         gameState.player.cache.push(card);
+
+        // Phase 5: Fragmentation Device - Firewall on discard
+        gameState.player.relics.forEach(relic => {
+            if (relic.effect && relic.effect.firewallOnDiscard) {
+                gameState.player.firewall += relic.effect.firewallOnDiscard;
+            }
+        });
     }
 }
 
@@ -206,6 +213,11 @@ function startCombat() {
     if (combatEffects.firewall) {
         gameState.player.firewall += combatEffects.firewall;
     }
+    if (combatEffects.lagAll) {
+        gameState.enemies.forEach(enemy => {
+            enemy.effects.lag = (enemy.effects.lag || 0) + combatEffects.lagAll;
+        });
+    }
 
     // 初期手札をドロー
     const initialHandSize = 5 + (combatEffects.handSize || 0);
@@ -282,12 +294,15 @@ function startPlayerTurn() {
     }
 
     // カードをドロー
-    drawCards(5);
+    drawCards(5 + (turnEffects.extraDraw || 0));
 
-    // 追加ドロー（レリック効果）
-    if (turnEffects.extraDraw) {
-        drawCards(turnEffects.extraDraw);
-    }
+    // Phase 5: Time Dilation Core - Random card costs 0
+    gameState.player.relics.forEach(relic => {
+        if (relic.effect && relic.effect.randomZeroCost && gameState.player.activeMemory.length > 0) {
+            const randomIndex = Math.floor(Math.random() * gameState.player.activeMemory.length);
+            gameState.player.activeMemory[randomIndex].tempCostZero = true;
+        }
+    });
 
     updateUI();
 

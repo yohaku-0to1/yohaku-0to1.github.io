@@ -31,6 +31,30 @@ function playCard(card, targetEnemy = null) {
     gameState.combat.lastCardType = card.type;
     gameState.combat.cardsPlayedThisTurn = (gameState.combat.cardsPlayedThisTurn || 0) + 1;
 
+    // Phase 5: Perpetual Engine - RAM recovery every 5 cards
+    gameState.combat.cardsPlayedTotal = (gameState.combat.cardsPlayedTotal || 0) + 1;
+    gameState.player.relics.forEach(relic => {
+        if (relic.effect && relic.effect.ramOnCardPlay) {
+            if (gameState.combat.cardsPlayedTotal % relic.effect.ramOnCardPlay.threshold === 0) {
+                gameState.player.ram = Math.min(gameState.player.ram + relic.effect.ramOnCardPlay.amount, gameState.player.maxRam);
+                soundManager.playBuff();
+            }
+        }
+    });
+
+    // Phase 5: Exploit Library - Cost refund chance
+    if (card.type === 'attack') {
+        gameState.player.relics.forEach(relic => {
+            if (relic.effect && relic.effect.attackCostRefund) {
+                if (Math.random() < relic.effect.attackCostRefund) {
+                    gameState.player.ram = Math.min(gameState.player.ram + actualCost, gameState.player.maxRam);
+                    showDamageNumber(document.getElementById('player-character'), 'RAM返還!', true);
+                    soundManager.playBuff();
+                }
+            }
+        });
+    }
+
     // Combo mechanic: Check if combo activated
     const comboActivated = card.effect.comboBonus && previousCardType === card.effect.comboBonus.type;
 
@@ -675,6 +699,13 @@ function victory() {
                 gameState.player.integrity += relic.effect.maxIntegrityOnWin;
             }
         });
+    }
+
+    // Phase 5: Regenerative Mesh and other VICTORY effects
+    const victoryEffects = applyRelicEffects('VICTORY');
+    if (victoryEffects.heal) {
+        gameState.player.integrity = Math.min(gameState.player.maxIntegrity, gameState.player.integrity + victoryEffects.heal);
+        soundManager.playBuff();
     }
 
     // ボス撃破時の進化チェック
