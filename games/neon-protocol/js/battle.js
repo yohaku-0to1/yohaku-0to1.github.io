@@ -461,7 +461,10 @@ function dealDamageToEnemy(enemy, baseDamage) {
 
         // ダメージパーティクル
         const rect = enemyElement.getBoundingClientRect();
-        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'damage');
+        if (window.particleSystem) {
+            window.particleSystem.emitDamage(rect.left + rect.width / 2, rect.top + rect.height / 2, damageResult.finalDamage);
+        }
+        // createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'damage'); // Old simple particles
 
         // クリティカルヒット（大ダメージ）でシェイク
         if (damageResult.finalDamage >= 10) {
@@ -745,6 +748,15 @@ function removeEnemy(enemy) {
 
         if (gameState.player.integrity <= 0) {
             setTimeout(() => gameOver(), 500);
+        }
+    }
+
+    // 死亡エフェクト
+    if (window.particleSystem) {
+        const enemyElement = document.querySelector(`[data-enemy-id="${enemy.id}"]`);
+        if (enemyElement) {
+            const rect = enemyElement.getBoundingClientRect();
+            window.particleSystem.emitExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2);
         }
     }
 

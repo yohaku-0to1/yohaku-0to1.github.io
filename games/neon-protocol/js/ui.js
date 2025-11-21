@@ -257,6 +257,17 @@ function playCardWithAnimation(card, target) {
         playCard(card, target);
         gameState.ui.isProcessing = false; // 入力ロック解除
     }
+
+    // カードプレイエフェクト
+    if (window.particleSystem) {
+        const cardElement = document.querySelector(`[data-card-id="${card.instanceId}"]`);
+        if (cardElement) {
+            const rect = cardElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            window.particleSystem.emitCardPlay(centerX, centerY);
+        }
+    }
 }
 
 // 敵を描画
