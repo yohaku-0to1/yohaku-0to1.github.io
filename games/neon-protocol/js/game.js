@@ -266,4 +266,25 @@ window.addEventListener('DOMContentLoaded', () => {
             startEnemyTurn();
         }
     });
+
+    // 初回インタラクションでオーディオ初期化
+    initAudioOnFirstInteraction();
 });
+
+// 初回インタラクションでオーディオコンテキストを開始
+function initAudioOnFirstInteraction() {
+    const startAudio = () => {
+        console.log('User interaction detected, initializing audio...');
+        soundManager.init();
+        if (!soundManager.isMuted) {
+            soundManager.startBGM();
+        }
+
+        // イベントリスナーを削除
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
+    };
+
+    document.addEventListener('click', startAudio);
+    document.addEventListener('keydown', startAudio);
+}
