@@ -53,6 +53,9 @@ function showMapScreen() {
     modal.id = 'map-screen';
     modal.style.display = 'flex';
 
+    // BGM開始（マップ画面で開始するのが自然）
+    soundManager.startBGM();
+
     const content = document.createElement('div');
     content.className = 'modal-content';
     content.style.maxWidth = '800px';
@@ -95,9 +98,13 @@ function showMapScreen() {
         nodeBtn.innerHTML = `<div style="font-size: 2rem; margin-bottom: 0.5rem;">${nodeIcon}</div>${nodeName}`;
 
         nodeBtn.onclick = () => {
+            soundManager.playClick();
             selectNode(node);
             modal.remove();
         };
+
+        // ホバー音
+        nodeBtn.onmouseenter = () => soundManager.playHover();
 
         nodesContainer.appendChild(nodeBtn);
     });

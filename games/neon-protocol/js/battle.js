@@ -42,7 +42,17 @@ function executeCardEffect(card, targetEnemy) {
         for (let i = 0; i < hits; i++) {
             if (targetEnemy) {
                 dealDamageToEnemy(targetEnemy, effect.damage);
+                soundManager.playAttack(); // Added sound effect
             }
+        }
+        // 吸血効果（Inject Virusなど）
+        if (card.id === 'inject_virus' && targetEnemy) {
+            // Assuming dealDamageToEnemy updates enemy.integrity, we need to get the actual damage dealt
+            // For simplicity, let's assume the damage dealt was effect.damage for the heal calculation
+            // A more robust solution would involve getting the actual finalDamage from dealDamageToEnemy
+            const heal = Math.floor(effect.damage * 0.5); // Using base damage for heal calculation
+            gameState.player.integrity = Math.min(gameState.player.integrity + heal, gameState.player.maxIntegrity);
+            soundManager.playBuff();
         }
     }
 
@@ -59,16 +69,19 @@ function executeCardEffect(card, targetEnemy) {
     // Firewall
     if (effect.firewall) {
         gameState.player.firewall += effect.firewall;
+        soundManager.playShield(); // Added sound effect
     }
 
     // Protocol Shield
     if (effect.protocolShield) {
         gameState.player.protocolShield += effect.protocolShield;
+        soundManager.playShield(); // Added sound effect
     }
 
     // カードドロー
     if (effect.draw) {
         drawCards(effect.draw);
+        soundManager.playDraw(); // Added sound effect
     }
 
     // Virus付与
@@ -202,6 +215,12 @@ function dealDamageToPlayer(baseDamage, source) {
     playerElement.classList.add('taking-damage');
     setTimeout(() => playerElement.classList.remove('taking-damage'), 300);
 
+    // ダメージを受けた場合のみ音を再生
+    if (damageResult.finalDamage > 0) {
+        soundManager.playDamage();
+    }
+
+
     // ゲームオーバー確認
     if (gameState.player.integrity <= 0) {
         gameOver();
@@ -268,6 +287,17 @@ function checkVictory() {
 function victory() {
     console.log('Victory!');
     gameState.combat.inCombat = false;
+    soundManager.playVictory();
+
+    // 戦闘終了時のレリック効果
+    if (gameState.player.relics) {
+        gameState.player.relics.forEach(relic => {
+            if (relic.effect && relic.effect.maxIntegrityOnWin) {
+                gameState.player.maxIntegrity += relic.effect.maxIntegrityOnWin;
+                gameState.player.integrity += relic.effect.maxIntegrityOnWin;
+            }
+        });
+    }
 
     // ボス撃破時の進化チェック
     const currentLayer = gameState.map.currentLayer;
@@ -314,5 +344,6 @@ function showVictoryScreen() {
 function gameOver() {
     console.log('Game Over!');
     gameState.combat.inCombat = false;
+    soundManager.playGameOver();
     document.getElementById('game-over-screen').style.display = 'flex';
 }

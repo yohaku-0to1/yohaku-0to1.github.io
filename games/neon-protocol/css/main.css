@@ -272,8 +272,44 @@ body::before {
 .pile-info {
     display: flex;
     gap: 2rem;
-    font-size: 1.1rem;
+    margin-top: 1rem;
     color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Sound Button */
+.sound-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--accent-cyan);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.sound-btn:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+/* Tutorial Highlight */
+.tutorial-highlight {
+    position: relative;
+    z-index: 2001;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 20px var(--accent-cyan);
+    pointer-events: none;
+    /* チュートリアル中は操作不可にする場合 */
 }
 
 /* モーダル */

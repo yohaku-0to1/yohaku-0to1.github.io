@@ -108,6 +108,8 @@ function replaceCardsInDeck(oldCardId, newCardId) {
 
 // 進化演出を表示
 function showEvolutionScreen(evolutionType) {
+    soundManager.playEvolution();
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';

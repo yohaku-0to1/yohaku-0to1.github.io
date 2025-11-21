@@ -210,6 +210,19 @@ function startPlayerTurn() {
     drawCards(5);
 
     updateUI();
+
+    // 初回チュートリアル
+    setTimeout(() => {
+        tutorialManager.start();
+    }, 1000);
+}
+
+// サウンド切り替え
+function toggleSound() {
+    const isMuted = soundManager.toggleMute();
+    const btn = document.getElementById('sound-toggle');
+    btn.textContent = isMuted ? '🔇' : '🔊';
+    btn.style.borderColor = isMuted ? 'var(--text-secondary)' : 'var(--accent-cyan)';
 }
 
 // 敵ターン開始
