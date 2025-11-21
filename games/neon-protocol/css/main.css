@@ -1104,3 +1104,153 @@ body {
     color: var(--accent-cyan);
     border-color: var(--accent-cyan);
 }
+
+/* CRT Effect */
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 9999;
+    animation: flicker 0.15s infinite;
+    opacity: 0.3;
+}
+
+@keyframes flicker {
+    0% {
+        opacity: 0.27;
+    }
+
+    5% {
+        opacity: 0.28;
+    }
+
+    10% {
+        opacity: 0.26;
+    }
+
+    15% {
+        opacity: 0.3;
+    }
+
+    20% {
+        opacity: 0.27;
+    }
+
+    25% {
+        opacity: 0.25;
+    }
+
+    30% {
+        opacity: 0.28;
+    }
+
+    35% {
+        opacity: 0.29;
+    }
+
+    40% {
+        opacity: 0.26;
+    }
+
+    45% {
+        opacity: 0.25;
+    }
+
+    50% {
+        opacity: 0.26;
+    }
+
+    55% {
+        opacity: 0.28;
+    }
+
+    60% {
+        opacity: 0.29;
+    }
+
+    65% {
+        opacity: 0.27;
+    }
+
+    70% {
+        opacity: 0.3;
+    }
+
+    75% {
+        opacity: 0.26;
+    }
+
+    80% {
+        opacity: 0.28;
+    }
+
+    85% {
+        opacity: 0.27;
+    }
+
+    90% {
+        opacity: 0.29;
+    }
+
+    95% {
+        opacity: 0.26;
+    }
+
+    100% {
+        opacity: 0.27;
+    }
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+    border-color: var(--accent-cyan);
+    z-index: 10;
+}
+
+/* Glitch Effect for heavy damage */
+@keyframes glitch-anim {
+    0% {
+        transform: translate(0)
+    }
+
+    20% {
+        transform: translate(-2px, 2px)
+    }
+
+    40% {
+        transform: translate(-2px, -2px)
+    }
+
+    60% {
+        transform: translate(2px, 2px)
+    }
+
+    80% {
+        transform: translate(2px, -2px)
+    }
+
+    100% {
+        transform: translate(0)
+    }
+}
+
+.glitch-effect {
+    animation: glitch-anim 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
+    color: var(--damage-color);
+    text-shadow: 2px 0 var(--accent-cyan), -2px 0 var(--accent-purple);
+}

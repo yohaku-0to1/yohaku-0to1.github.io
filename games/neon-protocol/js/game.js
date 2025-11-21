@@ -197,6 +197,11 @@ function startPlayerTurn() {
     gameState.ui.isProcessing = false; // 入力ロック解除
     gameState.combat.turn++;
 
+    // 意図開示フラグをリセット
+    if (typeof resetEnemyIntents === 'function') {
+        resetEnemyIntents();
+    }
+
     showTurnIndicator('PLAYER TURN');
 
     // Reset turn tracking for Tempo and Combo mechanics

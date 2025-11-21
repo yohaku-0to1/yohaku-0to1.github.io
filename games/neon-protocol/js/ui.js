@@ -297,14 +297,27 @@ function renderEnemies() {
         const intent = document.createElement('div');
         intent.className = 'enemy-intent';
         const nextAction = enemy.actions[enemy.currentActionIndex];
+
+        // 意図が明かされているかチェック
+        const isRevealed = enemy.intentRevealed;
+        const valueText = isRevealed ? nextAction.value : '??';
+
+        if (isRevealed) {
+            intent.classList.add('revealed');
+        }
+
         if (nextAction.type === 'attack') {
-            intent.textContent = `次: 攻撃 (${nextAction.value})`;
+            intent.textContent = `次: 攻撃 (${valueText})`;
         } else if (nextAction.type === 'defend') {
-            intent.textContent = `次: 防御 (${nextAction.value})`;
+            intent.textContent = `次: 防御 (${valueText})`;
         } else if (nextAction.type === 'buff') {
-            intent.textContent = `次: 強化 (${nextAction.value})`;
+            intent.textContent = `次: 強化 (${valueText})`;
         } else if (nextAction.type === 'debuff') {
-            intent.textContent = `次: 妨害 (${nextAction.value})`;
+            intent.textContent = `次: 妨害 (${valueText})`;
+        } else if (nextAction.type === 'summon') {
+            intent.textContent = `次: 召喚`;
+        } else if (nextAction.type === 'buffAll') {
+            intent.textContent = `次: 全体強化`;
         }
 
         enemyDiv.appendChild(name);

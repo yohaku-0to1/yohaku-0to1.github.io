@@ -189,7 +189,20 @@ function executeCardEffect(card, targetEnemy, context = {}) {
 
     // 敵の意図を明かす
     if (effect.revealIntent) {
-        // TODO: 敵の意図を表示する処理
+        gameState.enemies.forEach(enemy => {
+            enemy.intentRevealed = true;
+            // 視覚的フィードバック
+            const enemyElement = document.querySelector(`[data-enemy-id="${enemy.id}"]`);
+            if (enemyElement) {
+                const intentEl = enemyElement.querySelector('.enemy-intent');
+                if (intentEl) {
+                    intentEl.classList.add('revealed');
+                    intentEl.textContent = intentEl.textContent.replace('??', enemy.actions[enemy.currentActionIndex].value);
+                }
+                createParticles(enemyElement.getBoundingClientRect().left, enemyElement.getBoundingClientRect().top, 'scan');
+            }
+        });
+        soundManager.playBuff(); // Scanning sound
         console.log('Revealing enemy intent...');
     }
 }
