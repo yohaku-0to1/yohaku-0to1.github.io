@@ -1,15 +1,38 @@
 // 戦闘システム
 
-// カードをプレイする
+// カードを使用
 function playCard(card, targetEnemy = null) {
-    // RAM確認
-    if (gameState.player.ram < card.cost) {
-        console.log('Not enough RAM');
+    // RAM確認と処理中チェック
+    if (gameState.player.ram < card.cost || gameState.combat.isProcessing) {
+        console.log('Not enough RAM or combat is processing');
+        return false;
+    }
+
+    // Tempo mechanic: First card discount
+    let actualCost = card.cost;
+    if (card.effect.tempoDiscount && gameState.combat.cardsPlayedThisTurn === 0) {
+        actualCost = Math.max(0, card.cost - card.effect.tempoDiscount);
+    }
+
+    if (gameState.player.ram < actualCost) {
+        console.log('Not enough RAM after tempo discount');
         return false;
     }
 
     // RAM消費
-    gameState.player.ram -= card.cost;
+    gameState.player.ram -= actualCost;
+
+    // カード使用処理をロック
+    gameState.combat.isProcessing = true;
+
+    // Track card play for combos
+    if (!gameState.combat.lastCardType) gameState.combat.lastCardType = null;
+    const previousCardType = gameState.combat.lastCardType;
+    gameState.combat.lastCardType = card.type;
+    gameState.combat.cardsPlayedThisTurn = (gameState.combat.cardsPlayedThisTurn || 0) + 1;
+
+    // Combo mechanic: Check if combo activated
+    const comboActivated = card.effect.comboBonus && previousCardType === card.effect.comboBonus.type;
 
     // タグを進化統計に記録
     if (card.tags) {
@@ -21,10 +44,32 @@ function playCard(card, targetEnemy = null) {
     }
 
     // カード効果を実行
-    executeCardEffect(card, targetEnemy);
+    executeCardEffect(card, targetEnemy, { comboActivated });
 
-    // カードを捨て札に
-    discardCard(card);
+    // Exhaust mechanic: Remove card from game instead of discarding
+    if (card.effect.exhaust) {
+        // Remove from hand without adding to discard
+        const handIndex = gameState.player.activeMemory.findIndex(c => c.instanceId === card.instanceId);
+        if (handIndex !== -1) {
+            gameState.player.activeMemory.splice(handIndex, 1);
+        }
+    } else {
+        // カードを捨て札に
+        discardCard(card);
+    }
+
+    // Echo mechanic: Play card effect twice
+    if (card.effect.echo) {
+        setTimeout(() => {
+            executeCardEffect(card, targetEnemy, { comboActivated, isEcho: true });
+            gameState.combat.isProcessing = false;
+            updateUI();
+        }, 300);
+        return true; // Don't unlock processing yet
+    }
+
+    // 処理ロック解除
+    gameState.combat.isProcessing = false;
 
     // UIを更新
     updateUI();
@@ -33,8 +78,9 @@ function playCard(card, targetEnemy = null) {
 }
 
 // カード効果を実行
-function executeCardEffect(card, targetEnemy) {
+function executeCardEffect(card, targetEnemy, context = {}) {
     const effect = card.effect;
+    const { comboActivated = false, isEcho = false } = context;
 
     // レリック効果を適用（カードプレイ時）
     const playEffects = applyRelicEffects('CARD_PLAY');
@@ -45,17 +91,32 @@ function executeCardEffect(card, targetEnemy) {
         });
     }
 
+    // RAM Generation mechanic
+    if (effect.ramRecover) {
+        gameState.player.ram = Math.min(gameState.player.ram + effect.ramRecover, gameState.player.maxRam);
+        soundManager.playBuff();
+    }
+
     // ダメージ
     if (effect.damage) {
         // レリック効果を適用（攻撃ダメージボーナス）
         const attackEffects = applyRelicEffects('ATTACK_DAMAGE', { cardType: card.type });
-        const damageBonus = attackEffects.damageBonus || 0;
+        let damageBonus = attackEffects.damageBonus || 0;
+
+        // Combo mechanic: Add bonus damage if combo activated
+        if (comboActivated && effect.comboBonus) {
+            damageBonus += effect.comboBonus.bonus;
+            if (!isEcho) {
+                soundManager.playBuff(); // Play combo sound
+                showDamageNumber(document.getElementById('player-character'), `COMBO +${effect.comboBonus.bonus}!`, true);
+            }
+        }
 
         const hits = effect.hits || 1;
         for (let i = 0; i < hits; i++) {
             if (targetEnemy) {
                 dealDamageToEnemy(targetEnemy, effect.damage + damageBonus);
-                soundManager.playAttack();
+                if (!isEcho || i === 0) soundManager.playAttack();
 
                 // 攻撃パーティクル
                 const enemyElement = document.querySelector(`[data-enemy-id="${targetEnemy.id}"]`);
@@ -228,8 +289,27 @@ function dealDamageToEnemy(enemy, baseDamage) {
         }
     }
 
+    // Reflective gimmick: Reflect damage back to player
+    if (enemy.gimmick === 'reflect' && enemy.reflectPercent) {
+        const reflectedDamage = Math.floor(damageResult.finalDamage * enemy.reflectPercent);
+        if (reflectedDamage > 0) {
+            setTimeout(() => {
+                gameState.player.integrity = Math.max(0, gameState.player.integrity - reflectedDamage);
+                showDamageNumber(document.getElementById('player-character'), reflectedDamage, false);
+                soundManager.playHit();
+                if (gameState.player.integrity <= 0) {
+                    gameOver();
+                }
+                updateUI();
+            }, 200);
+        }
+    }
+
     // 敵が倒れたか確認
     if (enemy.integrity <= 0) {
+        // 即座に入力をロックして、連続カード使用を防ぐ
+        gameState.ui.isProcessing = true;
+
         setTimeout(() => {
             removeEnemy(enemy);
             checkVictory();
@@ -321,12 +401,60 @@ function executeEnemyAction(enemy) {
 
     // 行動を実行
     if (action.type === 'attack') {
-        dealDamageToPlayer(action.value, {
-            overclock: 0,
-            effects: enemy.effects
-        });
+        const hits = action.hits || 1;
+        for (let i = 0; i < hits; i++) {
+            setTimeout(() => {
+                dealDamageToPlayer(action.value, {
+                    overclock: enemy.overclock || 0,
+                    effects: enemy.effects
+                });
+            }, i * 200);
+        }
     } else if (action.type === 'defend') {
         enemy.firewall += action.value;
+        soundManager.playShield();
+    } else if (action.type === 'debuff') {
+        // Apply debuff to player
+        if (action.value === 'virus') {
+            gameState.player.effects.virus += action.amount;
+        } else if (action.value === 'exposed') {
+            gameState.player.effects.exposed += action.amount;
+        } else if (action.value === 'lag') {
+            gameState.player.effects.lag += action.amount;
+        }
+        soundManager.playDebuff();
+    } else if (action.type === 'buff') {
+        // Buff self
+        if (action.value === 'overclock') {
+            enemy.overclock = (enemy.overclock || 0) + action.amount;
+        } else if (action.value === 'firewall') {
+            enemy.firewall += action.amount;
+        }
+        soundManager.playBuff();
+    } else if (action.type === 'buffAll') {
+        // Buff all allies
+        gameState.enemies.forEach(e => {
+            if (action.value === 'overclock') {
+                e.overclock = (e.overclock || 0) + action.amount;
+            } else if (action.value === 'firewall') {
+                e.firewall += action.amount;
+            }
+        });
+        soundManager.playBuff();
+    } else if (action.type === 'summon') {
+        // Summon new enemy if there's a summon type defined
+        const enemyData = ENEMY_DATABASE[enemy.summonType];
+        if (enemyData && gameState.enemies.length < 4) {
+            const newEnemy = spawnEnemy(enemyData);
+            newEnemy.maxIntegrity = enemyData.integrity;
+            if (enemyData.gimmick) {
+                newEnemy.gimmick = enemyData.gimmick;
+                newEnemy.reflectPercent = enemyData.reflectPercent;
+                newEnemy.explosionDamage = enemyData.explosionDamage;
+            }
+            renderEnemies();
+            soundManager.playBuff();
+        }
     }
 
     updateUI();
@@ -334,6 +462,24 @@ function executeEnemyAction(enemy) {
 
 // 敵を削除
 function removeEnemy(enemy) {
+    // Volatile gimmick: Explode on death
+    if (enemy.gimmick === 'explodeOnDeath' && enemy.explosionDamage) {
+        gameState.player.integrity = Math.max(0, gameState.player.integrity - enemy.explosionDamage);
+        showDamageNumber(document.getElementById('player-character'), enemy.explosionDamage, false);
+        soundManager.playExplosion();
+        triggerScreenShake(1.0);
+
+        // Screen flash
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,100,0,0.5);pointer-events:none;z-index:9999;';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 100);
+
+        if (gameState.player.integrity <= 0) {
+            setTimeout(() => gameOver(), 500);
+        }
+    }
+
     const index = gameState.enemies.findIndex(e => e.id === enemy.id);
     if (index !== -1) {
         gameState.enemies.splice(index, 1);
@@ -343,7 +489,15 @@ function removeEnemy(enemy) {
 
 // 勝利判定
 function checkVictory() {
+    // 既に勝利処理中または戦闘終了済みなら何もしない
+    if (!gameState.combat.inCombat || gameState.combat.victoryTriggered) {
+        return;
+    }
+
     if (gameState.enemies.length === 0) {
+        // 勝利フラグを立てて重複呼び出しを防ぐ
+        gameState.combat.victoryTriggered = true;
+
         setTimeout(() => {
             victory();
         }, 500);

@@ -355,11 +355,11 @@ function startBattleNode(node) {
         enemyKey = 'firewall_guardian'; // デフォルト
     } else if (node.type === 'elite') {
         // エリート敵
-        const eliteEnemies = ['attack_bot', 'data_miner', 'encryption_node'];
+        const eliteEnemies = ['attack_bot', 'data_miner', 'encryption_node', 'proxy_server', 'ddos_swarm', 'neural_defender', 'botnet_controller'];
         enemyKey = eliteEnemies[Math.floor(Math.random() * eliteEnemies.length)];
     } else {
         // 通常敵
-        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier'];
+        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'mirror_server', 'logic_bomb', 'support_ai', 'spike_swarm'];
         enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
     }
 
@@ -367,11 +367,25 @@ function startBattleNode(node) {
     const startBattle = () => {
         const enemyData = ENEMY_DATABASE[enemyKey];
         if (enemyData) {
-            spawnEnemy({
-                ...enemyData,
-                integrity: enemyData.integrity,
-                maxIntegrity: enemyData.integrity
-            });
+            const enemy = spawnEnemy(enemyData);
+            enemy.maxIntegrity = enemyData.integrity;
+
+            // Copy gimmick properties
+            if (enemyData.gimmick) {
+                enemy.gimmick = enemyData.gimmick;
+                enemy.reflectPercent = enemyData.reflectPercent;
+                enemy.explosionDamage = enemyData.explosionDamage;
+                enemy.summonType = enemyData.summonType;
+                enemy.summonCooldown = enemyData.summonCooldown;
+            }
+
+            // Copy boss properties
+            if (enemyData.isBoss) {
+                enemy.isBoss = true;
+                enemy.phase = enemyData.phase;
+                enemy.phaseThreshold = enemyData.phaseThreshold;
+                enemy.phase2Actions = enemyData.phase2Actions;
+            }
         }
         startCombat();
     };

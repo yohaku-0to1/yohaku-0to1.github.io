@@ -148,6 +148,25 @@ class SoundManager {
         this.playTone(400, 'triangle', 0.5, 0.3, 800);
     }
 
+    // 戦闘: デバフ
+    playDebuff() {
+        this.playTone(300, 'triangle', 0.5, 0.3, 100); // Lower pitch for debuffs
+    }
+
+
+    // 戦闘: 打撃音
+    playHit() {
+        this.playNoise(0.15, 0.4);
+        this.playTone(150, 'square', 0.15, 0.4, 50);
+    }
+
+    // 戦闘: 爆発音
+    playExplosion() {
+        this.playNoise(0.5, 0.7);
+        this.playTone(80, 'sawtooth', 0.4, 0.5, 20);
+        setTimeout(() => this.playTone(40, 'square', 0.3, 0.3, 10), 100);
+    }
+
     // ゲーム: 勝利
     playVictory() {
         const now = this.ctx.currentTime;

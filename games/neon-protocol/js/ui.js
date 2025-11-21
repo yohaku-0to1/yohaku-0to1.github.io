@@ -257,6 +257,8 @@ function renderEnemies() {
 
         enemyDiv.appendChild(name);
         enemyDiv.appendChild(integrity);
+
+        // Firewall display
         if (enemy.firewall > 0) {
             const firewall = document.createElement('div');
             firewall.textContent = `🛡️ Firewall: ${enemy.firewall}`;
@@ -264,6 +266,56 @@ function renderEnemies() {
             firewall.style.color = 'var(--firewall-color)';
             enemyDiv.appendChild(firewall);
         }
+
+        // Overclock display
+        if (enemy.overclock > 0) {
+            const overclock = document.createElement('div');
+            overclock.textContent = `⚡ Overclock: +${enemy.overclock}`;
+            overclock.style.fontSize = '0.9rem';
+            overclock.style.color = 'var(--accent-cyan)';
+            enemyDiv.appendChild(overclock);
+        }
+
+        // Status effects display
+        if (enemy.effects) {
+            if (enemy.effects.virus > 0) {
+                const virus = document.createElement('div');
+                virus.textContent = `🦠 Virus: ${enemy.effects.virus}`;
+                virus.style.fontSize = '0.8rem';
+                virus.style.color = 'var(--damage-color)';
+                enemyDiv.appendChild(virus);
+            }
+            if (enemy.effects.exposed > 0) {
+                const exposed = document.createElement('div');
+                exposed.textContent = `🎯 Exposed: ${enemy.effects.exposed}`;
+                exposed.style.fontSize = '0.8rem';
+                exposed.style.color = 'var(--accent-purple)';
+                enemyDiv.appendChild(exposed);
+            }
+        }
+
+        // Gimmick indicator
+        if (enemy.gimmick) {
+            const gimmick = document.createElement('div');
+            gimmick.style.fontSize = '0.8rem';
+            gimmick.style.color = 'var(--accent-cyan)';
+            gimmick.style.fontStyle = 'italic';
+
+            if (enemy.gimmick === 'reflect') {
+                gimmick.textContent = `🔄 Reflects ${Math.floor(enemy.reflectPercent * 100)}% damage`;
+            } else if (enemy.gimmick === 'explodeOnDeath') {
+                gimmick.textContent = `💥 Explodes for ${enemy.explosionDamage} damage`;
+            } else if (enemy.gimmick === 'buffAllies') {
+                gimmick.textContent = `📡 Buffs all allies`;
+            } else if (enemy.gimmick === 'summon') {
+                gimmick.textContent = `👾 Summons reinforcements`;
+            }
+
+            if (gimmick.textContent) {
+                enemyDiv.appendChild(gimmick);
+            }
+        }
+
         enemyDiv.appendChild(intent);
 
         enemiesContainer.appendChild(enemyDiv);

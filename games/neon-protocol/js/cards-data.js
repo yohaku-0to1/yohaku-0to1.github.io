@@ -503,6 +503,143 @@ const CARD_DATABASE = {
         effect: {
             permanentDamageOnPlay: 1
         }
+    },
+
+    // === 新カード: 新メカニクス ===
+
+    // Echo mechanic
+    "echo_strike": {
+        id: "echo_strike",
+        name: "Echo Strike",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 6\\nこのカードは2回発動する",
+        tags: ["attack"],
+        effect: {
+            damage: 6,
+            echo: true
+        }
+    },
+
+    "double_shield": {
+        id: "double_shield",
+        name: "Double Shield",
+        type: "skill",
+        cost: 2,
+        description: "Firewall 8\\nこのカードは2回発動する",
+        tags: ["defense"],
+        effect: {
+            firewall: 8,
+            echo: true
+        }
+    },
+
+    // Tempo mechanic
+    "early_bird": {
+        id: "early_bird",
+        name: "Early Bird",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 12\\n最初にプレイすれば cost 0",
+        tags: ["attack", "aggressive"],
+        effect: {
+            damage: 12,
+            tempoDiscount: 2
+        }
+    },
+
+    "first_defense": {
+        id: "first_defense",
+        name: "First Defense",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 10\\n最初にプレイすれば cost 0",
+        tags: ["defense"],
+        effect: {
+            firewall: 10,
+            tempoDiscount: 1
+        }
+    },
+
+    // Combo mechanic
+    "follow_through": {
+        id: "follow_through",
+        name: "Follow Through",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 8\\n攻撃カード使用後なら +5 ダメージ",
+        tags: ["attack"],
+        effect: {
+            damage: 8,
+            comboBonus: { type: "attack", bonus: 5 }
+        }
+    },
+
+    "defensive_stance": {
+        id: "defensive_stance",
+        name: "Defensive Stance",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 7\\nスキル使用後なら +7 Firewall",
+        tags: ["defense"],
+        effect: {
+            firewall: 7,
+            comboBonus: { type: "skill", bonus: 7 }
+        }
+    },
+
+    // Exhaust mechanic
+    "emergency_protocol": {
+        id: "emergency_protocol",
+        name: "Emergency Protocol",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 20\\nExhaust (使用後削除)",
+        tags: ["defense"],
+        effect: {
+            firewall: 20,
+            exhaust: true
+        }
+    },
+
+    "last_resort": {
+        id: "last_resort",
+        name: "Last Resort",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 30\\nExhaust (使用後削除)",
+        tags: ["attack", "aggressive"],
+        effect: {
+            damage: 30,
+            exhaust: true
+        }
+    },
+
+    // RAM generation
+    "cache_clear": {
+        id: "cache_clear",
+        name: "Cache Clear",
+        type: "skill",
+        cost: 0,
+        description: "RAM +1\\nカードを 1枚 ドロー",
+        tags: ["skill", "utility"],
+        effect: {
+            ramRecover: 1,
+            draw: 1
+        }
+    },
+
+    "power_surge": {
+        id: "power_surge",
+        name: "Power Surge",
+        type: "skill",
+        cost: 1,
+        description: "RAM +2\\nOverclock +2",
+        tags: ["skill", "aggressive"],
+        effect: {
+            ramRecover: 2,
+            overclock: 2
+        }
     }
 };
 

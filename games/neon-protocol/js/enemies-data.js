@@ -137,6 +137,67 @@ const ENEMY_DATABASE = {
         ]
     },
 
+    // === 新敵: ギミック敵 ===
+
+    // Reflective gimmick
+    "mirror_server": {
+        name: "Mirror Server",
+        integrity: 35,
+        gimmick: "reflect",
+        reflectPercent: 0.3, // 30% damage reflected
+        actions: [
+            { type: 'defend', value: 12 },
+            { type: 'attack', value: 7 }
+        ]
+    },
+
+    // Volatile gimmick
+    "logic_bomb": {
+        name: "Logic Bomb",
+        integrity: 20,
+        gimmick: "explodeOnDeath",
+        explosionDamage: 10,
+        actions: [
+            { type: 'attack', value: 5 },
+            { type: 'buff', value: 'overclock', amount: 2 }
+        ]
+    },
+
+    // Buffing gimmick
+    "support_ai": {
+        name: "Support AI",
+        integrity: 30,
+        gimmick: "buffAllies",
+        actions: [
+            { type: 'buffAll', value: 'overclock', amount: 1 },
+            { type: 'defend', value: 8 }
+        ]
+    },
+
+    // Summoner gimmick
+    "botnet_controller": {
+        name: "Botnet Controller",
+        integrity: 40,
+        gimmick: "summon",
+        summonType: "security_bot",
+        summonCooldown: 2,
+        actions: [
+            { type: 'summon' },
+            { type: 'attack', value: 8 },
+            { type: 'defend', value: 6 }
+        ]
+    },
+
+    // Multi-hit specialist
+    "spike_swarm": {
+        name: "Spike Swarm",
+        integrity: 25,
+        actions: [
+            { type: 'attack', value: 4, hits: 4 },
+            { type: 'attack', value: 8 }
+        ]
+    },
+
     // === Layer 15 最終ボス ===
     "core_mainframe": {
         name: "Core Mainframe",

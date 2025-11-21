@@ -158,6 +158,7 @@ function startCombat() {
     gameState.combat.playerTurn = true;
     gameState.ui.isProcessing = false; // 入力ロック解除
     gameState.combat.hasBeenHit = false; // 被弾フラグリセット
+    gameState.combat.victoryTriggered = false; // 勝利フラグリセット
 
     // レリック効果を適用（戦闘開始時）
     const combatEffects = applyRelicEffects('COMBAT_START');
@@ -193,6 +194,10 @@ function startPlayerTurn() {
     gameState.combat.turn++;
 
     showTurnIndicator('PLAYER TURN');
+
+    // Reset turn tracking for Tempo and Combo mechanics
+    gameState.combat.cardsPlayedThisTurn = 0;
+    gameState.combat.lastCardType = null;
 
     // RAMを回復
     gameState.player.ram = gameState.player.maxRam;
