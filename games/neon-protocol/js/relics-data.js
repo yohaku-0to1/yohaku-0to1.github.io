@@ -23,6 +23,27 @@ const RELIC_DATABASE = {
         }
     },
 
+    "phoenix_protocol": {
+        id: "phoenix_protocol",
+        name: "Phoenix Protocol",
+        tier: 3,
+        description: "Integrity 0で1回だけ自動蘇生（HP 1で復活）",
+        effect: {
+            autoRevive: true,
+            reviveHP: 1
+        }
+    },
+
+    "time_dilation": {
+        id: "time_dilation",
+        name: "Time Dilation",
+        tier: 3,
+        description: "毎ターン最初にプレイするカードのコスト 0",
+        effect: {
+            firstCardFree: true
+        }
+    },
+
     // === Tier 2: レア ===
     "backup_battery": {
         id: "backup_battery",
@@ -83,6 +104,26 @@ const RELIC_DATABASE = {
         description: "戦闘開始時、Firewall 8 を獲得",
         effect: {
             startBattleFirewall: 8
+        }
+    },
+
+    "energy_recycler": {
+        id: "energy_recycler",
+        name: "Energy Recycler",
+        tier: 2,
+        description: "3枚カードをプレイするごとにRAM +1",
+        effect: {
+            ramPer3Cards: 1
+        }
+    },
+
+    "firewall_capacitor": {
+        id: "firewall_capacitor",
+        name: "Firewall Capacitor",
+        tier: 2,
+        description: "カードから得られるFirewall 2倍",
+        effect: {
+            doubleFirewall: true
         }
     },
 
@@ -154,6 +195,26 @@ const RELIC_DATABASE = {
         description: "カード報酬の選択肢 +1",
         effect: {
             cardRewardBonus: 1
+        }
+    },
+
+    "critical_strike_chip": {
+        id: "critical_strike_chip",
+        name: "Critical Strike Chip",
+        tier: 1,
+        description: "10%の確率でダメージが2倍",
+        effect: {
+            critChance: 0.1
+        }
+    },
+
+    "health_monitor": {
+        id: "health_monitor",
+        name: "Health Monitor",
+        tier: 1,
+        description: "戦闘勝利後、Integrity +2回復",
+        effect: {
+            healOnWin: 2
         }
     },
 

@@ -510,5 +510,291 @@ const EVENT_DATABASE = {
                 }
             }
         ]
+    },
+
+    'system_reboot': {
+        id: 'system_reboot',
+        title: 'システム再起動',
+        description: 'システムの再起動が必要だ。リスクを取るか、安全策を選ぶか。',
+        choices: [
+            {
+                text: '最大HP -15、カード3枚ドロー',
+                action: (gameState) => {
+                    gameState.player.maxIntegrity -= 15;
+                    if (gameState.player.integrity > gameState.player.maxIntegrity) {
+                        gameState.player.integrity = gameState.player.maxIntegrity;
+                    }
+
+                    // Draw 3 cards during combat
+                    if (gameState.combat.active) {
+                        for (let i = 0; i < 3; i++) {
+                            drawCard();
+                        }
+                    }
+
+                    return {
+                        text: '強制再起動を実行。最大Integrityが減少したが、カードを3枚ドローした。',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'HP全回復（最大HPの50%まで）',
+                action: (gameState) => {
+                    const healAmount = Math.floor(gameState.player.maxIntegrity * 0.5);
+                    gameState.player.integrity = Math.min(healAmount, gameState.player.maxIntegrity);
+
+                    return {
+                        text: `安全な再起動を実行。Integrityが${healAmount}まで回復した。`,
+                        success: true
+                    };
+                }
+            },
+            {
+                text: '何もしない',
+                action: (gameState) => {
+                    return {
+                        text: '再起動をキャンセルした。',
+                        success: true
+                    };
+                }
+            }
+        ]
+    },
+
+    'firewall_calibration': {
+        id: 'firewall_calibration',
+        title: 'ファイアウォール調整',
+        description: 'ファイアウォールシステムを最適化する機会だ。',
+        choices: [
+            {
+                text: '次の戦闘開始時、Firewall +15',
+                action: (gameState) => {
+                    if (!gameState.player.tempEffects) {
+                        gameState.player.tempEffects = {};
+                    }
+                    gameState.player.tempEffects.nextBattleFirewall = 15;
+
+                    return {
+                        text: '次の戦闘でFirewall 15を獲得する。',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'Firewallカード全てを永久強化（+2）',
+                action: (gameState) => {
+                    let upgradeCount = 0;
+                    gameState.player.programStack.forEach(card => {
+                        const cardData = CARD_DATABASE[card.id];
+                        if (cardData && cardData.effect && cardData.effect.firewall) {
+                            card.effect = card.effect || {};
+                            card.effect.firewall = (card.effect.firewall || cardData.effect.firewall) + 2;
+                            upgradeCount++;
+                        }
+                    });
+
+                    return {
+                        text: `Firewallカード${upgradeCount}枚を強化した。`,
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'スキップ',
+                action: (gameState) => {
+                    return {
+                        text: '調整をスキップした。',
+                        success: true
+                    };
+                }
+            }
+        ]
+    },
+
+    'memory_leak': {
+        id: 'memory_leak',
+        title: 'メモリリーク',
+        description: 'システムにメモリリークが発生している。対処が必要だ。',
+        choices: [
+            {
+                text: '最大RAM -1、レアカード1枚獲得',
+                action: (gameState) => {
+                    gameState.player.maxRam -= 1;
+
+                    // Get rare card
+                    const rareCards = Object.keys(CARD_DATABASE).filter(id => {
+                        const card = CARD_DATABASE[id];
+                        return card.rarity === 'rare' || card.rarity === 'legendary';
+                    });
+
+                    if (rareCards.length > 0) {
+                        const randomCard = rareCards[Math.floor(Math.random() * rareCards.length)];
+                        gameState.player.programStack.push(createCardInstance(randomCard));
+
+                        return {
+                            text: `最大RAMが1減少したが、${CARD_DATABASE[randomCard].name} を獲得した。`,
+                            success: true
+                        };
+                    }
+
+                    return {
+                        text: '最大RAMが1減少した。',
+                        success: false
+                    };
+                }
+            },
+            {
+                text: 'メモリリークを修復（何も得られない）',
+                action: (gameState) => {
+                    return {
+                        text: 'メモリリークを修復した。',
+                        success: true
+                    };
+                }
+            }
+        ]
+    },
+
+    'glitch_market': {
+        id: 'glitch_market',
+        title: 'グリッチ市場',
+        description: '不正な取引所を発見した。価格は不安定だが、掘り出し物があるかもしれない。',
+        choices: [
+            {
+                text: 'ランダムなカードを購入（? クレジット）',
+                action: (gameState) => {
+                    const randomPrice = Math.floor(Math.random() * 150) + 50; // 50-200 credits
+
+                    if (gameState.player.credits < randomPrice) {
+                        return {
+                            text: `価格は${randomPrice}クレジット。所持金が不足している。`,
+                            success: false
+                        };
+                    }
+
+                    gameState.player.credits -= randomPrice;
+
+                    const allCards = Object.keys(CARD_DATABASE);
+                    const randomCard = allCards[Math.floor(Math.random() * allCards.length)];
+                    gameState.player.programStack.push(createCardInstance(randomCard));
+
+                    return {
+                        text: `${randomPrice}クレジットで ${CARD_DATABASE[randomCard].name} を購入した。`,
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'ランダムなレリックを購入（? クレジット）',
+                action: (gameState) => {
+                    const randomPrice = Math.floor(Math.random() * 200) + 100; // 100-300 credits
+
+                    if (gameState.player.credits < randomPrice) {
+                        return {
+                            text: `価格は${randomPrice}クレジット。所持金が不足している。`,
+                            success: false
+                        };
+                    }
+
+                    const availableRelics = Object.keys(RELIC_DATABASE).filter(id => {
+                        return !gameState.player.relics.find(r => r.id === id);
+                    });
+
+                    if (availableRelics.length === 0) {
+                        return {
+                            text: '販売中のレリックがない。',
+                            success: false
+                        };
+                    }
+
+                    gameState.player.credits -= randomPrice;
+
+                    const randomRelic = availableRelics[Math.floor(Math.random() * availableRelics.length)];
+                    gameState.player.relics.push(RELIC_DATABASE[randomRelic]);
+
+                    return {
+                        text: `${randomPrice}クレジットで ${RELIC_DATABASE[randomRelic].name} を購入した。`,
+                        success: true
+                    };
+                }
+            },
+            {
+                text: '立ち去る',
+                action: (gameState) => {
+                    return {
+                        text: '怪しい市場を後にした。',
+                        success: true
+                    };
+                }
+            }
+        ]
+    },
+
+    'data_mining': {
+        id: 'data_mining',
+        title: 'データマイニング',
+        description: 'カードをクレジットに変換できるマイニングリグを発見した。',
+        choices: [
+            {
+                text: 'カード1枚を削除、75クレジット獲得',
+                action: (gameState) => {
+                    if (gameState.player.programStack.length === 0) {
+                        return {
+                            text: 'デッキにカードがない。',
+                            success: false
+                        };
+                    }
+
+                    gameState.player.credits += 75;
+
+                    setTimeout(() => {
+                        showCardRemovalModal(() => {
+                            console.log('Card mined for credits');
+                        }, 0);
+                    }, 100);
+
+                    return {
+                        text: 'カード選択中...',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'カード3枚を削除、150クレジット獲得',
+                condition: (gameState) => gameState.player.programStack.length >= 3,
+                action: (gameState) => {
+                    gameState.player.credits += 150;
+
+                    // Remove 3 cards sequentially
+                    let removeCount = 0;
+                    const removeNext = () => {
+                        if (removeCount < 3) {
+                            showCardRemovalModal(() => {
+                                removeCount++;
+                                setTimeout(() => removeNext(), 100);
+                            }, 0);
+                        }
+                    };
+
+                    setTimeout(() => removeNext(), 100);
+
+                    return {
+                        text: 'カード選択中...',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: '利用しない',
+                action: (gameState) => {
+                    return {
+                        text: 'マイニングリグを利用しなかった。',
+                        success: true
+                    };
+                }
+            }
+        ]
     }
 };
+

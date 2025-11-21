@@ -553,7 +553,18 @@ function dealDamageToPlayer(baseDamage, source) {
 
     // ゲームオーバー確認
     if (gameState.player.integrity <= 0) {
-        gameOver();
+        // Phoenix Protocol: Auto-revive
+        const phoenixRelic = gameState.player.relics.find(r => r.id === 'phoenix_protocol' && !r.used);
+        if (phoenixRelic) {
+            phoenixRelic.used = true;
+            gameState.player.integrity = phoenixRelic.effect.reviveHP || 1;
+
+            showFloatingText(playerElement, 'PHOENIX REVIVE!', '#ff9800');
+            soundManager.playBuff();
+            console.log('Phoenix Protocol activated! Revived with 1 HP');
+        } else {
+            gameOver();
+        }
     }
 
     updateUI();
