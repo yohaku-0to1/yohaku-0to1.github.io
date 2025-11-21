@@ -600,10 +600,10 @@ function victory() {
         }, 1000);
         return;
     } else if (currentLayer === 15) {
-        // Layer 15ボス撃破 → 最終勝利
+        // Layer 15ボス撃破 → 最終勝利 → スコア送信
         setTimeout(() => {
             storyManager.show('final_victory', () => {
-                showVictoryScreen(); // 最終勝利画面を表示
+                showScoreSubmitScreen(); // ランキング送信画面を表示
             });
         }, 1000);
         return;
