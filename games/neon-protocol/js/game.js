@@ -39,6 +39,9 @@ let gameState = {
         currentLayer: 1,
         currentNode: 'battle',
         mapData: null // マップデータはinitGame時に生成
+    },
+    ui: {
+        isProcessing: false // 入力ロック用フラグ
     }
 };
 
@@ -172,6 +175,7 @@ function startCombat() {
     gameState.combat.inCombat = true;
     gameState.combat.turn = 1;
     gameState.combat.playerTurn = true;
+    gameState.ui.isProcessing = false; // 入力ロック解除
 
     // 初期手札をドロー
     drawCards(5);
@@ -185,6 +189,7 @@ function startCombat() {
 function startPlayerTurn() {
     console.log('Player turn start');
     gameState.combat.playerTurn = true;
+    gameState.ui.isProcessing = false; // 入力ロック解除
     gameState.combat.turn++;
 
     // RAMを回復
@@ -229,6 +234,7 @@ function toggleSound() {
 function startEnemyTurn() {
     console.log('Enemy turn start');
     gameState.combat.playerTurn = false;
+    gameState.ui.isProcessing = true; // 入力ロック
 
     // 手札を捨てる
     discardHand();
@@ -262,7 +268,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // ターン終了ボタン
     document.getElementById('end-turn-btn').addEventListener('click', () => {
-        if (gameState.combat.playerTurn) {
+        if (gameState.combat.playerTurn && !gameState.ui.isProcessing) {
             startEnemyTurn();
         }
     });

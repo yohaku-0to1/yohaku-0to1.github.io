@@ -124,7 +124,7 @@ function createCardElement(card) {
 
     // クリックイベント
     cardDiv.addEventListener('click', () => {
-        if (gameState.combat.playerTurn && gameState.player.ram >= card.cost) {
+        if (gameState.combat.playerTurn && gameState.player.ram >= card.cost && !gameState.ui.isProcessing) {
             handleCardClick(card);
         }
     });
@@ -158,6 +158,8 @@ function enterTargetingMode(card) {
         enemyEl.classList.add('targeting');
 
         const clickHandler = (e) => {
+            if (gameState.ui.isProcessing) return; // ロック中は無視
+
             const enemyId = enemyEl.dataset.enemyId;
             const enemy = gameState.enemies.find(e => e.id === enemyId);
 
@@ -179,6 +181,9 @@ function enterTargetingMode(card) {
 
 // カードをアニメーション付きでプレイ
 function playCardWithAnimation(card, target) {
+    if (gameState.ui.isProcessing) return; // 二重実行防止
+    gameState.ui.isProcessing = true; // 入力ロック
+
     const cardElement = document.querySelector(`[data-card-id="${card.instanceId}"]`);
 
     if (cardElement) {
@@ -186,9 +191,11 @@ function playCardWithAnimation(card, target) {
 
         setTimeout(() => {
             playCard(card, target);
+            gameState.ui.isProcessing = false; // 入力ロック解除
         }, 300);
     } else {
         playCard(card, target);
+        gameState.ui.isProcessing = false; // 入力ロック解除
     }
 }
 

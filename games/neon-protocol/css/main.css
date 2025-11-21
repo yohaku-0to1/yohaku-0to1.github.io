@@ -31,18 +31,100 @@ body {
 }
 
 /* サイバーパンク背景エフェクト */
-body::before {
-    content: '';
+/* サイバーパンク背景エフェクト */
+#background-layer {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 159, 0.03) 2px, rgba(0, 255, 159, 0.03) 4px),
-        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
-    pointer-events: none;
     z-index: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg, #050a14 0%, #0f1525 100%);
+}
+
+/* 遠景の街並み（CSSプロシージャル生成） */
+.city-skyline {
+    position: absolute;
+    bottom: 10%;
+    left: 0;
+    width: 200%;
+    height: 50%;
+    background-image:
+        linear-gradient(180deg, transparent 0%, rgba(0, 217, 255, 0.1) 100%),
+        repeating-linear-gradient(90deg,
+            transparent 0px, transparent 20px,
+            #0a1020 20px, #0a1020 60px,
+            transparent 60px, transparent 100px,
+            #080c18 100px, #080c18 130px),
+        repeating-linear-gradient(90deg,
+            transparent 0px, transparent 15px,
+            rgba(0, 255, 159, 0.05) 15px, rgba(0, 255, 159, 0.05) 16px,
+            transparent 16px, transparent 40px);
+    background-size: 50% 100%;
+    animation: scrollCity 60s linear infinite;
+    opacity: 0.6;
+}
+
+/* グリッドフロア */
+.grid-floor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background:
+        linear-gradient(180deg, rgba(0, 217, 255, 0) 0%, rgba(0, 217, 255, 0.1) 100%),
+        repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0, 217, 255, 0.2) 2px, transparent 3px) 0 0 / 100% 20px,
+        repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0, 217, 255, 0.2) 2px, transparent 3px) 0 0 / 40px 100%;
+    transform-origin: bottom;
+    transform: perspective(500px) rotateX(60deg);
+    animation: scrollGrid 20s linear infinite;
+}
+
+/* デジタルレイン */
+.digital-rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(180deg, rgba(0, 255, 159, 0) 0%, rgba(0, 255, 159, 0.2) 50%, rgba(0, 255, 159, 0) 100%);
+    background-size: 100% 200%;
+    animation: rainFall 3s linear infinite;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+@keyframes scrollCity {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes scrollGrid {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 100%;
+    }
+}
+
+@keyframes rainFall {
+    0% {
+        background-position: 0 -100%;
+    }
+
+    100% {
+        background-position: 0 100%;
+    }
 }
 
 #game-container {
@@ -51,6 +133,8 @@ body::before {
 }
 
 #game-ui {
+    position: relative;
+    z-index: 2;
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
@@ -377,6 +461,7 @@ body::before {
 /* ダメージ数字アニメーション */
 .damage-number {
     position: absolute;
+    z-index: 2000;
     font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 900;
