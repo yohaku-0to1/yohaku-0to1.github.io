@@ -98,20 +98,20 @@ const ENEMY_DATABASE = {
     // === Layer 5 ボス ===
     "firewall_guardian": {
         name: "ファイアウォール・ガーディアン",
-        integrity: 120,
+        integrity: 100,
         isBoss: true,
         actions: [
             { type: 'attack', value: 15 },
-            { type: 'defend', value: 20 },
+            { type: 'defend', value: 12 },
             { type: 'attack', value: 12 },
             { type: 'buff', value: 'overclock', amount: 3 }
         ],
         phase: 1,
-        phaseThreshold: 60, // HP 60以下で第2フェーズ
+        phaseThreshold: 50, // HP 50以下で第2フェーズ
         phase2Actions: [
-            { type: 'attack', value: 20 },
+            { type: 'attack', value: 18 },
             { type: 'attack', value: 10, hits: 2 },
-            { type: 'defend', value: 15 },
+            { type: 'defend', value: 10 },
             { type: 'debuff', value: 'lag', amount: 2 }
         ]
     },

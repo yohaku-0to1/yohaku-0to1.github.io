@@ -327,6 +327,50 @@ function showMapScreen() {
 
 function proceedToNextLayer() {
     mapManager.completeNode();
+
+    // Check for Endless Mode loop
+    if (mapManager.currentLayer >= 15 && mapManager.currentNodeId && mapManager.currentNodeId.includes('boss')) {
+        // Only trigger loop if we just finished the boss node of layer 15
+        // But wait, completeNode doesn't advance layer, it just marks node as complete.
+        // The layer increment happens when selecting a node in the NEXT layer.
+        // Actually, the map system is: select node -> set currentLayer -> do event -> completeNode.
+        // So if we are at Layer 15 Boss and complete it, we are "done" with the run.
+
+        // However, usually `proceedToNextLayer` is called to go back to map.
+        // If we are at Layer 15, there are no next nodes.
+
+        console.log("Completed Layer 15 Boss. Initiating Loop...");
+        gameState.loopCount = (gameState.loopCount || 0) + 1;
+        gameState.map.currentLayer = 1;
+        mapManager.currentLayer = 1;
+        mapManager.currentNodeId = null;
+        mapManager.completedNodes = [];
+
+        // Regenerate Map
+        gameState.map.mapData = generateMap();
+
+        // Show notification
+        const notification = document.createElement('div');
+        notification.className = 'story-overlay active';
+        notification.style.zIndex = '4000';
+        notification.innerHTML = `
+            <div class="story-box" style="text-align:center;">
+                <h2 class="story-character">SYSTEM OVERRIDE</h2>
+                <p class="story-text">
+                    Core Mainframe neutralized.<br>
+                    Rebooting system...<br>
+                    <span style="color: var(--accent-pink);">THREAT LEVEL INCREASED.</span><br>
+                    Loop: ${gameState.loopCount + 1}
+                </p>
+                <button class="btn-primary" onclick="this.closest('.story-overlay').remove(); showMapScreen();">EXECUTE</button>
+            </div>
+        `;
+        document.body.appendChild(notification);
+
+        autoSave();
+        return;
+    }
+
     // オートセーブ
     autoSave();
     // マップ再表示
@@ -510,6 +554,71 @@ function showShopNode() {
     }
     cardsSection.appendChild(cardsContainer);
     content.appendChild(cardsSection);
+
+    // 1.5 Relics Section (Cyber Implants)
+    const relicsSection = document.createElement('div');
+    relicsSection.className = 'shop-section';
+    relicsSection.innerHTML = '<div class="shop-section-title">サイバーインプラント (Relics)</div>';
+    const relicsContainer = document.createElement('div');
+    relicsContainer.className = 'shop-items';
+
+    // Generate 1-2 random relics
+    const relicCount = Math.random() < 0.4 ? 2 : 1;
+    const availableRelics = Object.values(RELIC_DATABASE).filter(relic =>
+        !gameState.player.relics.some(r => r.id === relic.id)
+    );
+
+    // Shuffle available relics
+    for (let i = availableRelics.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableRelics[i], availableRelics[j]] = [availableRelics[j], availableRelics[i]];
+    }
+
+    const relicsToSell = availableRelics.slice(0, relicCount);
+
+    relicsToSell.forEach(relic => {
+        // Price calculation based on tier
+        let basePrice = 150;
+        if (relic.tier === 2) basePrice = 250;
+        if (relic.tier === 3) basePrice = 400;
+
+        // Random variance +/- 10%
+        let price = Math.floor(basePrice * (0.9 + Math.random() * 0.2));
+
+        // Apply discount
+        if (discount > 0) {
+            price = Math.floor(price * (1 - discount));
+        }
+
+        const item = createShopItem(
+            relic.name,
+            relic.description,
+            price,
+            'relic',
+            (element) => {
+                gameState.player.relics.push(relic);
+                soundManager.playBuff();
+
+                // Update UI to show new relic
+                updateUI();
+
+                // Disable buy button
+                element.classList.add('purchased');
+                return true;
+            }
+        );
+        relicsContainer.appendChild(item);
+    });
+
+    if (relicsToSell.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'shop-empty-msg';
+        emptyMsg.textContent = '在庫切れ';
+        relicsContainer.appendChild(emptyMsg);
+    }
+
+    relicsSection.appendChild(relicsContainer);
+    content.appendChild(relicsSection);
 
     // 2. Services Section (Heal & Remove)
     const servicesSection = document.createElement('div');

@@ -41,6 +41,7 @@ let gameState = {
         currentNode: 'battle',
         mapData: null // マップデータはinitGame時に生成
     },
+    loopCount: 0, // Endless Mode loop count
     ui: {
         isProcessing: false // 入力ロック用フラグ
     }
@@ -142,8 +143,10 @@ function spawnEnemy(enemyData, layer = gameState.map.currentLayer) {
     // Scaling factors
     // Integrity: +15% per layer
     // Action Values: +10% per layer
-    let integrityMultiplier = 1 + (layer - 1) * 0.15;
-    const actionMultiplier = 1 + (layer - 1) * 0.10;
+    // Loop Scaling: +50% per loop
+    const loopMultiplier = 1 + (gameState.loopCount || 0) * 0.5;
+    let integrityMultiplier = (1 + (layer - 1) * 0.15) * loopMultiplier;
+    const actionMultiplier = (1 + (layer - 1) * 0.10) * loopMultiplier;
 
     // Phase 5: Network Node Overload event bonus
     if (gameState.player.nextCombatEnemyBonus) {
