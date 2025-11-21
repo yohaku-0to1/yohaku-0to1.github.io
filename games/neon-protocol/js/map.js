@@ -355,11 +355,21 @@ function startBattleNode(node) {
         enemyKey = 'firewall_guardian'; // デフォルト
     } else if (node.type === 'elite') {
         // エリート敵
-        const eliteEnemies = ['attack_bot', 'data_miner', 'encryption_node', 'proxy_server', 'ddos_swarm', 'neural_defender', 'botnet_controller'];
+        const eliteEnemies = [
+            'attack_bot', 'data_miner', 'encryption_node', 'proxy_server',
+            'ddos_swarm', 'neural_defender', 'botnet_controller',
+            // Phase 5: New enemies in elite pool
+            'regenerative_core', 'chaos_algorithm', 'overload_turret'
+        ];
         enemyKey = eliteEnemies[Math.floor(Math.random() * eliteEnemies.length)];
     } else {
         // 通常敵
-        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'mirror_server', 'logic_bomb', 'support_ai', 'spike_swarm'];
+        const normalEnemies = [
+            'security_bot', 'firewall_module', 'scanner_drone', 'encryption_node',
+            'virus_carrier', 'mirror_server', 'logic_bomb', 'support_ai', 'spike_swarm',
+            // Phase 5: New enemies
+            'adaptive_shield', 'ram_leech', 'regenerative_core', 'chaos_algorithm', 'overload_turret'
+        ];
         enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
     }
 
@@ -377,6 +387,12 @@ function startBattleNode(node) {
                 enemy.explosionDamage = enemyData.explosionDamage;
                 enemy.summonType = enemyData.summonType;
                 enemy.summonCooldown = enemyData.summonCooldown;
+
+                // Phase 5: New gimmick properties
+                enemy.adaptiveBonus = enemyData.adaptiveBonus || 0;
+                enemy.ramStealAmount = enemyData.ramStealAmount;
+                enemy.regenAmount = enemyData.regenAmount;
+                enemy.isCharging = enemyData.isCharging || false;
             }
 
             // Copy boss properties
