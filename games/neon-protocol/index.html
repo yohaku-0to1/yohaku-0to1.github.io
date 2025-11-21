@@ -43,11 +43,13 @@
             <div id="header">
                 <div class="header-left">
                     <span class="layer-display">Layer <span id="current-layer">1</span></span>
+                    <span class="credits-display">💎 <span id="current-credits">100</span></span>
                 </div>
                 <div class="header-center">
                     <h1 class="game-title">NEON PROTOCOL</h1>
                 </div>
                 <div class="header-right">
+                    <div id="relic-bar"></div>
                     <div class="stat-display">
                         <span class="stat-label">RAM</span>
                         <span class="stat-value"><span id="current-ram">4</span>/<span id="max-ram">4</span></span>
@@ -70,7 +72,8 @@
                 <!-- プレイヤーエリア -->
                 <div id="player-area">
                     <div id="player-character">
-                        <div class="character-name">ネオン</div>
+                        <div id="player-status-effects"></div>
+                        <div class="character-name">NEON</div>
                         <div class="character-stats">
                             <div class="stat-row" id="player-firewall-display" style="display: none;">
                                 <span class="stat-icon">🛡️</span>
@@ -128,6 +131,7 @@
     <script src="js/enemies-data.js"></script>
     <script src="js/relics-data.js"></script>
     <script src="js/evolution.js"></script>
+    <script src="js/events-data.js"></script>
     <script src="js/map.js"></script>
     <script src="js/persistence.js"></script>
     <script src="js/ranking.js"></script>

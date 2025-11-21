@@ -9,6 +9,7 @@ let gameState = {
         firewall: 0,
         overclock: 0,
         protocolShield: 0,
+        credits: 100, // Shop currency
         phase: 'child', // 'child', 'adult', 'darkstreet', 'electromaster', 'berserker'
         programStack: [],     // デッキ
         activeMemory: [],     // 手札

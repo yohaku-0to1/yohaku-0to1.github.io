@@ -460,6 +460,36 @@ function executeEnemyAction(enemy) {
     updateUI();
 }
 
+function transitionToPhase2(enemy) {
+    console.log('Boss entering Phase 2!');
+    enemy.phase = 2;
+    enemy.actions = enemy.phase2Actions;
+    enemy.currentActionIndex = 0; // Reset action cycle
+
+    // Visual effect
+    const enemyElement = document.getElementById(enemy.id);
+    if (enemyElement) {
+        enemyElement.classList.add('phase-transition');
+
+        // Create warning overlay
+        const warning = document.createElement('div');
+        warning.className = 'phase-warning';
+        warning.textContent = 'WARNING: SYSTEM CRITICAL - LIMITER REMOVED';
+        document.body.appendChild(warning);
+
+        setTimeout(() => warning.remove(), 2000);
+
+        // Sound effect
+        soundManager.playBuff(); // Placeholder for phase change sound
+    }
+
+    // Heal slightly or gain massive shield (optional mechanic)
+    enemy.firewall += 50;
+
+    // Force update UI to show new state
+    updateUI();
+}
+
 // 敵を削除
 function removeEnemy(enemy) {
     // Volatile gimmick: Explode on death
@@ -483,6 +513,18 @@ function removeEnemy(enemy) {
     const index = gameState.enemies.findIndex(e => e.id === enemy.id);
     if (index !== -1) {
         gameState.enemies.splice(index, 1);
+
+        // Relic Effect: Vampire Module (Heal on Kill)
+        const killEffects = applyRelicEffects('ENEMY_KILL');
+        if (killEffects.heal) {
+            const oldIntegrity = gameState.player.integrity;
+            gameState.player.integrity = Math.min(gameState.player.maxIntegrity, gameState.player.integrity + killEffects.heal);
+            if (gameState.player.integrity > oldIntegrity) {
+                showDamageNumber(document.getElementById('player-character'), killEffects.heal, false, true); // true for heal
+                soundManager.playBuff();
+            }
+        }
+
         renderEnemies();
     }
 }

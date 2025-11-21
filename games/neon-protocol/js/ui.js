@@ -36,6 +36,12 @@ function updatePlayerStats() {
     // Layer表示
     document.getElementById('current-layer').textContent = gameState.map.currentLayer;
 
+    // Credits表示
+    const creditsEl = document.getElementById('current-credits');
+    if (creditsEl) {
+        creditsEl.textContent = gameState.player.credits;
+    }
+
     // プレイヤー画像更新
     const playerChar = document.getElementById('player-character');
     // 既存のスプライトを削除して再作成（または既存があれば更新）
@@ -54,6 +60,52 @@ function updatePlayerStats() {
         sprite.classList.add('character-darkstreet');
     } else {
         sprite.classList.add('character-child');
+    }
+
+    renderRelics();
+    updateStatusEffects();
+}
+
+function renderRelics() {
+    const container = document.getElementById('relic-bar');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (gameState.player.relics) {
+        gameState.player.relics.forEach(relic => {
+            const relicEl = document.createElement('div');
+            relicEl.className = 'relic-icon';
+            relicEl.textContent = '💍'; // Placeholder icon
+
+            // Tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'relic-tooltip';
+            tooltip.innerHTML = `<strong>${relic.name}</strong><br>${relic.description}`;
+            relicEl.appendChild(tooltip);
+
+            container.appendChild(relicEl);
+        });
+    }
+}
+
+function updateStatusEffects() {
+    const container = document.getElementById('player-status-effects');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Check for active effects (currently player effects are simple properties)
+    // We can visualize Virus/Exposed/Lag if player gets them
+    if (gameState.player.effects) {
+        Object.entries(gameState.player.effects).forEach(([effect, amount]) => {
+            if (amount > 0) {
+                const effectEl = document.createElement('div');
+                effectEl.className = `status-effect effect-${effect}`;
+                effectEl.textContent = `${effect.charAt(0).toUpperCase() + effect.slice(1)}: ${amount}`;
+                container.appendChild(effectEl);
+            }
+        });
     }
 }
 

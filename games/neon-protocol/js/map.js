@@ -440,14 +440,265 @@ function showRestNode() {
 }
 
 function showShopNode() {
-    // 簡易実装
-    alert('Shop: Coming Soon');
-    proceedToNextLayer();
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '2000';
+
+    const content = document.createElement('div');
+    content.className = 'modal-content shop-content';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'shop-header';
+    header.innerHTML = `
+        <div class="shop-title">Cyber Merchant</div>
+        <div class="shop-credits">💎 <span id="shop-credits-display">${gameState.player.credits}</span></div>
+    `;
+    content.appendChild(header);
+
+    // 1. Cards Section
+    const cardsSection = document.createElement('div');
+    cardsSection.className = 'shop-section';
+    cardsSection.innerHTML = '<div class="shop-section-title">Programs</div>';
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'shop-items';
+
+    // Apply Shop Discount Relic
+    const shopEffects = applyRelicEffects('SHOP_PRICE');
+    const discount = shopEffects.discount || 0;
+
+    // Generate 3 random cards for sale
+    const allCards = Object.keys(CARD_DATABASE);
+    for (let i = 0; i < 3; i++) {
+        const cardId = allCards[Math.floor(Math.random() * allCards.length)];
+        const cardData = CARD_DATABASE[cardId];
+        let price = Math.floor(Math.random() * 50) + 40; // 40-90 credits
+
+        // Apply discount
+        if (discount > 0) {
+            price = Math.floor(price * (1 - discount));
+        }
+
+        const item = createShopItem(
+            cardData.name,
+            cardData.description,
+            price,
+            'card',
+            () => {
+                gameState.player.programStack.push(createCardInstance(cardId));
+                soundManager.playBuff();
+            }
+        );
+        cardsContainer.appendChild(item);
+    }
+    cardsSection.appendChild(cardsContainer);
+    content.appendChild(cardsSection);
+
+    // 2. Services Section (Heal & Remove)
+    const servicesSection = document.createElement('div');
+    servicesSection.className = 'shop-section';
+    servicesSection.innerHTML = '<div class="shop-section-title">Services</div>';
+    const servicesContainer = document.createElement('div');
+    servicesContainer.className = 'shop-items';
+
+    // Heal Service
+    let healPrice = 30;
+    if (discount > 0) healPrice = Math.floor(healPrice * (1 - discount));
+
+    const healAmount = Math.floor(gameState.player.maxIntegrity * 0.3);
+    const healItem = createShopItem(
+        'System Repair',
+        `Restore ${healAmount} Integrity`,
+        healPrice,
+        'heal',
+        () => {
+            gameState.player.integrity = Math.min(gameState.player.maxIntegrity, gameState.player.integrity + healAmount);
+            soundManager.playBuff();
+            updateUI();
+        }
+    );
+    servicesContainer.appendChild(healItem);
+
+    // Card Removal Service
+    let removePrice = 75;
+    if (discount > 0) removePrice = Math.floor(removePrice * (1 - discount));
+
+    const removeItem = createShopItem(
+        'Memory Purge',
+        'Remove a card from your deck',
+        removePrice,
+        'remove',
+        (element) => {
+            // Open card removal modal
+            showCardRemovalModal(() => {
+                // Success callback
+                element.classList.add('purchased');
+                soundManager.playBuff();
+            }, removePrice); // Pass discounted price
+            return false; // Don't auto-mark purchased, wait for callback
+        }
+    );
+    servicesContainer.appendChild(removeItem);
+
+    servicesSection.appendChild(servicesContainer);
+    content.appendChild(servicesSection);
+
+    // Leave Button
+    const leaveBtn = document.createElement('button');
+    leaveBtn.className = 'shop-leave-btn';
+    leaveBtn.textContent = 'Leave Shop';
+    leaveBtn.onclick = () => {
+        modal.remove();
+        proceedToNextLayer();
+    };
+    content.appendChild(leaveBtn);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+function createShopItem(name, desc, price, type, onBuy) {
+    const item = document.createElement('div');
+    item.className = 'shop-item';
+
+    let icon = '💾';
+    if (type === 'heal') icon = '❤️';
+    if (type === 'remove') icon = '🗑️';
+    if (type === 'relic') icon = '💍';
+
+    item.innerHTML = `
+        <div class="shop-item-preview">${icon}</div>
+        <div class="shop-item-name">${name}</div>
+        <div class="shop-item-desc">${desc}</div>
+        <div class="shop-item-price">
+            <span>💎 ${price}</span>
+            <button class="shop-buy-btn">BUY</button>
+        </div>
+    `;
+
+    const buyBtn = item.querySelector('.shop-buy-btn');
+    buyBtn.onclick = () => {
+        if (gameState.player.credits >= price) {
+            const result = onBuy(item);
+            if (result !== false) {
+                gameState.player.credits -= price;
+                item.classList.add('purchased');
+                updateShopUI();
+                updateUI(); // Update main UI credits
+            } else if (type === 'remove') {
+                // Special handling for removal service (pay only if removed)
+                // Logic handled in callback
+            }
+        } else {
+            soundManager.playDebuff();
+            item.classList.add('shake');
+            setTimeout(() => item.classList.remove('shake'), 500);
+        }
+    };
+
+    return item;
+}
+
+function updateShopUI() {
+    const display = document.getElementById('shop-credits-display');
+    if (display) display.textContent = gameState.player.credits;
+}
+
+function showCardRemovalModal(onSuccess, price) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.zIndex = '2100'; // Above shop
+
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+    content.innerHTML = '<h2>Select Card to Remove</h2><div id="removal-container" class="shop-items" style="justify-content:center;"></div>';
+
+    const container = content.querySelector('#removal-container');
+
+    gameState.player.programStack.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = `card type-${card.type}`;
+        cardEl.innerHTML = `
+            <div class="card-header"><div class="card-name">${card.name}</div><div class="card-cost">${card.cost}</div></div>
+            <div class="card-description">${card.description}</div>
+        `;
+        cardEl.onclick = () => {
+            if (gameState.player.credits >= price) {
+                gameState.player.credits -= price;
+                gameState.player.programStack.splice(index, 1);
+                modal.remove();
+                onSuccess();
+                updateShopUI();
+                updateUI();
+            }
+        };
+        container.appendChild(cardEl);
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.marginTop = '1rem';
+    cancelBtn.onclick = () => modal.remove();
+    content.appendChild(cancelBtn);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
 }
 
 function showEventNode() {
-    alert('Event: Coming Soon');
-    proceedToNextLayer();
+    // Select random event
+    const eventIds = Object.keys(EVENT_DATABASE);
+    const eventId = eventIds[Math.floor(Math.random() * eventIds.length)];
+    const eventData = EVENT_DATABASE[eventId];
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '2000';
+
+    const content = document.createElement('div');
+    content.className = 'modal-content event-content';
+
+    content.innerHTML = `
+        <h2 class="event-title">${eventData.title}</h2>
+        <p class="event-description">${eventData.description}</p>
+        <div class="event-choices"></div>
+    `;
+
+    const choicesContainer = content.querySelector('.event-choices');
+
+    eventData.choices.forEach(choice => {
+        // Check condition if exists
+        if (choice.condition && !choice.condition(gameState)) {
+            return;
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-primary event-choice-btn';
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+            const result = choice.action(gameState);
+
+            // Show result
+            content.innerHTML = `
+                <h2 class="event-title">${result.success ? 'Result' : 'Result'}</h2>
+                <p class="event-description">${result.text}</p>
+                <button class="btn-primary" id="event-continue">Continue</button>
+            `;
+
+            document.getElementById('event-continue').onclick = () => {
+                modal.remove();
+                updateUI();
+                proceedToNextLayer();
+            };
+        };
+        choicesContainer.appendChild(btn);
+    });
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
 }
 
 function showTreasureNode() {

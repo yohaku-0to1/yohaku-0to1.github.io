@@ -205,6 +205,55 @@ const RELIC_DATABASE = {
         effect: {
             firstHitReduction: 0.5
         }
+    },
+    "vampire_module": {
+        id: "vampire_module",
+        name: "Vampire Module",
+        tier: 2,
+        description: "敵を倒すと Integrity 2 回復",
+        effect: {
+            healOnKill: 2
+        }
+    },
+
+    "credit_miner": {
+        id: "credit_miner",
+        name: "Credit Miner",
+        tier: 1,
+        description: "戦闘開始時、15 クレジット獲得",
+        effect: {
+            goldOnCombatStart: 15
+        }
+    },
+
+    "thorn_protocol": {
+        id: "thorn_protocol",
+        name: "Thorn Protocol",
+        tier: 2,
+        description: "被弾時、攻撃者に 3 ダメージ",
+        effect: {
+            thornsDamage: 3
+        }
+    },
+
+    "ram_expander": {
+        id: "ram_expander",
+        name: "RAM Expander",
+        tier: 1,
+        description: "戦闘の最初のターンのみ RAM +1",
+        effect: {
+            tempRamStart: 1
+        }
+    },
+
+    "discount_coupon": {
+        id: "discount_coupon",
+        name: "VIP Membership",
+        tier: 2,
+        description: "ショップの価格が 20% オフ",
+        effect: {
+            shopDiscount: 0.2
+        }
     }
 };
 
@@ -259,6 +308,9 @@ function applyRelicEffects(trigger, context = {}) {
                 if (effect.startHandSize) {
                     result.handSize = (result.handSize || 0) + effect.startHandSize;
                 }
+                if (effect.goldOnCombatStart) {
+                    gameState.player.credits += effect.goldOnCombatStart;
+                }
                 break;
 
             case 'TURN_START':
@@ -272,6 +324,9 @@ function applyRelicEffects(trigger, context = {}) {
                     if (gameState.combat.turn <= effect.duration) {
                         result.costReduction = (result.costReduction || 0) + effect.earlyGameCostReduction;
                     }
+                }
+                if (effect.tempRamStart && gameState.combat.turn === 1) {
+                    result.ramBonus = (result.ramBonus || 0) + effect.tempRamStart;
                 }
                 break;
 
@@ -303,6 +358,9 @@ function applyRelicEffects(trigger, context = {}) {
                         result.firewall = (result.firewall || 0) + effect.firewallOnHit;
                     }
                 }
+                if (effect.thornsDamage) {
+                    result.thorns = (result.thorns || 0) + effect.thornsDamage;
+                }
                 break;
 
             case 'DECK_RESHUFFLE':
@@ -320,6 +378,18 @@ function applyRelicEffects(trigger, context = {}) {
             case 'REST_HEAL':
                 if (effect.healingBonus) {
                     result.healBonus = (result.healBonus || 0) + effect.healingBonus;
+                }
+                break;
+
+            case 'ENEMY_KILL':
+                if (effect.healOnKill) {
+                    result.heal = (result.heal || 0) + effect.healOnKill;
+                }
+                break;
+
+            case 'SHOP_PRICE':
+                if (effect.shopDiscount) {
+                    result.discount = (result.discount || 0) + effect.shopDiscount;
                 }
                 break;
         }
