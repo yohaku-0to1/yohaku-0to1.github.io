@@ -301,13 +301,13 @@ class MapManager {
 
     getNodeName(type) {
         const names = {
-            'battle': 'Battle',
-            'elite': 'Elite',
-            'boss': 'Boss',
-            'rest': 'Rest Site',
-            'shop': 'Shop',
-            'event': 'Event',
-            'treasure': 'Treasure'
+            'battle': '戦闘',
+            'elite': 'エリート',
+            'boss': 'ボス',
+            'rest': '休憩地点',
+            'shop': 'ショップ',
+            'event': 'イベント',
+            'treasure': '宝箱'
         };
         return names[type] || 'Unknown';
     }
@@ -408,7 +408,7 @@ function showRestNode() {
     content.className = 'modal-content';
 
     const title = document.createElement('h2');
-    title.textContent = 'Maintenance Node';
+    title.textContent = 'メンテナンスノード';
 
     // レリック効果を適用（回復量ボーナス）
     const restEffects = applyRelicEffects('REST_HEAL');
@@ -418,9 +418,9 @@ function showRestNode() {
 
     const restBtn = document.createElement('button');
     restBtn.className = 'btn-primary';
-    restBtn.textContent = `Repair Integrity (+${totalHeal})`;
+    restBtn.textContent = `Integrity修復 (+${totalHeal})`;
     if (bonusHeal > 0) {
-        restBtn.innerHTML += ` <span style="color: var(--accent-cyan);">(+${bonusHeal} bonus)</span>`;
+        restBtn.innerHTML += ` <span style="color: var(--accent-cyan);">(+${bonusHeal} ボーナス)</span>`;
     }
 
     restBtn.onclick = () => {
@@ -452,7 +452,7 @@ function showShopNode() {
     const header = document.createElement('div');
     header.className = 'shop-header';
     header.innerHTML = `
-        <div class="shop-title">Cyber Merchant</div>
+        <div class="shop-title">サイバーマーチャント</div>
         <div class="shop-credits">💎 <span id="shop-credits-display">${gameState.player.credits}</span></div>
     `;
     content.appendChild(header);
@@ -460,7 +460,7 @@ function showShopNode() {
     // 1. Cards Section
     const cardsSection = document.createElement('div');
     cardsSection.className = 'shop-section';
-    cardsSection.innerHTML = '<div class="shop-section-title">Programs</div>';
+    cardsSection.innerHTML = '<div class="shop-section-title">プログラム</div>';
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'shop-items';
 
@@ -498,7 +498,7 @@ function showShopNode() {
     // 2. Services Section (Heal & Remove)
     const servicesSection = document.createElement('div');
     servicesSection.className = 'shop-section';
-    servicesSection.innerHTML = '<div class="shop-section-title">Services</div>';
+    servicesSection.innerHTML = '<div class="shop-section-title">サービス</div>';
     const servicesContainer = document.createElement('div');
     servicesContainer.className = 'shop-items';
 
@@ -508,8 +508,8 @@ function showShopNode() {
 
     const healAmount = Math.floor(gameState.player.maxIntegrity * 0.3);
     const healItem = createShopItem(
-        'System Repair',
-        `Restore ${healAmount} Integrity`,
+        'システム修復',
+        `Integrityを ${healAmount} 回復`,
         healPrice,
         'heal',
         () => {
@@ -525,8 +525,8 @@ function showShopNode() {
     if (discount > 0) removePrice = Math.floor(removePrice * (1 - discount));
 
     const removeItem = createShopItem(
-        'Memory Purge',
-        'Remove a card from your deck',
+        'メモリパージ',
+        'デッキからカードを1枚削除',
         removePrice,
         'remove',
         (element) => {
@@ -547,7 +547,7 @@ function showShopNode() {
     // Leave Button
     const leaveBtn = document.createElement('button');
     leaveBtn.className = 'shop-leave-btn';
-    leaveBtn.textContent = 'Leave Shop';
+    leaveBtn.textContent = 'ショップを出る';
     leaveBtn.onclick = () => {
         modal.remove();
         proceedToNextLayer();
@@ -573,7 +573,7 @@ function createShopItem(name, desc, price, type, onBuy) {
         <div class="shop-item-desc">${desc}</div>
         <div class="shop-item-price">
             <span>💎 ${price}</span>
-            <button class="shop-buy-btn">BUY</button>
+            <button class="shop-buy-btn">購入</button>
         </div>
     `;
 
@@ -612,7 +612,7 @@ function showCardRemovalModal(onSuccess, price) {
 
     const content = document.createElement('div');
     content.className = 'modal-content';
-    content.innerHTML = '<h2>Select Card to Remove</h2><div id="removal-container" class="shop-items" style="justify-content:center;"></div>';
+    content.innerHTML = '<h2>削除するカードを選択</h2><div id="removal-container" class="shop-items" style="justify-content:center;"></div>';
 
     const container = content.querySelector('#removal-container');
 
@@ -638,7 +638,7 @@ function showCardRemovalModal(onSuccess, price) {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn-secondary';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = 'キャンセル';
     cancelBtn.style.marginTop = '1rem';
     cancelBtn.onclick = () => modal.remove();
     content.appendChild(cancelBtn);
@@ -683,9 +683,9 @@ function showEventNode() {
 
             // Show result
             content.innerHTML = `
-                <h2 class="event-title">${result.success ? 'Result' : 'Result'}</h2>
+                <h2 class="event-title">${result.success ? '結果' : '結果'}</h2>
                 <p class="event-description">${result.text}</p>
-                <button class="btn-primary" id="event-continue">Continue</button>
+                <button class="btn-primary" id="event-continue">次へ</button>
             `;
 
             document.getElementById('event-continue').onclick = () => {
@@ -711,24 +711,24 @@ function showTreasureNode() {
     content.className = 'modal-content';
 
     const title = document.createElement('h2');
-    title.textContent = 'Data Cache Found';
+    title.textContent = 'データキャッシュ発見';
 
     const relic = getRandomRelic(); // relics-data.jsが必要
     // 簡易的なレリック取得（まだrelics-data.jsが完全でないかも）
     if (relic) {
         gameState.player.relics.push(relic);
         const msg = document.createElement('p');
-        msg.innerHTML = `Obtained: <strong>${relic.name}</strong><br>${relic.description}`;
+        msg.innerHTML = `獲得: <strong>${relic.name}</strong><br>${relic.description}`;
         content.appendChild(msg);
     } else {
         const msg = document.createElement('p');
-        msg.textContent = "No data found.";
+        msg.textContent = "データが見つかりませんでした。";
         content.appendChild(msg);
     }
 
     const btn = document.createElement('button');
     btn.className = 'btn-primary';
-    btn.textContent = 'Continue';
+    btn.textContent = '次へ';
     btn.onclick = () => {
         modal.remove();
         proceedToNextLayer();
@@ -744,8 +744,8 @@ function showTreasureNode() {
 function getRandomRelic() {
     // 仮実装
     return {
-        name: 'Backup Battery',
-        description: 'Start combat with +1 RAM.',
+        name: 'バックアップバッテリー',
+        description: '戦闘開始時、RAM +1。',
         effect: { startRam: 1 }
     };
 }

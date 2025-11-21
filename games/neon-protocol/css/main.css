@@ -142,6 +142,8 @@ body {
     flex-direction: column;
     gap: 1.5rem;
     min-height: 100vh;
+    padding-bottom: 100px;
+    /* Space for fixed action area */
 }
 
 /* ヘッダー */
@@ -175,6 +177,7 @@ body {
     font-size: 2rem;
     font-weight: 900;
     background: linear-gradient(90deg, var(--text-primary), var(--accent-cyan));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 0 20px rgba(0, 255, 159, 0.5);
@@ -298,13 +301,23 @@ body {
 
 /* アクションエリア */
 #action-area {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1360px;
+    /* 1400px - padding */
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background: rgba(26, 31, 53, 0.8);
+    background: rgba(26, 31, 53, 0.95);
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
 }
 
 .btn-primary {

@@ -1,11 +1,11 @@
 const EVENT_DATABASE = {
     'mysterious_signal': {
         id: 'mysterious_signal',
-        title: 'Mysterious Signal',
-        description: 'You intercept an encrypted signal from an unknown source. It seems to be a coordinate for a hidden cache, but accessing it might trigger security protocols.',
+        title: '謎の信号',
+        description: '未知のソースから暗号化された信号を傍受した。隠しキャッシュの座標のようだが、アクセスするとセキュリティプロトコルが作動するかもしれない。',
         choices: [
             {
-                text: 'Decrypt the signal (Risk: Take damage)',
+                text: '信号を解読する (リスク: ダメージ)',
                 action: (gameState) => {
                     const roll = Math.random();
                     if (roll > 0.3) {
@@ -13,7 +13,7 @@ const EVENT_DATABASE = {
                         const credits = 50 + Math.floor(Math.random() * 50);
                         gameState.player.credits += credits;
                         return {
-                            text: `Success! You found a cache containing ${credits} credits.`,
+                            text: `成功！ ${credits} クレジットを含むキャッシュを発見した。`,
                             success: true
                         };
                     } else {
@@ -21,17 +21,17 @@ const EVENT_DATABASE = {
                         const damage = 10;
                         gameState.player.integrity -= damage;
                         return {
-                            text: `Trap triggered! You took ${damage} damage.`,
+                            text: `罠だ！ ${damage} ダメージを受けた。`,
                             success: false
                         };
                     }
                 }
             },
             {
-                text: 'Ignore it',
+                text: '無視する',
                 action: (gameState) => {
                     return {
-                        text: 'You decide it\'s not worth the risk and move on.',
+                        text: 'リスクを冒す価値はないと判断し、先へ進んだ。',
                         success: true
                     };
                 }
@@ -40,11 +40,11 @@ const EVENT_DATABASE = {
     },
     'rogue_ai': {
         id: 'rogue_ai',
-        title: 'Rogue AI Encounter',
-        description: 'A fragmented AI personality approaches you. It offers to optimize your code in exchange for some of your processing power.',
+        title: '暴走AIとの遭遇',
+        description: '断片化されたAIの人格が接触してきた。あなたの処理能力の一部と引き換えに、コードの最適化を提案している。',
         choices: [
             {
-                text: 'Accept optimization (Lose Max HP, Upgrade Card)',
+                text: '最適化を受け入れる (最大HP減少、カード強化)',
                 action: (gameState) => {
                     gameState.player.maxIntegrity -= 5;
                     if (gameState.player.integrity > gameState.player.maxIntegrity) {
@@ -57,22 +57,22 @@ const EVENT_DATABASE = {
                         const card = gameState.player.programStack[cardIndex];
                         card.cost = Math.max(0, card.cost - 1);
                         return {
-                            text: `The AI rewrites your ${card.name}. Its cost is reduced by 1. Max Integrity reduced by 5.`,
+                            text: `AIが ${card.name} を書き換えた。コストが1減少した。最大Integrityが5減少した。`,
                             success: true
                         };
                     } else {
                         return {
-                            text: 'You have no cards to upgrade. Max Integrity reduced by 5 anyway.',
+                            text: '強化できるカードがない。しかし最大Integrityは5減少した。',
                             success: false
                         };
                     }
                 }
             },
             {
-                text: 'Decline',
+                text: '断る',
                 action: (gameState) => {
                     return {
-                        text: 'You refuse the offer. The AI fades away into the network.',
+                        text: '提案を拒否した。AIはネットワークの彼方へ消えていった。',
                         success: true
                     };
                 }
@@ -81,29 +81,29 @@ const EVENT_DATABASE = {
     },
     'abandoned_server': {
         id: 'abandoned_server',
-        title: 'Abandoned Server',
-        description: 'You find an old server with weak security. It might contain useful data or old malware.',
+        title: '放棄されたサーバー',
+        description: 'セキュリティの甘い古いサーバーを発見した。有用なデータや古いマルウェアが残っているかもしれない。',
         choices: [
             {
-                text: 'Search for data (Get Card)',
+                text: 'データを検索する (カード獲得)',
                 action: (gameState) => {
                     // Add a random card
                     const allCards = Object.keys(CARD_DATABASE);
                     const cardId = allCards[Math.floor(Math.random() * allCards.length)];
                     gameState.player.programStack.push(createCardInstance(cardId));
                     return {
-                        text: `You found a ${CARD_DATABASE[cardId].name} program!`,
+                        text: `${CARD_DATABASE[cardId].name} プログラムを発見した！`,
                         success: true
                     };
                 }
             },
             {
-                text: 'Scrap for parts (Get Credits)',
+                text: 'パーツを回収する (クレジット獲得)',
                 action: (gameState) => {
                     const credits = 30;
                     gameState.player.credits += credits;
                     return {
-                        text: `You salvaged ${credits} credits from the hardware.`,
+                        text: `ハードウェアから ${credits} クレジットを回収した。`,
                         success: true
                     };
                 }
@@ -112,11 +112,11 @@ const EVENT_DATABASE = {
     },
     'shady_dealer': {
         id: 'shady_dealer',
-        title: 'Shady Dealer',
-        description: 'A digital avatar in a trench coat offers you a "special" deal.',
+        title: '怪しい売人',
+        description: 'トレンチコートを着たデジタルアバターが「特別な」取引を持ちかけてきた。',
         choices: [
             {
-                text: 'Buy Mystery Box (50 Credits)',
+                text: 'ミステリーボックスを買う (50クレジット)',
                 condition: (gameState) => gameState.player.credits >= 50,
                 action: (gameState) => {
                     gameState.player.credits -= 50;
@@ -127,7 +127,7 @@ const EVENT_DATABASE = {
                         const bonus = 100;
                         gameState.player.credits += bonus;
                         return {
-                            text: `It contained a cache of crypto! You gained ${bonus} credits.`,
+                            text: `中には暗号通貨のキャッシュが入っていた！ ${bonus} クレジットを獲得。`,
                             success: true
                         };
                     } else {
@@ -135,17 +135,17 @@ const EVENT_DATABASE = {
                         const heal = 20;
                         gameState.player.integrity = Math.min(gameState.player.maxIntegrity, gameState.player.integrity + heal);
                         return {
-                            text: `It was a repair kit. Restored ${heal} Integrity.`,
+                            text: `修理キットだった。Integrityが ${heal} 回復した。`,
                             success: true
                         };
                     }
                 }
             },
             {
-                text: 'Leave',
+                text: '立ち去る',
                 action: (gameState) => {
                     return {
-                        text: 'You walk away.',
+                        text: 'その場を立ち去った。',
                         success: true
                     };
                 }

@@ -5,27 +5,27 @@ class TutorialManager {
         this.currentStep = 0;
         this.steps = [
             {
-                title: "Welcome to Neon Protocol",
+                title: "Neon Protocolへようこそ",
                 message: "あなたは電脳空間のハッカー「Neon」です。<br>企業のメインフレーム最深部（Layer 15）を目指し、進化しながら戦い抜いてください。",
                 target: null
             },
             {
-                title: "Integrity & RAM",
+                title: "IntegrityとRAM",
                 message: "<strong>Integrity (HP)</strong>: 0になるとゲームオーバーです。<br><strong>RAM (Energy)</strong>: カードを使用するためのコストです。毎ターン4回復します。",
                 target: "#player-stats"
             },
             {
-                title: "Combat System",
+                title: "戦闘システム",
                 message: "手札のカードを使って戦います。<br><strong>Attack</strong>: 敵にダメージ<br><strong>Skill</strong>: 防御や特殊効果<br><strong>Power</strong>: 永続的な強化",
                 target: "#hand-container"
             },
             {
-                title: "Enemy Intent",
+                title: "敵の行動予測",
                 message: "敵の頭上に次の行動が表示されます。<br>攻撃が来る場合は<strong>Firewall (防御)</strong>でダメージを防ぎましょう。",
                 target: "#battle-area"
             },
             {
-                title: "Evolution System",
+                title: "進化システム",
                 message: "あなたのプレイスタイル（攻撃的、防御的、デバフ重視など）によって、Neonは異なる形態へ進化します。<br>Layer 5とLayer 10のボス撃破時に進化が発生します。",
                 target: "#evolution-bar-container"
             }
@@ -98,7 +98,7 @@ class TutorialManager {
 
         const nextBtn = document.createElement('button');
         nextBtn.className = 'btn-primary';
-        nextBtn.textContent = this.currentStep === this.steps.length - 1 ? 'Start Game' : 'Next';
+        nextBtn.textContent = this.currentStep === this.steps.length - 1 ? 'ゲーム開始' : '次へ';
         nextBtn.onclick = () => this.nextStep();
 
         controls.appendChild(counter);

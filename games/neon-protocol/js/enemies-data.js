@@ -3,7 +3,7 @@
 const ENEMY_DATABASE = {
     // === 通常敵 ===
     "security_bot": {
-        name: "Security Bot",
+        name: "セキュリティボット",
         integrity: 40,
         actions: [
             { type: 'attack', value: 8 },
@@ -12,7 +12,7 @@ const ENEMY_DATABASE = {
     },
 
     "firewall_module": {
-        name: "Firewall Module",
+        name: "ファイアウォールモジュール",
         integrity: 30,
         actions: [
             { type: 'defend', value: 8 },
@@ -21,7 +21,7 @@ const ENEMY_DATABASE = {
     },
 
     "scanner_drone": {
-        name: "Scanner Drone",
+        name: "スキャナードローン",
         integrity: 25,
         actions: [
             { type: 'attack', value: 5 },
@@ -31,7 +31,7 @@ const ENEMY_DATABASE = {
     },
 
     "encryption_node": {
-        name: "Encryption Node",
+        name: "暗号化ノード",
         integrity: 35,
         actions: [
             { type: 'defend', value: 10 },
@@ -40,7 +40,7 @@ const ENEMY_DATABASE = {
     },
 
     "virus_carrier": {
-        name: "Virus Carrier",
+        name: "ウイルスキャリア",
         integrity: 20,
         actions: [
             { type: 'debuff', value: 'virus', amount: 5 },
@@ -49,7 +49,7 @@ const ENEMY_DATABASE = {
     },
 
     "attack_bot": {
-        name: "Attack Bot",
+        name: "アタックボット",
         integrity: 30,
         actions: [
             { type: 'attack', value: 12 },
@@ -58,7 +58,7 @@ const ENEMY_DATABASE = {
     },
 
     "data_miner": {
-        name: "Data Miner",
+        name: "データマイナー",
         integrity: 40,
         actions: [
             { type: 'attack', value: 6 },
@@ -67,7 +67,7 @@ const ENEMY_DATABASE = {
     },
 
     "proxy_server": {
-        name: "Proxy Server",
+        name: "プロキシサーバー",
         integrity: 45,
         actions: [
             { type: 'defend', value: 8 },
@@ -77,7 +77,7 @@ const ENEMY_DATABASE = {
     },
 
     "ddos_swarm": {
-        name: "DDoS Swarm",
+        name: "DDoSスワーム",
         integrity: 50,
         actions: [
             { type: 'attack', value: 3, hits: 4 },
@@ -86,7 +86,7 @@ const ENEMY_DATABASE = {
     },
 
     "neural_defender": {
-        name: "Neural Defender",
+        name: "ニューラルディフェンダー",
         integrity: 55,
         actions: [
             { type: 'defend', value: 15 },
@@ -97,7 +97,7 @@ const ENEMY_DATABASE = {
 
     // === Layer 5 ボス ===
     "firewall_guardian": {
-        name: "Firewall Guardian",
+        name: "ファイアウォール・ガーディアン",
         integrity: 120,
         isBoss: true,
         actions: [
@@ -118,7 +118,7 @@ const ENEMY_DATABASE = {
 
     // === Layer 10 ボス ===
     "neural_nexus": {
-        name: "Neural Nexus",
+        name: "ニューラル・ネクサス",
         integrity: 200,
         isBoss: true,
         actions: [

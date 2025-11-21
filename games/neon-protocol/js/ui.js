@@ -313,7 +313,7 @@ function renderEnemies() {
         // Firewall display
         if (enemy.firewall > 0) {
             const firewall = document.createElement('div');
-            firewall.textContent = `🛡️ Firewall: ${enemy.firewall}`;
+            firewall.textContent = `🛡️ ファイアウォール: ${enemy.firewall}`;
             firewall.style.fontSize = '0.9rem';
             firewall.style.color = 'var(--firewall-color)';
             enemyDiv.appendChild(firewall);
@@ -322,7 +322,7 @@ function renderEnemies() {
         // Overclock display
         if (enemy.overclock > 0) {
             const overclock = document.createElement('div');
-            overclock.textContent = `⚡ Overclock: +${enemy.overclock}`;
+            overclock.textContent = `⚡ オーバークロック: +${enemy.overclock}`;
             overclock.style.fontSize = '0.9rem';
             overclock.style.color = 'var(--accent-cyan)';
             enemyDiv.appendChild(overclock);
@@ -332,14 +332,14 @@ function renderEnemies() {
         if (enemy.effects) {
             if (enemy.effects.virus > 0) {
                 const virus = document.createElement('div');
-                virus.textContent = `🦠 Virus: ${enemy.effects.virus}`;
+                virus.textContent = `🦠 ウイルス: ${enemy.effects.virus}`;
                 virus.style.fontSize = '0.8rem';
                 virus.style.color = 'var(--damage-color)';
                 enemyDiv.appendChild(virus);
             }
             if (enemy.effects.exposed > 0) {
                 const exposed = document.createElement('div');
-                exposed.textContent = `🎯 Exposed: ${enemy.effects.exposed}`;
+                exposed.textContent = `🎯 脆弱: ${enemy.effects.exposed}`;
                 exposed.style.fontSize = '0.8rem';
                 exposed.style.color = 'var(--accent-purple)';
                 enemyDiv.appendChild(exposed);
@@ -354,13 +354,13 @@ function renderEnemies() {
             gimmick.style.fontStyle = 'italic';
 
             if (enemy.gimmick === 'reflect') {
-                gimmick.textContent = `🔄 Reflects ${Math.floor(enemy.reflectPercent * 100)}% damage`;
+                gimmick.textContent = `🔄 ダメージ反射 ${Math.floor(enemy.reflectPercent * 100)}%`;
             } else if (enemy.gimmick === 'explodeOnDeath') {
-                gimmick.textContent = `💥 Explodes for ${enemy.explosionDamage} damage`;
+                gimmick.textContent = `💥 死亡時爆発 ${enemy.explosionDamage}ダメージ`;
             } else if (enemy.gimmick === 'buffAllies') {
-                gimmick.textContent = `📡 Buffs all allies`;
+                gimmick.textContent = `📡 味方全体強化`;
             } else if (enemy.gimmick === 'summon') {
-                gimmick.textContent = `👾 Summons reinforcements`;
+                gimmick.textContent = `👾 増援召喚`;
             }
 
             if (gimmick.textContent) {

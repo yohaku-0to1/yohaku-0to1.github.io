@@ -474,7 +474,7 @@ function transitionToPhase2(enemy) {
         // Create warning overlay
         const warning = document.createElement('div');
         warning.className = 'phase-warning';
-        warning.textContent = 'WARNING: SYSTEM CRITICAL - LIMITER REMOVED';
+        warning.textContent = '警告: システムクリティカル - リミッター解除';
         document.body.appendChild(warning);
 
         setTimeout(() => warning.remove(), 2000);
