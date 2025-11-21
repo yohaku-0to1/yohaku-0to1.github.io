@@ -378,6 +378,11 @@ function calculateDamage(baseDamage, source, target) {
         effectiveFirewall += target.protocolShield;
     }
 
+    // Phase 5: Adaptive Defense bonus
+    if (target.adaptiveBonus) {
+        effectiveFirewall += target.adaptiveBonus;
+    }
+
     if (effectiveFirewall > 0) {
         if (effectiveFirewall >= damage) {
             target.firewall = Math.max(0, target.firewall - damage);
@@ -517,6 +522,17 @@ function dealDamageToPlayer(baseDamage, source) {
 
 // 敵の行動を実行
 function executeEnemyAction(enemy) {
+    // === Phase 5: New Gimmicks ===
+
+    // Regenerate gimmick
+    if (enemy.gimmick === 'regenerate' && enemy.regenAmount) {
+        enemy.integrity = Math.min(enemy.maxIntegrity, enemy.integrity + enemy.regenAmount);
+        const enemyElement = document.querySelector(`[data-enemy-id="${enemy.id}"]`);
+        if (enemyElement) {
+            showDamageNumber(enemyElement, `+${enemy.regenAmount}`, true);
+        }
+    }
+
     // Virusダメージ処理
     if (enemy.effects.virus > 0) {
         const virusDamage = enemy.effects.virus;
@@ -535,12 +551,51 @@ function executeEnemyAction(enemy) {
     }
 
     // 行動を選択
-    const action = enemy.actions[enemy.currentActionIndex];
+    let actionIndex = enemy.currentActionIndex;
+
+    // Random Intent gimmick
+    if (enemy.gimmick === 'randomIntent') {
+        actionIndex = Math.floor(Math.random() * enemy.actions.length);
+    } else if (enemy.gimmick === 'chargeAttack') {
+        // Charge Attack gimmick logic
+        if (enemy.isCharging) {
+            // Use charged attack
+            actionIndex = 1; // Charged attack action
+            enemy.isCharging = false;
+        } else {
+            const shouldCharge = Math.random() > 0.5;
+            if (shouldCharge) {
+                actionIndex = 0; // Charge action
+                enemy.isCharging = true;
+            } else {
+                actionIndex = 2; // Normal attack
+            }
+        }
+    }
+
+    const action = enemy.actions[actionIndex];
     enemy.currentActionIndex = (enemy.currentActionIndex + 1) % enemy.actions.length;
 
     // 行動を実行
-    if (action.type === 'attack') {
+    if (action.type === 'charge') {
+        // Charge action - just visual effect
+        soundManager.playBuff();
+        const enemyElement = document.querySelector(`[data-enemy-id="${enemy.id}"]`);
+        if (enemyElement) {
+            showDamageNumber(enemyElement, 'チャージ中!', true);
+        }
+    } else if (action.type === 'attack') {
         const hits = action.hits || 1;
+
+        // RAM Steal effect
+        if (action.ramSteal && enemy.gimmick === 'ramSteal') {
+            const stolenRam = enemy.ramStealAmount || 1;
+            gameState.player.ram = Math.max(0, gameState.player.ram - stolenRam);
+            setTimeout(() => {
+                showDamageNumber(document.getElementById('player-character'), `RAM -${stolenRam}`, false);
+            }, 100);
+        }
+
         for (let i = 0; i < hits; i++) {
             setTimeout(() => {
                 dealDamageToPlayer(action.value, {
@@ -593,6 +648,14 @@ function executeEnemyAction(enemy) {
             }
             renderEnemies();
             soundManager.playBuff();
+        }
+    }
+
+    // Phase 5: Adaptive Defense gimmick
+    if (enemy.gimmick === 'adaptiveDefense') {
+        enemy.adaptiveBonus = (enemy.adaptiveBonus || 0) + 2;
+        if (enemyElement) {
+            showDamageNumber(enemyElement, '適応!', true);
         }
     }
 

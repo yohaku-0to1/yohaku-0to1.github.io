@@ -198,6 +198,78 @@ const ENEMY_DATABASE = {
         ]
     },
 
+    // === Phase 5: New Enemies ===
+
+    // Adaptive Shield
+    "adaptive_shield": {
+        name: "適応型シールド",
+        integrity: 45,
+        maxIntegrity: 45,
+        gimmick: "adaptiveDefense",
+        adaptiveBonus: 0, // Increases after taking damage
+        actions: [
+            { type: 'defend', value: 10 },
+            { type: 'attack', value: 8 },
+            { type: 'buff', value: 'overclock', amount: 1 }
+        ]
+    },
+
+    // RAM Leech
+    "ram_leech": {
+        name: "RAMリーチ",
+        integrity: 30,
+        maxIntegrity: 30,
+        gimmick: "ramSteal",
+        ramStealAmount: 1,
+        actions: [
+            { type: 'attack', value: 6, ramSteal: true },
+            { type: 'debuff', value: 'lag', amount: 1 },
+            { type: 'attack', value: 8 }
+        ]
+    },
+
+    // Regenerative Core
+    "regenerative_core": {
+        name: "再生コア",
+        integrity: 50,
+        maxIntegrity: 50,
+        gimmick: "regenerate",
+        regenAmount: 3,
+        actions: [
+            { type: 'defend', value: 15 },
+            { type: 'attack', value: 7 },
+            { type: 'heal', value: 5 }
+        ]
+    },
+
+    // Chaos Algorithm
+    "chaos_algorithm": {
+        name: "カオスアルゴリズム",
+        integrity: 35,
+        maxIntegrity: 35,
+        gimmick: "randomIntent",
+        actions: [
+            { type: 'attack', value: 15 },
+            { type: 'defend', value: 12 },
+            { type: 'debuff', value: 'exposed', amount: 3 },
+            { type: 'buff', value: 'overclock', amount: 3 }
+        ]
+    },
+
+    // Overload Turret
+    "overload_turret": {
+        name: "過負荷タレット",
+        integrity: 40,
+        maxIntegrity: 40,
+        gimmick: "chargeAttack",
+        isCharging: false,
+        actions: [
+            { type: 'charge' },
+            { type: 'attack', value: 25, charged: true },
+            { type: 'attack', value: 10 }
+        ]
+    },
+
     // === Layer 15 最終ボス ===
     "core_mainframe": {
         name: "Core Mainframe",
