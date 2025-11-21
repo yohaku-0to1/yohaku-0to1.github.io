@@ -42,17 +42,26 @@ function executeCardEffect(card, targetEnemy) {
         for (let i = 0; i < hits; i++) {
             if (targetEnemy) {
                 dealDamageToEnemy(targetEnemy, effect.damage);
-                soundManager.playAttack(); // Added sound effect
+                soundManager.playAttack();
+
+                // 攻撃パーティクル
+                const enemyElement = document.querySelector(`[data-enemy-id="${targetEnemy.id}"]`);
+                if (enemyElement) {
+                    const rect = enemyElement.getBoundingClientRect();
+                    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'attack');
+                }
             }
         }
         // 吸血効果（Inject Virusなど）
         if (card.id === 'inject_virus' && targetEnemy) {
-            // Assuming dealDamageToEnemy updates enemy.integrity, we need to get the actual damage dealt
-            // For simplicity, let's assume the damage dealt was effect.damage for the heal calculation
-            // A more robust solution would involve getting the actual finalDamage from dealDamageToEnemy
-            const heal = Math.floor(effect.damage * 0.5); // Using base damage for heal calculation
+            const heal = Math.floor(effect.damage * 0.5);
             gameState.player.integrity = Math.min(gameState.player.integrity + heal, gameState.player.maxIntegrity);
             soundManager.playBuff();
+
+            // 回復パーティクル
+            const playerElement = document.getElementById('player-character');
+            const rect = playerElement.getBoundingClientRect();
+            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'heal');
         }
     }
 
@@ -60,6 +69,7 @@ function executeCardEffect(card, targetEnemy) {
     if (effect.selfDamage) {
         gameState.player.integrity = Math.max(0, gameState.player.integrity - effect.selfDamage);
         showDamageNumber(document.getElementById('player-character'), effect.selfDamage, false);
+        triggerScreenShake(0.5); // 軽いシェイク
 
         if (gameState.player.integrity <= 0) {
             gameOver();
@@ -69,19 +79,29 @@ function executeCardEffect(card, targetEnemy) {
     // Firewall
     if (effect.firewall) {
         gameState.player.firewall += effect.firewall;
-        soundManager.playShield(); // Added sound effect
+        soundManager.playShield();
+
+        // シールドパーティクル
+        const playerElement = document.getElementById('player-character');
+        const rect = playerElement.getBoundingClientRect();
+        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'shield');
     }
 
     // Protocol Shield
     if (effect.protocolShield) {
         gameState.player.protocolShield += effect.protocolShield;
-        soundManager.playShield(); // Added sound effect
+        soundManager.playShield();
+
+        // シールドパーティクル
+        const playerElement = document.getElementById('player-character');
+        const rect = playerElement.getBoundingClientRect();
+        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'shield');
     }
 
     // カードドロー
     if (effect.draw) {
         drawCards(effect.draw);
-        soundManager.playDraw(); // Added sound effect
+        soundManager.playDraw();
     }
 
     // Virus付与
@@ -180,6 +200,15 @@ function dealDamageToEnemy(enemy, baseDamage) {
         showDamageNumber(enemyElement, damageResult.finalDamage, false);
         enemyElement.classList.add('taking-damage');
         setTimeout(() => enemyElement.classList.remove('taking-damage'), 300);
+
+        // ダメージパーティクル
+        const rect = enemyElement.getBoundingClientRect();
+        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'damage');
+
+        // クリティカルヒット（大ダメージ）でシェイク
+        if (damageResult.finalDamage >= 10) {
+            triggerScreenShake(0.5);
+        }
     }
 
     // 敵が倒れたか確認
@@ -218,6 +247,11 @@ function dealDamageToPlayer(baseDamage, source) {
     // ダメージを受けた場合のみ音を再生
     if (damageResult.finalDamage > 0) {
         soundManager.playDamage();
+        triggerScreenShake(1.0); // プレイヤー被弾は強めのシェイク
+
+        // ダメージパーティクル
+        const rect = playerElement.getBoundingClientRect();
+        createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'damage');
     }
 
 

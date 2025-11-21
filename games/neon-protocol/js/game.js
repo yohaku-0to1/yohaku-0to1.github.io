@@ -127,6 +127,7 @@ function drawCards(count) {
         }
 
         const card = gameState.player.programStack.pop();
+        card.isNew = true; // アニメーション用フラグ
         gameState.player.activeMemory.push(card);
     }
 
@@ -183,6 +184,9 @@ function startCombat() {
     // UIを更新
     updateUI();
     renderEnemies();
+
+    // 初回ターン表示
+    setTimeout(() => showTurnIndicator('PLAYER TURN'), 500);
 }
 
 // プレイヤーターン開始
@@ -191,6 +195,8 @@ function startPlayerTurn() {
     gameState.combat.playerTurn = true;
     gameState.ui.isProcessing = false; // 入力ロック解除
     gameState.combat.turn++;
+
+    showTurnIndicator('PLAYER TURN');
 
     // RAMを回復
     gameState.player.ram = gameState.player.maxRam;
@@ -236,28 +242,33 @@ function startEnemyTurn() {
     gameState.combat.playerTurn = false;
     gameState.ui.isProcessing = true; // 入力ロック
 
-    // 手札を捨てる
-    discardHand();
+    showTurnIndicator('ENEMY TURN');
 
-    // UIボタンを無効化
-    document.getElementById('end-turn-btn').disabled = true;
+    // 手札破棄アニメーション後に処理を実行
+    animateDiscard(() => {
+        // 手札を捨てる
+        discardHand();
 
-    updateUI();
+        // UIボタンを無効化
+        document.getElementById('end-turn-btn').disabled = true;
 
-    // 各敵の行動を順番に実行
-    let delay = 500;
-    gameState.enemies.forEach((enemy, index) => {
-        setTimeout(() => {
-            executeEnemyAction(enemy);
+        updateUI();
 
-            // 最後の敵が終わったらプレイヤーターンへ
-            if (index === gameState.enemies.length - 1) {
-                setTimeout(() => {
-                    document.getElementById('end-turn-btn').disabled = false;
-                    startPlayerTurn();
-                }, 1000);
-            }
-        }, delay * (index + 1));
+        // 各敵の行動を順番に実行
+        let delay = 500;
+        gameState.enemies.forEach((enemy, index) => {
+            setTimeout(() => {
+                executeEnemyAction(enemy);
+
+                // 最後の敵が終わったらプレイヤーターンへ
+                if (index === gameState.enemies.length - 1) {
+                    setTimeout(() => {
+                        document.getElementById('end-turn-btn').disabled = false;
+                        startPlayerTurn();
+                    }, 1000);
+                }
+            }, delay * (index + 1));
+        });
     });
 }
 

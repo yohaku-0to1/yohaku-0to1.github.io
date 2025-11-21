@@ -68,8 +68,16 @@ function renderHand() {
     const handContainer = document.getElementById('hand-container');
     handContainer.innerHTML = '';
 
-    gameState.player.activeMemory.forEach(card => {
+    gameState.player.activeMemory.forEach((card, index) => {
         const cardElement = createCardElement(card);
+
+        // 新しくドローされたカードにアニメーション適用
+        if (card.isNew) {
+            cardElement.classList.add('draw-anim');
+            cardElement.style.animationDelay = `${index * 0.1}s`;
+            delete card.isNew; // フラグ消去
+        }
+
         handContainer.appendChild(cardElement);
     });
 }
@@ -331,4 +339,118 @@ function generateCardRewards() {
 
         rewardsContainer.appendChild(rewardCard);
     });
+}
+
+// パーティクル生成
+function createParticles(x, y, type) {
+    const particleCount = 10;
+    const colors = {
+        'attack': 'var(--accent-cyan)',
+        'damage': 'var(--damage-color)',
+        'heal': 'var(--text-primary)',
+        'shield': 'var(--firewall-color)'
+    };
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = `particle particle-${type}`;
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        // ランダムなサイズ
+        const size = Math.random() * 5 + 3;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+
+        document.body.appendChild(particle);
+
+        // アニメーション
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 100 + 50;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity;
+
+        particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+        ], {
+            duration: 500 + Math.random() * 300,
+            easing: 'cubic-bezier(0, .9, .57, 1)'
+        }).onfinish = () => particle.remove();
+    }
+}
+
+// 画面シェイク
+function triggerScreenShake(intensity = 1) {
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.classList.remove('shake');
+    void gameContainer.offsetWidth; // リフロー強制
+    gameContainer.classList.add('shake');
+
+    // 強度に応じてアニメーション時間を調整（簡易的）
+    gameContainer.style.animationDuration = `${0.5 * intensity}s`;
+
+    setTimeout(() => {
+        gameContainer.classList.remove('shake');
+        gameContainer.style.animationDuration = '';
+    }, 500 * intensity);
+}
+
+let turnIndicatorTimeout;
+
+// ターンインジケーター表示
+function showTurnIndicator(text) {
+    const indicator = document.getElementById('turn-indicator');
+
+    // 既存のタイムアウトをクリア
+    if (turnIndicatorTimeout) {
+        clearTimeout(turnIndicatorTimeout);
+    }
+
+    indicator.textContent = text;
+    indicator.style.display = 'block';
+    indicator.classList.remove('animate');
+    void indicator.offsetWidth; // リフロー強制
+    indicator.classList.add('animate');
+
+    if (text.includes('ENEMY')) {
+        indicator.style.color = 'var(--damage-color)';
+        indicator.style.textShadow = '0 0 20px var(--damage-color)';
+    } else {
+        indicator.style.color = '#fff';
+        indicator.style.textShadow = '0 0 20px var(--accent-cyan)';
+    }
+
+    turnIndicatorTimeout = setTimeout(() => {
+        indicator.style.display = 'none';
+    }, 2000);
+}
+
+// 手札破棄アニメーション
+function animateDiscard(callback) {
+    const cards = document.querySelectorAll('.card');
+    if (cards.length === 0) {
+        if (callback) callback();
+        return;
+    }
+
+    let completed = 0;
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('discard-anim');
+            card.addEventListener('animationend', () => {
+                completed++;
+                if (completed === cards.length) {
+                    if (callback) callback();
+                }
+            }, { once: true });
+        }, index * 50); // 少しずらしてアニメーション
+    });
+
+    // 安全策：アニメーションが終わらなかった場合でも強制的にコールバック
+    setTimeout(() => {
+        if (completed < cards.length) {
+            if (callback) callback();
+        }
+    }, 1000);
 }
