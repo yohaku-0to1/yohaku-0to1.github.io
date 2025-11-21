@@ -205,6 +205,108 @@ function executeCardEffect(card, targetEnemy, context = {}) {
         soundManager.playBuff(); // Scanning sound
         console.log('Revealing enemy intent...');
     }
+
+    // === Phase 5: New Card Effects ===
+
+    // Recursive Loop: Bonus damage based on skill cards in hand
+    if (effect.recursiveBonus) {
+        const skillCardsCount = gameState.player.activeMemory.filter(c => c.type === 'skill').length;
+        if (skillCardsCount > 0 && targetEnemy) {
+            const bonusDamage = skillCardsCount * 2;
+            dealDamageToEnemy(targetEnemy, bonusDamage);
+            showDamageNumber(document.getElementById('player-character'), `+${bonusDamage} Recursive!`, true);
+        }
+    }
+
+    // Lag debuff
+    if (effect.lag && targetEnemy) {
+        targetEnemy.effects.lag = (targetEnemy.effects.lag || 0) + effect.lag;
+        soundManager.playBuff();
+    }
+
+    // Bounce Attack: Hit another enemy if multiple exist
+    if (effect.bounceAttack && targetEnemy) {
+        if (gameState.enemies.length > 1) {
+            const otherEnemies = gameState.enemies.filter(e => e.id !== targetEnemy.id);
+            const randomEnemy = otherEnemies[Math.floor(Math.random() * otherEnemies.length)];
+            if (randomEnemy) {
+                dealDamageToEnemy(randomEnemy, effect.damage);
+                soundManager.playAttack();
+            }
+        }
+    }
+
+    // Cache Hit: Retrieve top discard card
+    if (effect.retrieveTopDiscard) {
+        if (gameState.player.discardPile.length > 0) {
+            const topCard = gameState.player.discardPile.pop();
+            gameState.player.activeMemory.push(topCard);
+            soundManager.playDraw();
+
+            // Conditional draw if cost <= threshold
+            if (effect.conditionalDraw && topCard.cost <= effect.conditionalDraw) {
+                drawCards(1);
+            }
+        }
+    }
+
+    // Defragment: Discard for firewall (requires UI modal)
+    if (effect.discardForFirewall) {
+        // Simplified: Auto-discard highest cost card for now
+        if (gameState.player.activeMemory.length > 1) {
+            const sortedHand = [...gameState.player.activeMemory].sort((a, b) => b.cost - a.cost);
+            const cardToDiscard = sortedHand[0];
+            const bonusFirewall = cardToDiscard.cost * 2;
+            gameState.player.firewall += bonusFirewall;
+
+            // Remove from hand
+            const index = gameState.player.activeMemory.findIndex(c => c.instanceId === cardToDiscard.instanceId);
+            if (index !== -1) {
+                gameState.player.activeMemory.splice(index, 1);
+                gameState.player.discardPile.push(cardToDiscard);
+            }
+            soundManager.playShield();
+        }
+    }
+
+    // Exposed debuff
+    if (effect.exposed && targetEnemy) {
+        targetEnemy.effects.exposed = (targetEnemy.effects.exposed || 0) + effect.exposed;
+        soundManager.playBuff();
+    }
+
+    // Heal
+    if (effect.heal) {
+        const oldIntegrity = gameState.player.integrity;
+        gameState.player.integrity = Math.min(gameState.player.maxIntegrity, gameState.player.integrity + effect.heal);
+        if (gameState.player.integrity > oldIntegrity) {
+            showDamageNumber(document.getElementById('player-character'), effect.heal, false, true);
+            soundManager.playBuff();
+        }
+    }
+
+    // Next Turn RAM
+    if (effect.nextTurnRam) {
+        gameState.player.bonusRamNextTurn = (gameState.player.bonusRamNextTurn || 0) + effect.nextTurnRam;
+        soundManager.playBuff();
+    }
+
+    // Variable Cost (Buffer Overflow) - Handled in playCard logic
+    // This is a placeholder for now
+
+    // Quantum Computation: Random cards with temp cost 0
+    if (effect.randomCards) {
+        const allCardIds = Object.keys(CARD_DATABASE);
+        for (let i = 0; i < effect.randomCards; i++) {
+            const randomId = allCardIds[Math.floor(Math.random() * allCardIds.length)];
+            const randomCard = createCardInstance(randomId);
+            if (randomCard) {
+                randomCard.tempCostZero = effect.tempCostZero;
+                gameState.player.activeMemory.push(randomCard);
+            }
+        }
+        soundManager.playDraw();
+    }
 }
 
 // ダメージ計算パイプライン

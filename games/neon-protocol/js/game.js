@@ -245,8 +245,22 @@ function startPlayerTurn() {
     // RAMを回復
     gameState.player.ram = gameState.player.maxRam;
 
+    // Apply bonus RAM from previous turn (Multithreading card)
+    if (gameState.player.bonusRamNextTurn) {
+        gameState.player.ram += gameState.player.bonusRamNextTurn;
+        gameState.player.maxRam += gameState.player.bonusRamNextTurn;
+        gameState.player.bonusRamNextTurn = 0;
+    }
+
     // Firewallをリセット
     gameState.player.firewall = 0;
+
+    // Remove tempCostZero flag from all cards in hand (from Quantum Computation)
+    gameState.player.activeMemory.forEach(card => {
+        if (card.tempCostZero) {
+            delete card.tempCostZero;
+        }
+    });
 
     // レリック効果を適用（ターン開始時）
     const turnEffects = applyRelicEffects('TURN_START');

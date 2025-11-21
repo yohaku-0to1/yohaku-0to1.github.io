@@ -640,6 +640,137 @@ const CARD_DATABASE = {
             ramRecover: 2,
             overclock: 2
         }
+    },
+
+    // === Phase 5: New Cards ===
+
+    "recursive_loop": {
+        id: "recursive_loop",
+        name: "Recursive Loop",
+        type: "attack",
+        cost: 2,
+        description: "ダメージ 6\\n手札のスキルカード1枚につき、ダメージ+2",
+        tags: ["attack", "combo"],
+        effect: {
+            damage: 6,
+            recursiveBonus: true
+        }
+    },
+
+    "memory_leak": {
+        id: "memory_leak",
+        name: "Memory Leak",
+        type: "skill",
+        cost: 1,
+        description: "敵に Lag 2 を付与\\nカードを 1枚 ドロー",
+        tags: ["debuff", "utility"],
+        effect: {
+            lag: 2,
+            draw: 1
+        }
+    },
+
+    "bounce_attack": {
+        id: "bounce_attack",
+        name: "Bounce Attack",
+        type: "attack",
+        cost: 1,
+        description: "ダメージ 4\\n敵が2体以上いる場合、ランダムな他の敵にもダメージ 4",
+        tags: ["attack", "aoe"],
+        effect: {
+            damage: 4,
+            bounceAttack: true
+        }
+    },
+
+    "cache_hit": {
+        id: "cache_hit",
+        name: "Cache Hit",
+        type: "skill",
+        cost: 0,
+        description: "Cacheの一番上のカードを手札に加える\\nそのコストが2以下なら、さらにカードを 1枚 ドロー",
+        tags: ["utility", "draw"],
+        effect: {
+            retrieveTopDiscard: true,
+            conditionalDraw: 2 // コスト閾値
+        }
+    },
+
+    "defragment": {
+        id: "defragment",
+        name: "Defragment",
+        type: "skill",
+        cost: 1,
+        description: "Firewall 5 を獲得\\n手札からカードを1枚選んで捨てる。そのコスト分だけFirewall追加獲得",
+        tags: ["defense", "discard"],
+        effect: {
+            firewall: 5,
+            discardForFirewall: true
+        }
+    },
+
+    "zero_day_exploit": {
+        id: "zero_day_exploit",
+        name: "Zero-Day Exploit",
+        type: "attack",
+        cost: 3,
+        description: "ダメージ 15\\n敵に Exposed 3 を付与",
+        tags: ["attack", "debuff"],
+        effect: {
+            damage: 15,
+            exposed: 3
+        }
+    },
+
+    "patch_update": {
+        id: "patch_update",
+        name: "Patch Update",
+        type: "skill",
+        cost: 2,
+        description: "Integrity 8 回復\\nFirewall 4 を獲得",
+        tags: ["heal", "defense"],
+        effect: {
+            heal: 8,
+            firewall: 4
+        }
+    },
+
+    "multithreading": {
+        id: "multithreading",
+        name: "Multithreading",
+        type: "skill",
+        cost: 1,
+        description: "次のターン、RAM を +1 追加で獲得",
+        tags: ["resource", "ramp"],
+        effect: {
+            nextTurnRam: 1
+        }
+    },
+
+    "buffer_overflow": {
+        id: "buffer_overflow",
+        name: "Buffer Overflow",
+        type: "attack",
+        cost: 0, // プレイ時に選択
+        description: "ダメージ X×5\\nXはこのカードに使用したRAM",
+        tags: ["attack", "flexible"],
+        effect: {
+            variableCost: true,
+            damageMultiplier: 5
+        }
+    },
+
+    "quantum_computation": {
+        id: "quantum_computation",
+        name: "Quantum Computation",
+        type: "skill",
+        cost: 2,
+        description: "ランダムなカード 3枚 を手札に加える\\n今ターン中、それらのコストは 0 になる",
+        tags: ["utility", "random", "powerful"],
+        effect: {
+            randomCards: 3,
+            tempCostZero: true
+        }
     }
 };
 
