@@ -370,21 +370,32 @@ function victory() {
     const currentLayer = gameState.map.currentLayer;
 
     if (currentLayer === 5 && gameState.player.phase === 'child') {
-        // Layer 5ボス撃破 → 大人ネオンへ進化
+        // Layer 5ボス撃破 → ストーリー → 進化
         setTimeout(() => {
-            evolveToAdult();
-            // 進化後、次のLayerへ
-            gameState.map.currentLayer = 6;
-            showVictoryScreen();
+            storyManager.show('boss_layer5_defeat', () => {
+                evolveToAdult();
+                // 進化後、次のLayerへ
+                gameState.map.currentLayer = 6;
+                showVictoryScreen();
+            });
         }, 1000);
         return;
-    } else if (currentLayer === 10 && gameState.player.phase === 'adult') {
-        // Layer 10ボス撃破 → 最終進化
+    } else if (currentLayer === 10 && (gameState.player.phase === 'adult' || gameState.player.phase === 'child')) {
+        // Layer 10ボス撃破 → ストーリー → 最終進化
         setTimeout(() => {
-            evolveToFinal();
-            // 進化後、次のLayerへ
-            gameState.map.currentLayer = 11;
-            showVictoryScreen();
+            storyManager.show('boss_layer10_defeat', () => {
+                evolveToFinal();
+                gameState.map.currentLayer = 11;
+                showVictoryScreen();
+            });
+        }, 1000);
+        return;
+    } else if (currentLayer === 15) {
+        // Layer 15ボス撃破 → 最終勝利
+        setTimeout(() => {
+            storyManager.show('final_victory', () => {
+                showVictoryScreen(); // 最終勝利画面を表示
+            });
         }, 1000);
         return;
     }
@@ -412,5 +423,9 @@ function gameOver() {
     console.log('Game Over!');
     gameState.combat.inCombat = false;
     soundManager.playGameOver();
-    document.getElementById('game-over-screen').style.display = 'flex';
+
+    // ゲームオーバーストーリー表示後、画面表示
+    storyManager.show('game_over', () => {
+        document.getElementById('game-over-screen').style.display = 'flex';
+    });
 }

@@ -41,8 +41,10 @@ function evolveToAdult() {
     // 新規カード「Overload」を1枚追加
     gameState.player.programStack.push(createCardInstance('overload'));
 
-    // 進化演出
-    showEvolutionScreen('adult');
+    // 進化演出 → ストーリー
+    showEvolutionScreen('adult', () => {
+        storyManager.show('evolution_adult');
+    });
 }
 
 // 最終進化（Layer 10後）
@@ -84,7 +86,9 @@ function evolveToFinal() {
         gameState.player.programStack.push(createCardInstance('system_sync'));
     }
 
-    showEvolutionScreen(evolutionType);
+    showEvolutionScreen(evolutionType, () => {
+        storyManager.show('evolution_final');
+    });
 }
 
 // デッキ内のカードをアップグレード
@@ -107,7 +111,7 @@ function replaceCardsInDeck(oldCardId, newCardId) {
 }
 
 // 進化演出を表示
-function showEvolutionScreen(evolutionType) {
+function showEvolutionScreen(evolutionType, callback = null) {
     soundManager.playEvolution();
 
     const modal = document.createElement('div');
@@ -152,6 +156,7 @@ function showEvolutionScreen(evolutionType) {
     continueBtn.onclick = () => {
         modal.remove();
         updateUI();
+        if (callback) callback();
     };
 
     content.appendChild(title);

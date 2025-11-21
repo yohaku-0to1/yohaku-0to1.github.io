@@ -70,8 +70,10 @@ function initGame() {
     // デッキをシャッフル
     shuffleDeck();
 
-    // マップ画面を表示してゲーム開始
-    showMapScreen();
+    // オープニングストーリー表示後、マップ画面へ
+    storyManager.show('game_start', () => {
+        showMapScreen();
+    });
 }
 
 // デッキシャッフル

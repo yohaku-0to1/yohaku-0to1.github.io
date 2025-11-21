@@ -339,26 +339,48 @@ function startBattleNode(node) {
     const currentLayer = node.layer;
     let enemyKey = 'security_bot';
 
-    if (node.type === 'boss') {
-        if (currentLayer === 5) enemyKey = 'firewall_guardian';
-        else if (currentLayer === 10) enemyKey = 'neural_nexus';
-        else if (currentLayer === 15) enemyKey = 'core_mainframe';
+    // ボス戦のストーリー判定
+    let storyKey = null;
+    if (currentLayer === 5 && node.type === 'boss') {
+        storyKey = 'boss_layer5_pre';
+        enemyKey = 'firewall_guardian';
+    } else if (currentLayer === 10 && node.type === 'boss') {
+        storyKey = 'boss_layer10_pre';
+        enemyKey = 'neural_nexus';
+    } else if (currentLayer === 15 && node.type === 'boss') {
+        storyKey = 'final_boss_pre';
+        enemyKey = 'core_mainframe';
+    } else if (node.type === 'boss') {
+        // 他のボス層
+        enemyKey = 'firewall_guardian'; // デフォルト
     } else if (node.type === 'elite') {
-        enemyKey = Math.random() > 0.5 ? 'firewall_module' : 'scanner_drone';
+        // エリート敵
+        const eliteEnemies = ['attack_bot', 'data_miner', 'encryption_node'];
+        enemyKey = eliteEnemies[Math.floor(Math.random() * eliteEnemies.length)];
     } else {
-        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier', 'attack_bot', 'data_miner'];
+        // 通常敵
+        const normalEnemies = ['security_bot', 'firewall_module', 'scanner_drone', 'encryption_node', 'virus_carrier'];
         enemyKey = normalEnemies[Math.floor(Math.random() * normalEnemies.length)];
     }
 
-    const enemyData = ENEMY_DATABASE[enemyKey];
-    gameState.enemies = [];
-    spawnEnemy({
-        ...enemyData,
-        integrity: enemyData.integrity,
-        maxIntegrity: enemyData.integrity
-    });
+    // ストーリー表示後に戦闘開始
+    const startBattle = () => {
+        const enemyData = ENEMY_DATABASE[enemyKey];
+        if (enemyData) {
+            spawnEnemy({
+                ...enemyData,
+                integrity: enemyData.integrity,
+                maxIntegrity: enemyData.integrity
+            });
+        }
+        startCombat();
+    };
 
-    startCombat();
+    if (storyKey) {
+        storyManager.show(storyKey, startBattle);
+    } else {
+        startBattle();
+    }
 }
 
 function showRestNode() {
