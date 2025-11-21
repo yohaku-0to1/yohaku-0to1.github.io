@@ -161,6 +161,9 @@ function startCombat() {
     gameState.combat.hasBeenHit = false; // 被弾フラグリセット
     gameState.combat.victoryTriggered = false; // 勝利フラグリセット
 
+    // RAMをリセット
+    gameState.player.ram = gameState.player.maxRam;
+
     // レリック効果を適用（戦闘開始時）
     const combatEffects = applyRelicEffects('COMBAT_START');
     if (combatEffects.overclock) {
