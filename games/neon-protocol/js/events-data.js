@@ -375,5 +375,140 @@ const EVENT_DATABASE = {
                 }
             }
         ]
+    },
+
+    'data_purge': {
+        id: 'data_purge',
+        title: 'データパージ',
+        description: 'デッキ最適化のチャンスだ。不要なプログラムを削除してメモリを解放できる。',
+        choices: [
+            {
+                text: 'カードを1枚削除する',
+                action: (gameState) => {
+                    if (gameState.player.programStack.length === 0) {
+                        return {
+                            text: 'デッキにカードがない。',
+                            success: false
+                        };
+                    }
+
+                    // Show card removal modal
+                    setTimeout(() => {
+                        showCardRemovalModal(() => {
+                            // Success callback - card already removed
+                            console.log('Card removed for free');
+                        }, 0); // Free removal
+                    }, 100);
+
+                    return {
+                        text: 'カード選択中...',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'カードを2枚削除する (75クレジット)',
+                condition: (gameState) => gameState.player.credits >= 75 && gameState.player.programStack.length >= 2,
+                action: (gameState) => {
+                    gameState.player.credits -= 75;
+
+                    // First removal
+                    setTimeout(() => {
+                        showCardRemovalModal(() => {
+                            // After first removal, show second modal
+                            setTimeout(() => {
+                                showCardRemovalModal(() => {
+                                    console.log('2 cards removed');
+                                }, 0);
+                            }, 100);
+                        }, 0);
+                    }, 100);
+
+                    return {
+                        text: 'カード選択中...',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'パージしない',
+                action: (gameState) => {
+                    return {
+                        text: '現在のデッキ構成を維持した。',
+                        success: true
+                    };
+                }
+            }
+        ]
+    },
+
+    'code_optimizer': {
+        id: 'code_optimizer',
+        title: 'コード最適化装置',
+        description: '高度なAIコンパイラを発見した。プログラムを最適化してパフォーマンスを向上できる。',
+        choices: [
+            {
+                text: 'カードを1枚アップグレードする (60クレジット)',
+                condition: (gameState) => gameState.player.credits >= 60,
+                action: (gameState) => {
+                    if (gameState.player.programStack.length === 0) {
+                        return {
+                            text: 'デッキにカードがない。',
+                            success: false
+                        };
+                    }
+
+                    gameState.player.credits -= 60;
+
+                    // Show card selection modal for upgrade
+                    setTimeout(() => {
+                        showCardUpgradeModal((selectedCard) => {
+                            upgradeCard(selectedCard);
+                            updateUI();
+                        });
+                    }, 100);
+
+                    return {
+                        text: 'カード選択中...',
+                        success: true
+                    };
+                }
+            },
+            {
+                text: 'ランダムなカードをアップグレード (最大HP -10)',
+                action: (gameState) => {
+                    if (gameState.player.programStack.length === 0) {
+                        return {
+                            text: 'デッキにカードがない。',
+                            success: false
+                        };
+                    }
+
+                    gameState.player.maxIntegrity -= 10;
+                    if (gameState.player.integrity > gameState.player.maxIntegrity) {
+                        gameState.player.integrity = gameState.player.maxIntegrity;
+                    }
+
+                    // Upgrade random card
+                    const randomIndex = Math.floor(Math.random() * gameState.player.programStack.length);
+                    const card = gameState.player.programStack[randomIndex];
+                    upgradeCard(card);
+
+                    return {
+                        text: `実験的なプロセスで ${card.name} をアップグレード！しかし最大Integrityが10減少した。`,
+                        success: true
+                    };
+                }
+            },
+            {
+                text: '使用しない',
+                action: (gameState) => {
+                    return {
+                        text: '最適化装置を後にした。',
+                        success: true
+                    };
+                }
+            }
+        ]
     }
 };

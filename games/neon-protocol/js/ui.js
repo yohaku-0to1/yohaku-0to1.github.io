@@ -140,6 +140,11 @@ function createCardElement(card) {
     cardDiv.className = `card type-${card.type}`;
     cardDiv.dataset.cardId = card.instanceId;
 
+    // Upgraded card styling
+    if (card.upgraded) {
+        cardDiv.classList.add('upgraded');
+    }
+
     // RAM不足の場合
     if (gameState.player.ram < card.cost) {
         cardDiv.classList.add('insufficient-ram');

@@ -214,3 +214,20 @@
 .card.playing {
     animation: cardPlay 0.5s ease-out forwards;
 }
+/* Upgraded Card Styling */
+.card.upgraded {
+    border-color: var(--accent-yellow) !important;
+    box-shadow: 0 0 15px rgba(255, 190, 11, 0.5);
+    position: relative;
+}
+
+.card.upgraded::after {
+    content: "★";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 1.2rem;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 10px var(--accent-yellow);
+    animation: pulse 2s infinite;
+}
