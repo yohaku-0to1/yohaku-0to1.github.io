@@ -142,8 +142,14 @@ function spawnEnemy(enemyData, layer = gameState.map.currentLayer) {
     // Scaling factors
     // Integrity: +15% per layer
     // Action Values: +10% per layer
-    const integrityMultiplier = 1 + (layer - 1) * 0.15;
+    let integrityMultiplier = 1 + (layer - 1) * 0.15;
     const actionMultiplier = 1 + (layer - 1) * 0.10;
+
+    // Phase 5: Network Node Overload event bonus
+    if (gameState.player.nextCombatEnemyBonus) {
+        integrityMultiplier *= (1 + gameState.player.nextCombatEnemyBonus);
+        gameState.player.nextCombatEnemyBonus = 0; // Reset after applying
+    }
 
     const scaledIntegrity = Math.floor(enemyData.integrity * integrityMultiplier);
     const scaledMaxIntegrity = Math.floor(enemyData.maxIntegrity * integrityMultiplier);
