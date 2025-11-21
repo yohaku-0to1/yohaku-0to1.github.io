@@ -53,3 +53,55 @@
         background: transparent;
     }
 }
+
+/* Pixel Art Styles */
+.character-sprite {
+    width: 128px;
+    height: 128px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    /* Important for pixel art */
+    margin: 0 auto;
+}
+
+.character-child {
+    background-image: url('../images/neon_child_pixel.png');
+}
+
+.character-adult {
+    background-image: url('../images/neon_adult_pixel.png');
+}
+
+.character-darkstreet {
+    background-image: url('../images/neon_darkstreet_pixel.png');
+}
+
+.enemy-sprite {
+    width: 96px;
+    height: 96px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    margin: 0 auto 10px auto;
+}
+
+.enemy-security {
+    background-image: url('../images/enemy_security_bot_pixel.png');
+}
+
+.enemy-virus {
+    background-image: url('../images/enemy_virus_pixel.png');
+}
+
+.enemy-firewall {
+    background-image: url('../images/enemy_firewall_pixel.png');
+}
+
+.enemy-boss {
+    background-image: url('../images/enemy_boss_pixel.png');
+    width: 160px;
+    height: 160px;
+}

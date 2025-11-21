@@ -35,6 +35,26 @@ function updatePlayerStats() {
 
     // Layer表示
     document.getElementById('current-layer').textContent = gameState.map.currentLayer;
+
+    // プレイヤー画像更新
+    const playerChar = document.getElementById('player-character');
+    // 既存のスプライトを削除して再作成（または既存があれば更新）
+    let sprite = playerChar.querySelector('.character-sprite');
+    if (!sprite) {
+        sprite = document.createElement('div');
+        sprite.className = 'character-sprite';
+        playerChar.insertBefore(sprite, playerChar.firstChild);
+    }
+
+    // クラスをリセットして現在のフェーズを適用
+    sprite.className = 'character-sprite';
+    if (gameState.player.phase === 'adult') {
+        sprite.classList.add('character-adult');
+    } else if (gameState.player.phase === 'darkstreet') {
+        sprite.classList.add('character-darkstreet');
+    } else {
+        sprite.classList.add('character-child');
+    }
 }
 
 // デッキ・捨て札の枚数を更新
@@ -182,6 +202,22 @@ function renderEnemies() {
         enemyDiv.className = 'enemy';
         enemyDiv.dataset.enemyId = enemy.id;
 
+        // Sprite
+        const sprite = document.createElement('div');
+        sprite.className = 'enemy-sprite';
+
+        // Determine sprite class based on enemy name/type
+        if (enemy.isBoss) {
+            sprite.classList.add('enemy-boss');
+        } else if (enemy.name.includes('Security') || enemy.name.includes('Bot') || enemy.name.includes('Drone')) {
+            sprite.classList.add('enemy-security');
+        } else if (enemy.name.includes('Virus') || enemy.name.includes('Miner') || enemy.name.includes('Node')) {
+            sprite.classList.add('enemy-virus');
+        } else {
+            sprite.classList.add('enemy-firewall');
+        }
+        enemyDiv.appendChild(sprite);
+
         const name = document.createElement('div');
         name.className = 'enemy-name';
         name.textContent = enemy.name;
@@ -198,6 +234,10 @@ function renderEnemies() {
             intent.textContent = `次: 攻撃 (${nextAction.value})`;
         } else if (nextAction.type === 'defend') {
             intent.textContent = `次: 防御 (${nextAction.value})`;
+        } else if (nextAction.type === 'buff') {
+            intent.textContent = `次: 強化 (${nextAction.value})`;
+        } else if (nextAction.type === 'debuff') {
+            intent.textContent = `次: 妨害 (${nextAction.value})`;
         }
 
         enemyDiv.appendChild(name);
