@@ -131,14 +131,44 @@ function discardHand() {
 }
 
 // 敵を生成
-function spawnEnemy(enemyData) {
+function spawnEnemy(enemyData, layer = gameState.map.currentLayer) {
+    // Scaling factors
+    // Integrity: +15% per layer
+    // Action Values: +10% per layer
+    const integrityMultiplier = 1 + (layer - 1) * 0.15;
+    const actionMultiplier = 1 + (layer - 1) * 0.10;
+
+    const scaledIntegrity = Math.floor(enemyData.integrity * integrityMultiplier);
+    const scaledMaxIntegrity = Math.floor(enemyData.maxIntegrity * integrityMultiplier);
+
+    // Scale actions
+    const scaledActions = enemyData.actions.map(action => {
+        const newAction = { ...action };
+        if (newAction.value && typeof newAction.value === 'number') {
+            newAction.value = Math.floor(newAction.value * actionMultiplier);
+        }
+        return newAction;
+    });
+
+    // Scale Phase 2 actions if boss
+    let scaledPhase2Actions = null;
+    if (enemyData.phase2Actions) {
+        scaledPhase2Actions = enemyData.phase2Actions.map(action => {
+            const newAction = { ...action };
+            if (newAction.value && typeof newAction.value === 'number') {
+                newAction.value = Math.floor(newAction.value * actionMultiplier);
+            }
+            return newAction;
+        });
+    }
+
     const enemy = {
         id: `enemy_${Date.now()}`,
         name: enemyData.name,
-        integrity: enemyData.integrity,
-        maxIntegrity: enemyData.maxIntegrity,
+        integrity: scaledIntegrity,
+        maxIntegrity: scaledMaxIntegrity,
         firewall: 0,
-        actions: enemyData.actions,
+        actions: scaledActions,
         currentActionIndex: 0,
         effects: {
             virus: 0,
@@ -146,6 +176,10 @@ function spawnEnemy(enemyData) {
             lag: 0
         }
     };
+
+    if (scaledPhase2Actions) {
+        enemy.phase2Actions = scaledPhase2Actions;
+    }
 
     gameState.enemies.push(enemy);
     return enemy;
