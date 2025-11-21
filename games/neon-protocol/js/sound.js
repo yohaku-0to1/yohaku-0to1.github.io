@@ -22,9 +22,20 @@ class SoundManager {
             { note: 43, duration: 0.2 }, // G2
             { note: 39, duration: 0.2 }  // Eb2
         ];
+
+        // コード進行 (C Minor: Cm - Ab - Fm - G)
+        this.chordSequence = [
+            [48, 51, 55], // Cm (C3, Eb3, G3)
+            [44, 48, 51], // Ab (Ab2, C3, Eb3)
+            [41, 44, 48], // Fm (F2, Ab2, C3)
+            [43, 47, 50]  // G  (G2, B2, D3)
+        ];
+
         this.currentNoteIndex = 0;
+        this.currentChordIndex = 0;
         this.nextNoteTime = 0;
         this.tempo = 110;
+        this.beatCount = 0;
     }
 
     init() {
@@ -215,9 +226,18 @@ class SoundManager {
 
         while (this.nextNoteTime < this.ctx.currentTime + 0.1) {
             this.playBGMNote(this.nextNoteTime);
+
+            // コード演奏 (4拍ごとに変更)
+            if (this.beatCount % 8 === 0) {
+                this.playChord(this.nextNoteTime);
+                this.currentChordIndex = (this.currentChordIndex + 1) % this.chordSequence.length;
+            }
+
             // 次のノートへ（8分音符）
             this.nextNoteTime += 0.5 * secondsPerBeat;
             this.currentNoteIndex++;
+            this.beatCount++;
+
             if (this.currentNoteIndex >= this.bassSequence.length) {
                 this.currentNoteIndex = 0;
             }
@@ -299,6 +319,61 @@ class SoundManager {
 
         osc.start(time);
         osc.stop(time + 0.5);
+    }
+
+    playChord(time) {
+        const chord = this.chordSequence[this.currentChordIndex];
+        chord.forEach((note, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.value = this.noteToFreq(note);
+
+            // Pad sound envelope
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(this.bgmVolume * 0.15, time + 0.5);
+            gain.gain.setValueAtTime(this.bgmVolume * 0.15, time + 1.5); // Sustain
+            gain.gain.linearRampToValueAtTime(0, time + 2.0); // Release
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(time);
+            osc.stop(time + 2.0);
+        });
+    }
+
+    // ゲーム: 勝利
+    playVictory() {
+        const now = this.ctx.currentTime;
+        // Fanfare
+        [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50].forEach((freq, i) => {
+            setTimeout(() => {
+                this.playTone(freq, 'square', 0.2, 0.4);
+                this.playTone(freq * 0.5, 'sawtooth', 0.2, 0.2); // Bass layer
+            }, i * 120);
+        });
+
+        // Final chord
+        setTimeout(() => {
+            [523.25, 659.25, 783.99, 1046.50].forEach(freq => {
+                this.playTone(freq, 'triangle', 1.0, 0.3);
+            });
+        }, 800);
+    }
+
+    // ゲーム: ゲームオーバー
+    playGameOver() {
+        this.playTone(300, 'sawtooth', 1.5, 0.5, 50); // Downward slide
+        this.playNoise(1.5, 0.4);
+
+        // Dissonant chord
+        setTimeout(() => {
+            [200, 230, 280].forEach(freq => {
+                this.playTone(freq, 'sawtooth', 1.0, 0.3);
+            });
+        }, 500);
     }
 
     toggleMute() {

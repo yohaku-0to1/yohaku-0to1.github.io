@@ -14,6 +14,11 @@ function playCard(card, targetEnemy = null) {
         actualCost = Math.max(0, card.cost - card.effect.tempoDiscount);
     }
 
+    // Phase 5: Variable Cost (Buffer Overflow)
+    if (card.effect.variableCost) {
+        actualCost = gameState.player.ram;
+    }
+
     if (gameState.player.ram < actualCost) {
         console.log('Not enough RAM after tempo discount');
         return false;
@@ -68,7 +73,7 @@ function playCard(card, targetEnemy = null) {
     }
 
     // カード効果を実行
-    executeCardEffect(card, targetEnemy, { comboActivated });
+    executeCardEffect(card, targetEnemy, { comboActivated, consumedRam: actualCost });
 
     // Exhaust mechanic: Remove card from game instead of discarding
     if (card.effect.exhaust) {
@@ -85,7 +90,7 @@ function playCard(card, targetEnemy = null) {
     // Echo mechanic: Play card effect twice
     if (card.effect.echo) {
         setTimeout(() => {
-            executeCardEffect(card, targetEnemy, { comboActivated, isEcho: true });
+            executeCardEffect(card, targetEnemy, { comboActivated, isEcho: true, consumedRam: actualCost });
             gameState.combat.isProcessing = false;
             updateUI();
         }, 300);
@@ -104,7 +109,7 @@ function playCard(card, targetEnemy = null) {
 // カード効果を実行
 function executeCardEffect(card, targetEnemy, context = {}) {
     const effect = card.effect;
-    const { comboActivated = false, isEcho = false } = context;
+    const { comboActivated = false, isEcho = false, consumedRam = 0 } = context;
 
     // レリック効果を適用（カードプレイ時）
     const playEffects = applyRelicEffects('CARD_PLAY');
@@ -122,7 +127,13 @@ function executeCardEffect(card, targetEnemy, context = {}) {
     }
 
     // ダメージ
-    if (effect.damage) {
+    if (effect.damage || effect.variableCost) {
+        let baseDamage = effect.damage || 0;
+
+        // Phase 5: Variable Cost Damage
+        if (effect.variableCost && effect.damageMultiplier) {
+            baseDamage = consumedRam * effect.damageMultiplier;
+        }
         // レリック効果を適用（攻撃ダメージボーナス）
         const attackEffects = applyRelicEffects('ATTACK_DAMAGE', { cardType: card.type });
         let damageBonus = attackEffects.damageBonus || 0;
@@ -139,7 +150,7 @@ function executeCardEffect(card, targetEnemy, context = {}) {
         const hits = effect.hits || 1;
         for (let i = 0; i < hits; i++) {
             if (targetEnemy) {
-                dealDamageToEnemy(targetEnemy, effect.damage + damageBonus);
+                dealDamageToEnemy(targetEnemy, baseDamage + damageBonus);
                 if (!isEcho || i === 0) soundManager.playAttack();
 
                 // 攻撃パーティクル
@@ -152,7 +163,7 @@ function executeCardEffect(card, targetEnemy, context = {}) {
         }
         // 吸血効果（Inject Virusなど）
         if (card.id === 'inject_virus' && targetEnemy) {
-            const heal = Math.floor(effect.damage * 0.5);
+            const heal = Math.floor(baseDamage * 0.5);
             gameState.player.integrity = Math.min(gameState.player.integrity + heal, gameState.player.maxIntegrity);
             soundManager.playBuff();
 
@@ -178,7 +189,16 @@ function executeCardEffect(card, targetEnemy, context = {}) {
     if (effect.firewall) {
         // レリック効果を適用（防御ボーナス）
         const defenseEffects = applyRelicEffects('DEFENSE_BONUS', { cardType: card.type });
-        const firewallBonus = defenseEffects.firewallBonus || 0;
+        let firewallBonus = defenseEffects.firewallBonus || 0;
+
+        // Combo mechanic: Add bonus firewall if combo activated
+        if (comboActivated && effect.comboBonus) {
+            firewallBonus += effect.comboBonus.bonus;
+            if (!isEcho) {
+                soundManager.playBuff(); // Play combo sound
+                showDamageNumber(document.getElementById('player-character'), `COMBO +${effect.comboBonus.bonus}!`, true);
+            }
+        }
 
         gameState.player.firewall += effect.firewall + firewallBonus;
         soundManager.playShield();
@@ -274,22 +294,33 @@ function executeCardEffect(card, targetEnemy, context = {}) {
         }
     }
 
-    // Defragment: Discard for firewall (requires UI modal)
+    // Defragment: Discard for firewall (Manual Selection)
     if (effect.discardForFirewall) {
-        // Simplified: Auto-discard highest cost card for now
-        if (gameState.player.activeMemory.length > 1) {
-            const sortedHand = [...gameState.player.activeMemory].sort((a, b) => b.cost - a.cost);
-            const cardToDiscard = sortedHand[0];
-            const bonusFirewall = cardToDiscard.cost * 2;
-            gameState.player.firewall += bonusFirewall;
+        // Filter out the card itself if it's still in hand (though it should be in limbo/processing)
+        // We want to show all cards currently in hand
+        const handCards = gameState.player.activeMemory.filter(c => c.instanceId !== card.instanceId);
 
-            // Remove from hand
-            const index = gameState.player.activeMemory.findIndex(c => c.instanceId === cardToDiscard.instanceId);
-            if (index !== -1) {
-                gameState.player.activeMemory.splice(index, 1);
-                gameState.player.discardPile.push(cardToDiscard);
-            }
-            soundManager.playShield();
+        if (handCards.length > 0) {
+            showCardSelectionModal(handCards, '捨てるカードを選択 (コスト×2のFirewall獲得)', (selectedCard) => {
+                const bonusFirewall = selectedCard.cost * 2;
+                gameState.player.firewall += bonusFirewall;
+
+                // Remove from hand
+                const index = gameState.player.activeMemory.findIndex(c => c.instanceId === selectedCard.instanceId);
+                if (index !== -1) {
+                    gameState.player.activeMemory.splice(index, 1);
+                    gameState.player.discardPile.push(selectedCard);
+                }
+
+                soundManager.playShield();
+                updateUI();
+
+                // Show result
+                showDamageNumber(document.getElementById('player-character'), `+${bonusFirewall} Shield`, true);
+            });
+        } else {
+            // No cards to discard
+            showDamageNumber(document.getElementById('player-character'), 'No cards!', false);
         }
     }
 
@@ -415,6 +446,11 @@ function dealDamageToEnemy(enemy, baseDamage) {
 
     // Integrityを減らす
     enemy.integrity = Math.max(0, enemy.integrity - damageResult.finalDamage);
+
+    // Phase transition check
+    if (enemy.isBoss && enemy.phase === 1 && enemy.integrity <= enemy.phaseThreshold) {
+        transitionToPhase2(enemy);
+    }
 
     // ダメージ表示
     const enemyElement = document.querySelector(`[data-enemy-id="${enemy.id}"]`);

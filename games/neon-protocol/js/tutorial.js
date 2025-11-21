@@ -21,13 +21,18 @@ class TutorialManager {
             },
             {
                 title: "敵の行動予測",
-                message: "敵の頭上に次の行動が表示されます。<br>攻撃が来る場合は<strong>Firewall (防御)</strong>でダメージを防ぎましょう。",
+                message: "敵の頭上に次の行動が表示されます。<br>攻撃が来る場合は<strong>Firewall (防御)</strong>でダメージを防ぎましょう。<br>※敵をクリックすると詳細なステータスやギミックを確認できます。",
                 target: "#battle-area"
             },
             {
                 title: "進化システム",
-                message: "あなたのプレイスタイル（攻撃的、防御的、デバフ重視など）によって、Neonは異なる形態へ進化します。<br>Layer 5とLayer 10のボス撃破時に進化が発生します。",
+                message: "Layer 5とLayer 10のボス撃破時、あなたのプレイスタイル（攻撃的、防御的など）に応じてNeonが進化します。<br>進化すると強力なパッシブ効果を獲得できます。",
                 target: "#evolution-bar-container"
+            },
+            {
+                title: "高度な戦術 (Phase 5)",
+                message: "新しいメカニクスが登場します：<br><strong>Echo</strong>: 効果が2回発動<br><strong>Tempo</strong>: ターン最初のプレイでコスト減<br><strong>Combo</strong>: 特定のカードタイプ後にボーナス",
+                target: null
             }
         ];
     }

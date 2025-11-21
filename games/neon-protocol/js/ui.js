@@ -580,3 +580,51 @@ function animateDiscard(callback) {
         }
     }, 1000);
 }
+
+// カード選択モーダルを表示
+function showCardSelectionModal(cards, title, onSelect, onCancel = null) {
+    const modal = document.getElementById('card-selection-modal');
+    const container = document.getElementById('card-selection-container');
+    const titleEl = document.getElementById('card-selection-title');
+    const cancelBtn = document.getElementById('card-selection-cancel');
+
+    titleEl.textContent = title;
+    container.innerHTML = '';
+
+    // キャンセルボタンの表示制御
+    if (onCancel) {
+        cancelBtn.style.display = 'block';
+        cancelBtn.onclick = () => {
+            modal.style.display = 'none';
+            onCancel();
+        };
+    } else {
+        cancelBtn.style.display = 'none';
+    }
+
+    cards.forEach(card => {
+        const cardEl = createCardElement(card);
+        // クリックイベントを上書き
+        cardEl.replaceWith(cardEl.cloneNode(true));
+        const newCardEl = createCardElement(card); // Re-create to get fresh element
+
+        // Remove existing click listeners by cloning (simplified approach above was tricky with createCardElement)
+        // Instead, let's just manually build a simple selection card or modify the event
+
+        // Better approach: Create a specific selection card element to avoid battle logic interference
+        const selectionCard = document.createElement('div');
+        selectionCard.className = `card type-${card.type}`;
+
+        // Copy content
+        selectionCard.innerHTML = newCardEl.innerHTML;
+
+        selectionCard.addEventListener('click', () => {
+            modal.style.display = 'none';
+            onSelect(card);
+        });
+
+        container.appendChild(selectionCard);
+    });
+
+    modal.style.display = 'flex';
+}
