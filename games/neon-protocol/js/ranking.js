@@ -27,7 +27,7 @@ async function submitScore(playerName) {
         return false;
     }
 
-    if (RANKING_API_URL === 'YOUR_GAS_DEPLOYMENT_URL_HERE') {
+    if (!RANKING_API_URL || RANKING_API_URL === '') {
         console.warn('Ranking API URL not configured');
         alert('ランキング機能はまだ設定されていません');
         return false;
@@ -61,7 +61,7 @@ async function submitScore(playerName) {
 
 // ランキングを取得
 async function getRankings() {
-    if (RANKING_API_URL === 'YOUR_GAS_DEPLOYMENT_URL_HERE') {
+    if (!RANKING_API_URL || RANKING_API_URL === '') {
         return { success: false, rankings: [] };
     }
 

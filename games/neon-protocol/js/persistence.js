@@ -11,6 +11,7 @@ function saveGame() {
             player: {
                 integrity: gameState.player.integrity,
                 maxIntegrity: gameState.player.maxIntegrity,
+                credits: gameState.player.credits,
                 phase: gameState.player.phase,
                 programStack: gameState.player.programStack.map(c => c.id),
                 relics: gameState.player.relics,
@@ -42,6 +43,7 @@ function loadGame() {
         // データを復元
         gameState.player.integrity = saveData.player.integrity;
         gameState.player.maxIntegrity = saveData.player.maxIntegrity;
+        gameState.player.credits = saveData.player.credits || 100;
         gameState.player.phase = saveData.player.phase;
         gameState.player.relics = saveData.player.relics || [];
         gameState.player.evolutionStats = saveData.player.evolutionStats || {};
