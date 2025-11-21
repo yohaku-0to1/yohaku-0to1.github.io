@@ -26,7 +26,8 @@ body {
     background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     color: var(--text-light);
     min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
     position: relative;
 }
 
@@ -141,9 +142,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    min-height: 100vh;
-    padding-bottom: 100px;
-    /* Space for fixed action area */
+    height: 100vh;
+    /* padding-bottom: 100px; Removed for flex layout */
 }
 
 /* ヘッダー */
@@ -210,8 +210,11 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 2rem;
-    padding: 2rem 0;
+    gap: 1rem;
+    padding: 1rem 0;
+    overflow-y: auto;
+    min-height: 0;
+    /* Important for flex scrolling */
 }
 
 #enemies-container {
@@ -301,13 +304,13 @@ body {
 
 /* アクションエリア */
 #action-area {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 1360px;
-    /* 1400px - padding */
+    /* position: fixed; Removed for flex layout */
+    /* bottom: 20px; */
+    /* left: 50%; */
+    /* transform: translateX(-50%); */
+    width: 100%;
+    /* max-width: 1360px; */
+    flex-shrink: 0;
     z-index: 100;
     display: flex;
     justify-content: space-between;
