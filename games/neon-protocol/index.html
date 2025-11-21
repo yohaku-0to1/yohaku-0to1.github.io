@@ -139,6 +139,49 @@
                 <button id="continue-btn" class="btn-primary">次へ</button>
             </div>
         </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>ポーズ</h2>
+                <button id="resume-btn" class="btn-primary">再開</button>
+                <button id="settings-btn" class="btn-secondary">設定</button>
+                <button id="quit-btn" class="btn-secondary">タイトルへ</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>設定</h2>
+
+                <div class="settings-group">
+                    <label>BGM音量: <span id="bgm-volume-value">50</span>%</label>
+                    <input type="range" id="bgm-volume" min="0" max="100" value="50">
+                </div>
+
+                <div class="settings-group">
+                    <label>SFX音量: <span id="sfx-volume-value">50</span>%</label>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="50">
+                </div>
+
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="particles-toggle" checked>
+                        パーティクルエフェクト
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="crt-toggle" checked>
+                        CRTエフェクト
+                    </label>
+                </div>
+
+                <button id="settings-close-btn" class="btn-primary">閉じる</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/cards-data.js"></script>
@@ -157,6 +200,7 @@
     <script src="js/game.js"></script>
     <script src="js/battle.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/pause-settings.js"></script>
 
     <!-- Sound Toggle Button -->
     <button id="sound-toggle" class="sound-btn" onclick="toggleSound()">

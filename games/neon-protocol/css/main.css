@@ -1393,3 +1393,52 @@ body {
     background-color: var(--accent-cyan);
     box-shadow: 0 0 10px var(--accent-cyan);
 }
+/* Settings Screen Styles */
+.settings-group {
+    margin: 1.5rem 0;
+}
+
+.settings-group label {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+}
+
+.settings-group input[type="range"] {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.settings-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.settings-group input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent-cyan);
+    border: none;
+}
+
+.settings-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    accent-color: var(--accent-cyan);
+    cursor: pointer;
+}

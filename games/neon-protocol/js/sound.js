@@ -382,10 +382,33 @@ class SoundManager {
             this.stopBGM();
             if (this.masterGain) this.masterGain.gain.value = 0;
         } else {
-            if (this.masterGain) this.masterGain.gain.value = 0.5;
+            if (this.masterGain) this.masterGain.gain.value = this.bgmVolume; // Restore to stored volume
             this.startBGM();
         }
         return this.isMuted;
+    }
+
+    setBGMVolume(volume) {
+        this.bgmVolume = Math.max(0, Math.min(1, volume));
+        if (this.masterGain && !this.isMuted) { // Only apply if not muted
+            this.masterGain.gain.value = this.bgmVolume;
+        }
+    }
+
+    setSFXVolume(volume) {
+        this.sfxVolume = Math.max(0, Math.min(1, volume));
+    }
+
+    pauseBGM() {
+        if (this.ctx && this.ctx.state === 'running') {
+            this.ctx.suspend();
+        }
+    }
+
+    resumeBGM() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
     }
 }
 
