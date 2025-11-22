@@ -138,17 +138,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const updatedItem = { ...placeholderItem, id, title, description, image };
             await db.put('items', updatedItem);
-            
+
             const titleEl = element.querySelector('.url-title');
             const descEl = element.querySelector('.url-description');
             const imgEl = element.querySelector('.url-image');
-            
-            if(titleEl) titleEl.textContent = title;
-            if(descEl) descEl.textContent = description;
-            if(imgEl && image) {
+
+            if (titleEl) titleEl.textContent = title;
+            if (descEl) descEl.textContent = description;
+            if (imgEl && image) {
                 imgEl.src = image;
                 imgEl.style.display = 'block';
-            } else if(imgEl) {
+            } else if (imgEl) {
                 imgEl.style.display = 'none';
             }
 
@@ -158,9 +158,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const errorItem = { ...placeholderItem, id, title: url, description: `メタデータの取得に失敗しました: ${error.message}` };
             await db.put('items', errorItem);
             const titleEl = element.querySelector('.url-title');
-            if(titleEl) titleEl.textContent = url; // 元のURLを表示
+            if (titleEl) titleEl.textContent = url; // 元のURLを表示
             const descEl = element.querySelector('.url-description');
-            if(descEl) descEl.textContent = `メタデータの取得に失敗しました: ${error.message}`; // エラーメッセージを表示
+            if (descEl) descEl.textContent = `メタデータの取得に失敗しました: ${error.message}`; // エラーメッセージを表示
         } finally {
             // Remove spinner
             loader.remove();
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const header = document.createElement('div');
         header.className = 'h-8 flex-shrink-0 flex justify-end items-center space-x-2 px-2 cursor-move';
-        
+
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
         copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>`;
@@ -190,13 +190,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         closeButton.className = 'close-button w-5 h-5 bg-red-500/80 rounded-full hover:bg-red-500 transition-colors flex items-center justify-center text-white font-bold';
         closeButton.innerHTML = '&times;';
         closeButton.title = "削除";
-        
+
         if (item.type === 'text') {
             const cleanMdButton = document.createElement('button');
             cleanMdButton.className = 'clean-md-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
             cleanMdButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.5 1.591L5.22 15.75M9.75 3.104a2.25 2.25 0 00-2.25 2.25v4.507c0 .534.212 1.023.558 1.386l3.85 3.85a2.25 2.25 0 003.182 0l2.962-2.962a2.25 2.25 0 000-3.182l-3.85-3.85a2.25 2.25 0 00-1.386-.558H9.75z" /></svg>`;
             cleanMdButton.title = "Markdown記法を削除";
             header.appendChild(cleanMdButton);
+
+            const removeSpacesButton = document.createElement('button');
+            removeSpacesButton.className = 'remove-spaces-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
+            removeSpacesButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25" /></svg>`;
+            removeSpacesButton.title = "スペースを削除";
+            header.appendChild(removeSpacesButton);
         }
 
         header.appendChild(copyButton);
@@ -237,11 +243,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentWrapper.innerHTML = urlContent;
             itemWrapper.appendChild(contentWrapper);
         }
-        
+
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
         itemWrapper.appendChild(resizeHandle);
-        
+
         hubContainer.appendChild(itemWrapper);
         makeInteractive(itemWrapper, header, resizeHandle);
         return itemWrapper;
@@ -276,8 +282,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         newText = newText.replace(/^([*+-]|\d+\.)\s+/gm, '');
         // Remove horizontal rules
         newText = newText.replace(/^(---|\*\*\*|___)\s*$/gm, '');
-        
+
         return newText.trim();
+    }
+
+    function removeSpaces(text) {
+        return text.replace(/[ 　]/g, '');
     }
 
     function makeInteractive(element, header, resizeHandle) {
@@ -317,6 +327,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const removeSpacesButton = header.querySelector('.remove-spaces-button');
+        if (removeSpacesButton) {
+            removeSpacesButton.addEventListener('click', () => {
+                const textarea = element.querySelector('textarea');
+                if (textarea) {
+                    const cleanedText = removeSpaces(textarea.value);
+                    textarea.value = cleanedText;
+                    updateDb({ content: cleanedText });
+                    adjustTextareaHeight(textarea);
+                }
+            });
+        }
+
         header.querySelector('.copy-button').addEventListener('click', async () => {
             const copyButton = header.querySelector('.copy-button');
             const originalIcon = copyButton.innerHTML;
@@ -328,7 +351,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else { // 画像やURLアイテムの場合
                     const item = await db.get('items', id);
                     const contentToCopy = item.type === 'url' ? item.url : item.content;
-                    
+
                     if (item.type === 'url') {
                         await navigator.clipboard.writeText(contentToCopy);
                     } else if (item.type === 'image') {

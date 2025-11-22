@@ -1,31 +1,29 @@
-# 3D Skill Galaxy Implementation
+# Walkthrough - Add Remove Spaces Feature to Clipboard Hub
 
-I have implemented the "Skill Galaxy" feature, a 3D interactive visualization of your tools and links using Three.js.
+I have added a new feature to **Clipboard Hub** that allows users to remove spaces from their text memos.
 
-## Changes Made
+## Changes
 
-### 1. `index.html`
-- Added **Three.js** import map and ES module shims to the `<head>`.
-- Added a new **Skill Galaxy Section** (`#skill-galaxy-section`) above the Links section.
-- Imported `js/galaxy.js` as a module at the end of the body.
+### `js/tools/clipboard-hub.js`
 
-### 2. `js/data.js`
-- Updated data declarations (`PROFILE_DATA`, `TOOLS_DATA`, `links`, etc.) to explicitly attach to the `window` object (e.g., `window.TOOLS_DATA = ...`). This ensures they are accessible to the module-based `galaxy.js`.
+-   **Added "Remove Spaces" Button**:
+    -   Created a new button element with a "compress" icon (arrows pointing inwards).
+    -   Placed it next to the existing "Remove Markdown" button in the item header.
+-   **Implemented `removeSpaces` Function**:
+    -   Added a helper function `removeSpaces(text)` that removes all half-width spaces (` `) and full-width spaces (`　`) from the given text.
+-   **Added Event Listener**:
+    -   Attached a click event listener to the new button.
+    -   When clicked, it updates the textarea content, saves the change to IndexedDB, and adjusts the textarea height.
 
-### 3. `js/galaxy.js` (New File)
-- Implemented the 3D scene using **Three.js**.
-- Features:
-    - **Interactive Nodes**: Tools (Pink) and Links (Blue) are represented as 3D icosahedrons.
-    - **Orbit Controls**: Users can rotate, zoom, and pan the galaxy.
-    - **CSS2D Labels**: Text labels that always face the screen and are clickable.
-    - **Starfield Background**: A particle system for a space-like atmosphere.
-    - **Raycasting**: Hover effects (glow/scale up) and click-to-visit functionality.
+## Verification Results
 
-## Verification
-- **Visuals**: The galaxy should appear in the new section with a black background and floating nodes.
-- **Interaction**: Dragging should rotate the view. Hovering over a node should highlight it. Clicking a node or its label should open the corresponding URL.
-- **Data**: The nodes should correspond to the items in your `TOOLS_DATA` and `links` arrays.
+### Automated Tests
+-   N/A (This is a UI feature that requires manual interaction).
 
-## Next Steps
-- You can customize the colors, shapes, or animation speeds in `js/galaxy.js` (look for the `CONFIG` object).
-- If you add more tools or links to `js/data.js`, they will automatically appear in the galaxy.
+### Manual Verification
+-   **Button Appearance**: The button should appear in the header of text items, next to the "Remove Markdown" button.
+-   **Functionality**:
+    1.  Create a text memo with spaces (e.g., "Hello World" or "こんにちは　世界").
+    2.  Click the "Remove Spaces" button.
+    3.  Verify that all spaces are removed (e.g., "HelloWorld" or "こんにちは世界").
+    4.  Verify that the change is saved (reload the page to check persistence).
