@@ -1,32 +1,57 @@
-# 実装計画 - アニメ制作ログメーカー
+# Implementation Plan - Search/Replace and Pinning Features
 
-目的は、アニメ制作中のプロンプトやメモを記録し、Obsidianへのエクスポートや最終的なnote記事作成を支援するブラウザベースのツールを作成することです。このツールは、通常のストーリーベースのアニメとミュージックビデオ（MV）の両方をサポートします。
+I will implement two new features for the Clipboard Hub:
+1.  **Search and Replace**: Allows users to find and replace text within a text card.
+2.  **Pinning**: Allows users to "pin" items so they persist even when "Clear All" is used.
 
-## ユーザーレビュー必須事項
-> [!IMPORTANT]
-> 1. **並べ替えUIの改善**: ドラッグ＆ドロップはカードが大きくて操作しづらいため、「↑」「↓」ボタンでの移動に変更します。
-> 2. **折りたたみ機能**: エントリー（カット/シーン）ごとに詳細を折りたたんで、一覧性を高める機能を追加します。
+## User Review Required
+> [!NOTE]
+> The "Clear All" function will be modified to **only delete unpinned items**. Pinned items will remain on the board.
 
-## 提案される変更
+## Proposed Changes
 
-### Tools ディレクトリ
-#### [MODIFY] [anime-production-logger.html](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/tools/anime-production-logger.html)
-- **UIの変更**:
-    - ドラッグハンドルを削除。
-    - エントリーヘッダーに「↑」「↓」ボタンを追加。
-    - エントリーヘッダーに「▼/▶」の折りたたみトグルボタンを追加。
-    - 折りたたみ時は、タイトル（シーン番号/歌詞など）のみを表示し、フォーム部分は非表示にする。
-- **ロジックの追加**:
-    - **Move Up/Down**: 配列のインデックスを操作して再描画する関数（`moveEntry(id, direction)`）。
-    - **Folding**: 各エントリーに `isCollapsed` フラグを持たせ、描画時にクラスを切り替える。デフォルトは展開状態。
+### `js/tools/clipboard-hub.js`
 
-## 検証計画
+#### [MODIFY] [clipboard-hub.js](file:///Users/shimodairaikunari/Documents/yohaku-0to1.github.io/js/tools/clipboard-hub.js)
 
-### 手動検証
-- **並べ替え**:
-    - 「↑」ボタンで一つ上に移動するか。一番上の時は無効化（または何もしない）されるか。
-    - 「↓」ボタンで一つ下に移動するか。
-- **折りたたみ**:
-    - トグルボタンで開閉できるか。
-    - 折りたたんだ状態でも並べ替えや削除ができるか。
-    - 新規追加したエントリーは展開状態で追加されるか。
+**1. Pinning Feature:**
+-   **Data Structure**: Add `isPinned` (boolean) to the item object in IndexedDB.
+-   **UI**:
+    -   Add a "Pin" button (thumbtack icon) to the item header.
+    -   Toggle the button style (filled/active color) based on `isPinned` state.
+-   **Logic**:
+    -   Update `createItem` and `createUrlItem` to initialize `isPinned: false`.
+    -   Update `handleClearAll` to only delete items where `isPinned` is false.
+    -   Add event listener to the Pin button to toggle the state and update DB.
+
+**2. Search and Replace Feature:**
+-   **UI**:
+    -   Add a "Find/Replace" button (magnifying glass or edit icon) to the header of **text items only**.
+    -   Create a collapsible "Search Bar" container inside the text item wrapper, above the textarea.
+    -   The Search Bar will contain:
+        -   Input: "Find" (placeholder: "検索する文字")
+        -   Input: "Replace" (placeholder: "置換後の文字")
+        -   Button: "Replace All" (action)
+-   **Logic**:
+    -   Toggle the visibility of the Search Bar when the header button is clicked.
+    -   When "Replace All" is clicked:
+        -   Get values from inputs.
+        -   Perform `text.split(find).join(replace)` (simple global replace) or regex replace. *Decision: Simple global string replace for simplicity and safety, or maybe `replaceAll`.*
+        -   Update textarea value, IndexedDB, and adjust height.
+
+## Verification Plan
+
+### Manual Verification
+1.  **Pinning**:
+    -   Create items.
+    -   Pin some items.
+    -   Click "Clear All".
+    -   Verify pinned items remain and unpinned items are removed.
+    -   Reload page to ensure pinned state persists.
+2.  **Search/Replace**:
+    -   Create a text item with repeated words (e.g., "test test test").
+    -   Open Search/Replace bar.
+    -   Enter "test" in Find and "passed" in Replace.
+    -   Click "Replace All".
+    -   Verify text becomes "passed passed passed".
+    -   Verify DB is updated.

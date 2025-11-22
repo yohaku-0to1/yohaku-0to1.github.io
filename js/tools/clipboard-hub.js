@@ -72,11 +72,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function handleClearAll() {
-        if (window.confirm('本当にすべてのアイテムを削除しますか？この操作は元に戻せません。')) {
-            db.clear('items');
-            hubContainer.querySelectorAll('.item-wrapper').forEach(el => el.remove());
-            instruction.style.display = 'flex';
+    async function handleClearAll() {
+        if (window.confirm('ピン留めされていないすべてのアイテムを削除しますか？')) {
+            const tx = db.transaction('items', 'readwrite');
+            const items = await tx.store.getAll();
+            for (const item of items) {
+                if (!item.isPinned) {
+                    await tx.store.delete(item.id);
+                    const element = hubContainer.querySelector(`.item-wrapper[data-id="${item.id}"]`);
+                    if (element) element.remove();
+                }
+            }
+            await tx.done;
+
+            // Check if any items remain to decide instruction visibility
+            const remainingItems = await db.getAll('items');
+            if (remainingItems.length === 0) {
+                instruction.style.display = 'flex';
+            }
         }
     }
 
@@ -91,6 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: 280,
             height: 'auto', // 初期高さはautoにして、loadItemで調整
             zIndex: zIndexCounter++,
+            isPinned: false,
         };
         const id = await db.add('items', newItem);
         loadItem({ ...newItem, id });
@@ -108,6 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             width: 320,
             height: 'auto',
             zIndex: zIndexCounter++,
+            isPinned: false,
         };
         const id = await db.add('items', placeholderItem);
         const element = loadItem({ ...placeholderItem, id });
@@ -186,6 +201,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>`;
         copyButton.title = "コピー";
 
+        const pinButton = document.createElement('button');
+        pinButton.className = `pin-button w-6 h-6 transition-colors ${item.isPinned ? 'text-yellow-400' : 'text-gray-400 hover:text-white'}`;
+        pinButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="${item.isPinned ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0111.186 0z" /></svg>`;
+        pinButton.title = "ピン留め (削除保護)";
+
         const closeButton = document.createElement('button');
         closeButton.className = 'close-button w-5 h-5 bg-red-500/80 rounded-full hover:bg-red-500 transition-colors flex items-center justify-center text-white font-bold';
         closeButton.innerHTML = '&times;';
@@ -203,8 +223,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             removeSpacesButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25" /></svg>`;
             removeSpacesButton.title = "スペースを削除";
             header.appendChild(removeSpacesButton);
+
+            const searchReplaceButton = document.createElement('button');
+            searchReplaceButton.className = 'search-replace-button w-6 h-6 text-gray-400 hover:text-white transition-colors';
+            searchReplaceButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>`;
+            searchReplaceButton.title = "検索・置換";
+            header.appendChild(searchReplaceButton);
         }
 
+        header.appendChild(pinButton);
         header.appendChild(copyButton);
         header.appendChild(closeButton);
         itemWrapper.appendChild(header);
@@ -215,6 +242,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentElement.className = 'w-full h-auto block';
             itemWrapper.appendChild(contentElement);
         } else if (item.type === 'text') {
+            // Search Bar Container
+            const searchBar = document.createElement('div');
+            searchBar.className = 'search-bar hidden p-2 bg-black/30 flex flex-col space-y-2';
+            searchBar.innerHTML = `
+                <div class="flex space-x-2">
+                    <input type="text" class="find-input flex-1 bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-white/50" placeholder="検索する文字">
+                    <input type="text" class="replace-input flex-1 bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-white/50" placeholder="置換後の文字">
+                </div>
+                <button class="replace-all-button w-full bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold py-1 rounded transition-colors">すべて置換</button>
+            `;
+            itemWrapper.appendChild(searchBar);
+
             const contentElement = document.createElement('textarea');
             contentElement.value = item.content;
             contentElement.className = 'w-full flex-grow bg-transparent text-white p-2 resize-none outline-none overflow-y-auto'; // overflow-y-auto を追加
@@ -339,6 +378,69 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
+
+        const searchReplaceButton = header.querySelector('.search-replace-button');
+        if (searchReplaceButton) {
+            searchReplaceButton.addEventListener('click', () => {
+                const searchBar = element.querySelector('.search-bar');
+                if (searchBar) {
+                    searchBar.classList.toggle('hidden');
+                    if (!searchBar.classList.contains('hidden')) {
+                        searchBar.querySelector('.find-input').focus();
+                    }
+                }
+            });
+
+            const replaceAllButton = element.querySelector('.replace-all-button');
+            if (replaceAllButton) {
+                replaceAllButton.addEventListener('click', () => {
+                    const findInput = element.querySelector('.find-input');
+                    const replaceInput = element.querySelector('.replace-input');
+                    const textarea = element.querySelector('textarea');
+
+                    if (findInput && replaceInput && textarea && findInput.value) {
+                        const findText = findInput.value;
+                        const replaceText = replaceInput.value;
+                        // Global replace using split/join
+                        const newText = textarea.value.split(findText).join(replaceText);
+
+                        if (textarea.value !== newText) {
+                            textarea.value = newText;
+                            updateDb({ content: newText });
+                            adjustTextareaHeight(textarea);
+
+                            // Trigger input event to update counters
+                            textarea.dispatchEvent(new Event('input'));
+                        }
+                    }
+                });
+            }
+        }
+
+
+
+        const pinButton = header.querySelector('.pin-button');
+        pinButton.addEventListener('click', async () => {
+            const tx = db.transaction('items', 'readwrite');
+            const item = await tx.store.get(id);
+            if (item) {
+                item.isPinned = !item.isPinned;
+                await tx.store.put(item);
+
+                // Update UI
+                const svg = pinButton.querySelector('svg');
+                if (item.isPinned) {
+                    pinButton.classList.remove('text-gray-400', 'hover:text-white');
+                    pinButton.classList.add('text-yellow-400');
+                    svg.setAttribute('fill', 'currentColor');
+                } else {
+                    pinButton.classList.add('text-gray-400', 'hover:text-white');
+                    pinButton.classList.remove('text-yellow-400');
+                    svg.setAttribute('fill', 'none');
+                }
+            }
+            await tx.done;
+        });
 
         header.querySelector('.copy-button').addEventListener('click', async () => {
             const copyButton = header.querySelector('.copy-button');
