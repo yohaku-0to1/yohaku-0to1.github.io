@@ -424,54 +424,74 @@ function renderOutput(lines) {
             tokens.forEach((token, tokenIndex) => {
                 if (!token) return;
 
-                let el;
-                const isParticleCandidate = ['ha', 'wa', 'は', 'わ', 'ハ', 'ワ'].includes(token);
-                const hasKanji = /[一-龯]/.test(token);
+                // This regex separates the main word from trailing punctuation.
+                const tokenMatch = token.match(/^([^.,!?:;。、！？\s]*)([.,!?:;。、！？\s]*)$/);
+                const coreToken = tokenMatch ? tokenMatch[1] : '';
+                const punctuation = tokenMatch ? (tokenMatch[2] || '') : token;
 
-                // Count Moras
-                if (segment.mode !== 'romaji') {
-                    const cleanToken = token.replace(/[ゃゅょャュョ]/g, '');
-                    totalMoraCount += cleanToken.length;
-                } else {
-                    const vowels = token.match(/[aeiou]/gi);
-                    if (vowels) totalMoraCount += vowels.length;
+                // Create a temporary fragment to hold the new elements for this token
+                const tempFragment = document.createDocumentFragment();
+
+                if (coreToken) {
+                    const isParticleCandidate = ['ha', 'wa', 'は', 'わ', 'ハ', 'ワ'].includes(coreToken);
+                    const hasKanji = /[一-龯]/.test(coreToken);
+
+                    // Count Moras (using coreToken now)
+                    if (segment.mode !== 'romaji') {
+                        const cleanToken = coreToken.replace(/[ゃゅょャュョ]/g, '');
+                        totalMoraCount += cleanToken.length;
+                    } else {
+                        const vowels = coreToken.match(/[aeiou]/gi);
+                        if (vowels) totalMoraCount += vowels.length;
+                    }
+
+                    if (hasKanji) {
+                        const el = document.createElement('span');
+                        el.className = 'conversion-error';
+                        el.textContent = token; // Show original full token
+                        el.title = "変換できませんでした";
+                        el.onclick = () => {
+                            const range = document.createRange();
+                            range.selectNodeContents(el);
+                            const sel = window.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        };
+                        tempFragment.appendChild(el);
+                    } else if (isParticleCandidate) {
+                        const el = document.createElement('span');
+                        el.className = 'particle-toggle';
+                        el.textContent = coreToken;
+                        el.title = "クリックで読みを切り替え";
+                        el.onclick = () => toggleParticleMixed(el, segment.mode);
+                        tempFragment.appendChild(el);
+                        // Append punctuation if it exists
+                        if (punctuation) {
+                            tempFragment.appendChild(document.createTextNode(punctuation));
+                        }
+                    } else {
+                        // Not a particle or kanji, just append the original token
+                        tempFragment.appendChild(document.createTextNode(token));
+                    }
+                } else if (punctuation) {
+                    // This case handles tokens that are only punctuation
+                    tempFragment.appendChild(document.createTextNode(punctuation));
                 }
 
-                if (hasKanji) {
-                    el = document.createElement('span');
-                    el.className = 'conversion-error';
-                    el.textContent = token;
-                    el.title = "変換できませんでした";
-                    el.onclick = () => {
-                        const range = document.createRange();
-                        range.selectNodeContents(el);
-                        const sel = window.getSelection();
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                    };
-                } else if (isParticleCandidate) {
-                    el = document.createElement('span');
-                    el.className = 'particle-toggle';
-                    el.textContent = token;
-                    el.title = "クリックで読みを切り替え";
-                    el.onclick = () => toggleParticleMixed(el, segment.mode);
-                } else {
-                    el = document.createTextNode(token);
-                }
-
-                if (rhymeClass && segIndex === segments.length - 1 && tokenIndex === tokens.length - 1) {
+                // Determine where to append the fragment (either directly to the line or inside a rhyme wrapper)
+                const isLastTokenOfLine = segIndex === segments.length - 1 && tokenIndex === tokens.length - 1;
+                if (rhymeClass && isLastTokenOfLine) {
                     const wrapper = document.createElement('span');
                     wrapper.className = rhymeClass + ' rounded px-1';
-                    wrapper.appendChild(el);
+                    wrapper.appendChild(tempFragment);
                     lineDiv.appendChild(wrapper);
                 } else {
-                    lineDiv.appendChild(el);
+                    lineDiv.appendChild(tempFragment);
                 }
 
-                if (segment.mode === 'romaji') {
-                    if (tokenIndex < tokens.length - 1) {
-                        lineDiv.appendChild(document.createTextNode(' '));
-                    }
+                // Add space between tokens in romaji mode
+                if (segment.mode === 'romaji' && tokenIndex < tokens.length - 1) {
+                    lineDiv.appendChild(document.createTextNode(' '));
                 }
             });
         });
@@ -489,23 +509,30 @@ function renderOutput(lines) {
 
 function toggleParticleMixed(element, mode) {
     const current = element.textContent;
-    const targetMode = mode || 'hiragana';
+
+    // Determine character type from the character itself, not just the segment's mode
+    const isKatakana = /[ハワ]/.test(current);
+    const targetMode = mode === 'romaji' ? 'romaji' : (isKatakana ? 'katakana' : 'hiragana');
 
     if (targetMode === 'romaji') {
-        // Cycle: ha <-> wa
+        // Toggle: ha <-> wa
         if (current === 'ha') element.textContent = 'wa';
         else element.textContent = 'ha';
     }
     else if (targetMode === 'katakana') {
-        // Cycle: ha -> ワ -> ハ -> ワ ...
-        if (current === 'ha') element.textContent = 'ワ';
-        else if (current === 'ワ') element.textContent = 'ハ';
-        else element.textContent = 'ワ'; // from ハ
+        // Toggle: (ha) -> ハ <-> ワ
+        if (current === 'ハ') {
+            element.textContent = 'ワ';
+        } else { // Covers 'ワ', 'ha', and any other case
+            element.textContent = 'ハ';
+        }
     }
     else { // hiragana
-        // Cycle: ha -> わ -> は -> わ ...
-        if (current === 'ha') element.textContent = 'わ';
-        else if (current === 'わ') element.textContent = 'は';
-        else element.textContent = 'わ'; // from は
+        // Toggle: (ha) -> は <-> わ
+        if (current === 'は') {
+            element.textContent = 'わ';
+        } else { // Covers 'わ', 'ha', and any other case
+            element.textContent = 'は';
+        }
     }
 }
