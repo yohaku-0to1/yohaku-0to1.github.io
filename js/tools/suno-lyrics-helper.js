@@ -213,17 +213,33 @@ async function convertText(targetType) {
 
         // 1. Initialize or Reset Segments if input changed
         if (raw !== lastRawInput) {
-            conversionSegments = [{ start: 0, end: raw.length, mode: null }];
+            conversionSegments = [];
+            const lines = raw.split('\n');
+            let currentPos = 0;
+            for (const line of lines) {
+                const lineLength = line.length;
+                // Create a segment for each line. Mode is initially null.
+                conversionSegments.push({
+                    start: currentPos,
+                    end: currentPos + lineLength,
+                    mode: null
+                });
+                currentPos += lineLength + 1; // +1 for the newline
+            }
             lastRawInput = raw;
         }
 
-        // 2. Update Segments based on selection
-        if (!hasSelection) {
-            // Convert ALL to targetType
-            conversionSegments = [{ start: 0, end: raw.length, mode: targetType }];
-        } else {
-            // Split and update range
+        // 2. Update Segments based on selection or full conversion
+        if (hasSelection) {
+            // User has a selection, update only that part
             updateSegments(start, end, targetType);
+        } else {
+            // No selection, process all segments (which are now line-based)
+            conversionSegments.forEach(seg => {
+                const text = raw.substring(seg.start, seg.end);
+                const isTag = /^\[.*?\]$/.test(text.trim());
+                seg.mode = isTag ? null : targetType;
+            });
         }
 
         // 3. Process Segments
@@ -236,19 +252,9 @@ async function convertText(targetType) {
             const text = raw.substring(seg.start, seg.end);
             if (!text) continue;
 
-            if (!text) continue;
-
-            const isTag = /^\[.*?\]$/.test(text.trim()); // Check if the segment text is a tag
-
-            if (isTag) {
-                // Treat tags as raw text, never convert them
-                processedSegments.push({
-                    text: text,
-                    isConverted: false,
-                    mode: null // Tags should not have a conversion mode
-                });
-            } else if (seg.mode) { // Only convert if it's not a tag AND has a mode
-                // Convert non-tag segments
+            if (seg.mode) {
+                // Convert
+                // We split by newline to convert line-by-line for stability
                 const lines = text.split('\n');
                 const convertedParts = [];
                 for (const line of lines) {
@@ -263,13 +269,16 @@ async function convertText(targetType) {
                         convertedParts.push('');
                     }
                 }
+                // Join back with newlines to preserve structure within segment
+                // But wait, we want to output lines structure for renderOutput
+                // Let's store the result as text for now
                 processedSegments.push({
                     text: convertedParts.join('\n'),
                     isConverted: true,
                     mode: seg.mode
                 });
             } else {
-                // Raw (non-tag, non-converted, mode is null)
+                // Raw
                 processedSegments.push({
                     text: text,
                     isConverted: false,
@@ -433,7 +442,7 @@ function renderOutput(lines) {
 
                 let el;
                 const isParticleCandidate = ['ha', 'wa', 'は', 'わ', 'ハ', 'ワ'].includes(token);
-                const hasKanji = /[\u4e00-\u9faf]/.test(token);
+                const hasKanji = /[一-龯]/.test(token);
 
                 // Count Moras
                 if (segment.mode !== 'romaji') {
