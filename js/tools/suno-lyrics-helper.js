@@ -489,25 +489,23 @@ function renderOutput(lines) {
 
 function toggleParticleMixed(element, mode) {
     const current = element.textContent;
-
-    // Default to hiragana behavior if mode is null (raw text)
     const targetMode = mode || 'hiragana';
 
     if (targetMode === 'romaji') {
-        // Romaji: ha <-> wa
+        // Cycle: ha <-> wa
         if (current === 'ha') element.textContent = 'wa';
         else element.textContent = 'ha';
     }
     else if (targetMode === 'katakana') {
-        // Katakana: ha <-> ワ (Initial 'ハ' -> ha)
-        if (current === 'ハ') element.textContent = 'ha';
-        else if (current === 'ha') element.textContent = 'ワ';
-        else element.textContent = 'ha';
+        // Cycle: ha -> ワ -> ハ -> ワ ...
+        if (current === 'ha') element.textContent = 'ワ';
+        else if (current === 'ワ') element.textContent = 'ハ';
+        else element.textContent = 'ワ'; // from ハ
     }
-    else {
-        // Hiragana (and default): ha <-> わ (Initial 'は' -> ha)
-        if (current === 'は') element.textContent = 'ha';
-        else if (current === 'ha') element.textContent = 'わ';
-        else element.textContent = 'ha';
+    else { // hiragana
+        // Cycle: ha -> わ -> は -> わ ...
+        if (current === 'ha') element.textContent = 'わ';
+        else if (current === 'わ') element.textContent = 'は';
+        else element.textContent = 'わ'; // from は
     }
 }
