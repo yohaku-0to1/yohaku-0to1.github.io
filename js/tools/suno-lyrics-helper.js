@@ -236,9 +236,19 @@ async function convertText(targetType) {
             const text = raw.substring(seg.start, seg.end);
             if (!text) continue;
 
-            if (seg.mode) {
-                // Convert
-                // We split by newline to convert line-by-line for stability
+            if (!text) continue;
+
+            const isTag = /^\[.*?\]$/.test(text.trim()); // Check if the segment text is a tag
+
+            if (isTag) {
+                // Treat tags as raw text, never convert them
+                processedSegments.push({
+                    text: text,
+                    isConverted: false,
+                    mode: null // Tags should not have a conversion mode
+                });
+            } else if (seg.mode) { // Only convert if it's not a tag AND has a mode
+                // Convert non-tag segments
                 const lines = text.split('\n');
                 const convertedParts = [];
                 for (const line of lines) {
@@ -253,16 +263,13 @@ async function convertText(targetType) {
                         convertedParts.push('');
                     }
                 }
-                // Join back with newlines to preserve structure within segment
-                // But wait, we want to output lines structure for renderOutput
-                // Let's store the result as text for now
                 processedSegments.push({
                     text: convertedParts.join('\n'),
                     isConverted: true,
                     mode: seg.mode
                 });
             } else {
-                // Raw
+                // Raw (non-tag, non-converted, mode is null)
                 processedSegments.push({
                     text: text,
                     isConverted: false,
