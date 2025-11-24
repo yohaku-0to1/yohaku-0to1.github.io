@@ -515,24 +515,20 @@ function toggleParticleMixed(element, mode) {
     const targetMode = mode === 'romaji' ? 'romaji' : (isKatakana ? 'katakana' : 'hiragana');
 
     if (targetMode === 'romaji') {
-        // Toggle: ha <-> wa
+        // Cycle: ha <-> wa
         if (current === 'ha') element.textContent = 'wa';
         else element.textContent = 'ha';
     }
     else if (targetMode === 'katakana') {
-        // Toggle: (ha) -> ハ <-> ワ
-        if (current === 'ハ') {
-            element.textContent = 'ワ';
-        } else { // Covers 'ワ', 'ha', and any other case
-            element.textContent = 'ハ';
-        }
+        // Cycle: ha -> ワ -> ハ -> ワ ...
+        if (current === 'ha') element.textContent = 'ワ';
+        else if (current === 'ワ') element.textContent = 'ハ';
+        else element.textContent = 'ワ'; // from ハ
     }
     else { // hiragana
-        // Toggle: (ha) -> は <-> わ
-        if (current === 'は') {
-            element.textContent = 'わ';
-        } else { // Covers 'わ', 'ha', and any other case
-            element.textContent = 'は';
-        }
+        // Cycle: ha -> わ -> は -> わ ...
+        if (current === 'ha') element.textContent = 'わ';
+        else if (current === 'わ') element.textContent = 'は';
+        else element.textContent = 'わ'; // from は
     }
 }
