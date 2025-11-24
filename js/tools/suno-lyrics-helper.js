@@ -250,7 +250,6 @@ async function convertText(targetType) {
 
         for (const seg of conversionSegments) {
             const text = raw.substring(seg.start, seg.end);
-            if (!text) continue;
 
             if (seg.mode) {
                 // Convert
@@ -288,34 +287,19 @@ async function convertText(targetType) {
         }
 
         // 4. Assemble into Lines for RenderOutput
-        // We have a list of chunks (some converted, some raw) that might contain newlines.
-        // We need to flow them into a line-based structure: [[seg1, seg2], [seg3], ...]
-
         const finalLines = [];
-        let currentLineSegs = [];
-
         processedSegments.forEach(seg => {
-            const parts = seg.text.split('\n');
-            parts.forEach((part, index) => {
-                if (part) {
-                    currentLineSegs.push({
-                        text: part,
-                        isConverted: seg.isConverted,
-                        mode: seg.mode
-                    });
-                }
-
-                // If not the last part, it means we hit a newline
-                if (index < parts.length - 1) {
-                    finalLines.push(currentLineSegs);
-                    currentLineSegs = [];
-                }
-            });
+            // Each processed segment now corresponds to one output line.
+            if (seg.text || 'isConverted' in seg) { // Handle empty lines which might be converted
+                finalLines.push([{
+                    text: seg.text,
+                    isConverted: seg.isConverted,
+                    mode: seg.mode
+                }]);
+            } else {
+                finalLines.push([]); // Push an empty array for a truly empty line
+            }
         });
-        // Push the last line buffer
-        if (currentLineSegs.length > 0 || processedSegments.length === 0) { // Ensure empty lines are pushed if input was empty or ended with newline
-            finalLines.push(currentLineSegs);
-        }
 
 
         // Update state for re-rendering (rhyme toggle)
