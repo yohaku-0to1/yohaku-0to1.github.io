@@ -268,7 +268,7 @@ async function convertText(targetType) {
                         // Use 'spaced' mode for proper word boundaries, we'll handle space removal in rendering
                         const res = await kuroshiro.convert(line, {
                             to: seg.mode,
-                            mode: 'spaced',
+                            mode: 'normal',
                             romajiSystem: 'hepburn'
                         });
                         convertedParts.push(res);
