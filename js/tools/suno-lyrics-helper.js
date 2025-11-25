@@ -265,6 +265,7 @@ async function convertText(targetType) {
                 const convertedParts = [];
                 for (const line of lines) {
                     if (line) {
+                        // Use 'spaced' mode for proper word boundaries, we'll handle space removal in rendering
                         const res = await kuroshiro.convert(line, {
                             to: seg.mode,
                             mode: 'spaced',
@@ -426,7 +427,8 @@ function renderOutput(lines) {
             }
 
             // If Converted
-            const tokens = segment.text.split(' ');
+            // Split by space to get tokens (Kuroshiro's 'spaced' mode adds spaces between morphemes)
+            const tokens = segment.text.split(' ').filter(t => t); // Filter out empty strings
 
             tokens.forEach((token, tokenIndex) => {
                 if (!token) return;
@@ -496,9 +498,8 @@ function renderOutput(lines) {
                     lineDiv.appendChild(tempFragment);
                 }
 
-                // Add space between tokens based on mode and checkbox setting
-                const shouldAddSpace = !checkRemoveSpaces.checked;
-                if (shouldAddSpace && tokenIndex < tokens.length - 1) {
+                // Add space between tokens only if "remove spaces" is NOT checked
+                if (!checkRemoveSpaces.checked && tokenIndex < tokens.length - 1) {
                     lineDiv.appendChild(document.createTextNode(' '));
                 }
             });
