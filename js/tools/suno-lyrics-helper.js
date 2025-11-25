@@ -430,13 +430,19 @@ function renderOutput(lines) {
             // Handle spacing based on the "remove spaces" checkbox
             const rawText = segment.text;
             let tokens;
-            if (checkRemoveSpaces.checked) {
-                // Remove all spaces and treat as a single token
-                const noSpaceText = rawText.replace(/\s+/g, '');
-                tokens = [noSpaceText];
+            // Tokenization handling
+            if (segment.mode === 'romaji') {
+                // For romaji, keep words (spaces) as tokens.
+                if (checkRemoveSpaces.checked) {
+                    const noSpaceText = rawText.replace(/\s+/g, '');
+                    tokens = [noSpaceText];
+                } else {
+                    tokens = rawText.split(/(\s+)/).filter(t => t !== '');
+                }
             } else {
-                // Keep spaces; split into tokens preserving spaces as separate entries
-                tokens = rawText.split(/(\s+)/).filter(t => t !== '');
+                // For hiragana/katakana, split into individual characters regardless of spaces.
+                const cleaned = rawText.replace(/\s+/g, '');
+                tokens = cleaned.split('').filter(t => t !== '');
             }
 
             tokens.forEach((token, tokenIndex) => {
