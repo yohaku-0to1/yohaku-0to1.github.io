@@ -547,17 +547,17 @@ function toggleParticleMixed(element, mode) {
         // Cycle: ha <-> wa
         if (current === 'ha') element.textContent = 'wa';
         else element.textContent = 'ha';
-    }
-    else if (targetMode === 'katakana') {
-        // Cycle: ha -> ワ -> ハ -> ワ ...
-        if (current === 'ha') element.textContent = 'ワ';
-        else if (current === 'ワ') element.textContent = 'ハ';
-        else element.textContent = 'ワ'; // from ハ
-    }
-    else { // hiragana
-        // Cycle: ha -> わ -> は -> わ ...
-        if (current === 'ha') element.textContent = 'わ';
-        else if (current === 'わ') element.textContent = 'は';
-        else element.textContent = 'わ'; // from は
+    } else if (targetMode === 'katakana') {
+        // Cycle: ハ -> wa -> ワ -> ha -> ... (three states)
+        const states = ['ハ', 'ha', 'ワ'];
+        const idx = states.indexOf(current);
+        const next = states[(idx + 1) % states.length];
+        element.textContent = next;
+    } else { // hiragana
+        // Cycle: は -> ha -> わ -> ...
+        const states = ['は', 'ha', 'わ'];
+        const idx = states.indexOf(current);
+        const next = states[(idx + 1) % states.length];
+        element.textContent = next;
     }
 }
