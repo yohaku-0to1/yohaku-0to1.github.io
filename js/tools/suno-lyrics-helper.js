@@ -427,11 +427,26 @@ function renderOutput(lines) {
             }
 
             // If Converted
-            // Split by space to get tokens (Kuroshiro's 'spaced' mode adds spaces between morphemes)
-            const tokens = segment.text.split(' ').filter(t => t); // Filter out empty strings
+            // Handle spacing based on the "remove spaces" checkbox
+            const rawText = segment.text;
+            let tokens;
+            if (checkRemoveSpaces.checked) {
+                // Remove all spaces and treat as a single token
+                const noSpaceText = rawText.replace(/\s+/g, '');
+                tokens = [noSpaceText];
+            } else {
+                // Keep spaces; split into tokens preserving spaces as separate entries
+                tokens = rawText.split(/(\s+)/).filter(t => t !== '');
+            }
 
             tokens.forEach((token, tokenIndex) => {
                 if (!token) return;
+
+                // If token is only whitespace, append it directly
+                if (/^\s+$/.test(token)) {
+                    lineDiv.appendChild(document.createTextNode(token));
+                    return;
+                }
 
                 // This regex separates the main word from trailing punctuation.
                 const tokenMatch = token.match(/^([^.,!?:;。、！？\s]*)([.,!?:;。、！？\s]*)$/);
@@ -474,20 +489,17 @@ function renderOutput(lines) {
                         el.title = "クリックで読みを切り替え";
                         el.onclick = () => toggleParticleMixed(el, segment.mode);
                         tempFragment.appendChild(el);
-                        // Append punctuation if it exists
                         if (punctuation) {
                             tempFragment.appendChild(document.createTextNode(punctuation));
                         }
                     } else {
-                        // Not a particle or kanji, just append the original token
                         tempFragment.appendChild(document.createTextNode(token));
                     }
                 } else if (punctuation) {
-                    // This case handles tokens that are only punctuation
                     tempFragment.appendChild(document.createTextNode(punctuation));
                 }
 
-                // Determine where to append the fragment (either directly to the line or inside a rhyme wrapper)
+                // Append fragment (with possible rhyme wrapper)
                 const isLastTokenOfLine = segIndex === segments.length - 1 && tokenIndex === tokens.length - 1;
                 if (rhymeClass && isLastTokenOfLine) {
                     const wrapper = document.createElement('span');
@@ -497,11 +509,7 @@ function renderOutput(lines) {
                 } else {
                     lineDiv.appendChild(tempFragment);
                 }
-
-                // Add space between tokens only if "remove spaces" is NOT checked
-                if (!checkRemoveSpaces.checked && tokenIndex < tokens.length - 1) {
-                    lineDiv.appendChild(document.createTextNode(' '));
-                }
+                // No extra space handling needed; spaces are already in tokens when needed.
             });
         });
 
