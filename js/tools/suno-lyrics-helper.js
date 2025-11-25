@@ -440,9 +440,15 @@ function renderOutput(lines) {
                     tokens = rawText.split(/(\s+)/).filter(t => t !== '');
                 }
             } else {
-                // For hiragana/katakana, split into individual characters regardless of spaces.
-                const cleaned = rawText.replace(/\s+/g, '');
-                tokens = cleaned.split('').filter(t => t !== '');
+                // For hiragana/katakana, handle spaces based on checkbox.
+                if (checkRemoveSpaces.checked) {
+                    // Remove all spaces and split into characters.
+                    const cleaned = rawText.replace(/\s+/g, '');
+                    tokens = cleaned.split('').filter(t => t !== '');
+                } else {
+                    // Preserve spaces, split each character and keep spaces as separate tokens.
+                    tokens = rawText.split('').filter(t => t !== '');
+                }
             }
 
             tokens.forEach((token, tokenIndex) => {
