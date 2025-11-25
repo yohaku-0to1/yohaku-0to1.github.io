@@ -20,6 +20,7 @@ const clearBtn = document.getElementById('clear-input');
 const charCount = document.getElementById('char-count');
 const loadingIndicator = document.getElementById('loading-indicator');
 const checkRhyme = document.getElementById('check-rhyme');
+const checkRemoveSpaces = document.getElementById('check-remove-spaces');
 const saveStatus = document.getElementById('save-status');
 
 // Initialize Kuroshiro
@@ -112,6 +113,12 @@ inputText.addEventListener('input', () => {
 checkRhyme.addEventListener('change', () => {
     if (lastConvertedLines.length > 0) {
         renderOutput(lastConvertedLines); // No targetType needed here anymore
+    }
+});
+
+checkRemoveSpaces.addEventListener('change', () => {
+    if (lastConvertedLines.length > 0) {
+        renderOutput(lastConvertedLines);
     }
 });
 
@@ -489,8 +496,9 @@ function renderOutput(lines) {
                     lineDiv.appendChild(tempFragment);
                 }
 
-                // Add space between tokens in romaji mode
-                if (segment.mode === 'romaji' && tokenIndex < tokens.length - 1) {
+                // Add space between tokens based on mode and checkbox setting
+                const shouldAddSpace = !checkRemoveSpaces.checked;
+                if (shouldAddSpace && tokenIndex < tokens.length - 1) {
                     lineDiv.appendChild(document.createTextNode(' '));
                 }
             });
