@@ -58,6 +58,24 @@
 -   `main`ブランチへの変更が`push`されると、自動的に`https://yohaku-0to1.github.io/`にデプロイされます。
 -   `push`操作は、開発の大きな区切りがついた段階で、必ずユーザーの許可を得てから実行します。
 
+## 5. ローカル専用ツール: Audio Splitter
+
+GitHub PagesではCOOP/COEPヘッダーを付けられずFFmpeg.wasmが動かないため、このツールはローカル専用です。
+
+- 目的: 長尺音声(MP3/WAV/M4A/OGGなど)をプレビューしながら等分割・任意分割して書き出す。
+- 対応: ブラウザ内で完結。再エンコードまたはコピーに対応。
+- アクセス: `tools/audio-splitter.html` をローカルサーバ経由で開く。
+
+### 起動手順
+1. ルートでヘッダー付きサーバを起動  
+   `python3 tools/local_server.py --port 8000 --dir .`
+2. ブラウザで `http://localhost:8000/tools/audio-splitter.html` を開く。
+3. 音声を読み込み、分割プランを作成 → 書き出し。
+
+### 注意
+- COOP/COEPヘッダーが必須のため、GitHub Pages上では動作しません。
+- 大きなファイルは処理に時間がかかるため、ブラウザを閉じないようにしてください。
+
 ## 4. Geminiの役割
 
 私、Geminiは、このプロジェクトにおいて以下のような役割を担うAI開発パートナーです。
