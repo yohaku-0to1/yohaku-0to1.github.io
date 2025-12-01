@@ -28,9 +28,16 @@
     const downloadArea = document.getElementById('downloadArea');
     const downloadList = document.getElementById('downloadList');
     const downloadZip = document.getElementById('downloadZip');
+    const batchSection = document.getElementById('batchSection');
+    const batchInfo = document.getElementById('batchInfo');
+    const batchList = document.getElementById('batchList');
+    const batchSummary = document.getElementById('batchSummary');
+    const batchOutputFormat = document.getElementById('batchOutputFormat');
+    const batchExportButton = document.getElementById('batchExportButton');
 
     let audioFile = null;
     let audioDuration = 0;
+    let batchFiles = [];
     let splitPoints = [];
     let ffmpeg = null;
     let ffmpegReady = false;
@@ -326,6 +333,32 @@
         return 'audio/mpeg';
     };
 
+    const getAudioDurationFromFile = (file) =>
+        new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const audio = new Audio();
+            const cleanup = () => URL.revokeObjectURL(url);
+            audio.addEventListener(
+                'loadedmetadata',
+                () => {
+                    const { duration } = audio;
+                    cleanup();
+                    resolve(duration);
+                },
+                { once: true }
+            );
+            audio.addEventListener(
+                'error',
+                () => {
+                    cleanup();
+                    reject(new Error('音声の長さを取得できませんでした'));
+                },
+                { once: true }
+            );
+            audio.preload = 'metadata';
+            audio.src = url;
+        });
+
     const derivePrefixFromFileName = (name) => {
         if (!name) return 'segment';
         const dot = name.lastIndexOf('.');
@@ -337,6 +370,55 @@
         const inputValue = filenamePrefix.value.trim();
         if (inputValue) return inputValue;
         return derivePrefixFromFileName(audioFile?.name);
+    };
+
+    const renderBatchList = () => {
+        batchList.innerHTML = '';
+        if (!batchFiles.length) {
+            batchList.innerHTML = '<p class="text-slate-500 text-sm">ファイルを追加すると一覧が表示されます。</p>';
+            batchSummary.textContent = '';
+            batchExportButton.disabled = true;
+            return;
+        }
+        const totalMB = batchFiles.reduce((sum, f) => sum + f.size, 0) / (1024 * 1024);
+        batchSummary.textContent = `${batchFiles.length}件 / 合計 ${totalMB.toFixed(1)} MB`;
+        batchExportButton.disabled = false;
+        batchFiles.forEach((file, index) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between border border-slate-800 rounded-lg px-3 py-2 bg-slate-900/40';
+            row.innerHTML = `
+                <div>
+                    <p class="font-semibold text-sm">${file.name}</p>
+                    <p class="text-xs text-slate-500">${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <span class="text-xs text-slate-400">#${index + 1}</span>
+            `;
+            batchList.appendChild(row);
+        });
+    };
+
+    const handleBatchFiles = (files) => {
+        const arr = Array.from(files || []).filter((f) => {
+            if (!f) return false;
+            if (f.type && f.type.startsWith('audio')) return true;
+            const ext = getExt(f.name);
+            return ['mp3', 'wav', 'm4a', 'ogg'].includes(ext);
+        });
+        if (!arr.length) {
+            alert('音声ファイルを選択してください。');
+            return;
+        }
+        batchFiles = arr;
+        batchSection.classList.remove('hidden');
+        batchInfo.classList.remove('hidden');
+        batchInfo.innerHTML = `
+            <div class="flex flex-wrap gap-3">
+                <span class="tag">キューに追加: ${arr.length}件</span>
+                <span class="tag">ドラッグ&ドロップで複数追加できます</span>
+                <span class="tag">各ファイルを2等分して出力</span>
+            </div>
+        `;
+        renderBatchList();
     };
 
     const buildCommand = ({ input, output, start, duration, format }) => {
@@ -429,6 +511,78 @@
         }
     };
 
+    const runBatchExport = async () => {
+        if (!batchFiles.length) {
+            alert('先に音声ファイルを追加してください。');
+            return;
+        }
+        resetOutputs();
+        batchExportButton.disabled = true;
+        progressArea.classList.remove('hidden');
+        progressText.textContent = '準備中...';
+        progressBar.style.width = '0%';
+
+        try {
+            await ensureFFmpeg();
+            const { fetchFile } = window.FFmpeg;
+            const format = batchOutputFormat.value;
+            let processed = 0;
+            for (let i = 0; i < batchFiles.length; i += 1) {
+                const file = batchFiles[i];
+                progressText.textContent = `長さを取得中... (${i + 1}/${batchFiles.length})`;
+                // eslint-disable-next-line no-await-in-loop
+                const duration = await getAudioDurationFromFile(file);
+                const safeDuration = Math.max(duration || 0, 0.01);
+                const mid = safeDuration / 2;
+                const segments = [
+                    { start: 0, end: mid },
+                    { start: mid, end: safeDuration }
+                ];
+                const inputName = `batch_${Date.now()}_${i}.${getExt(file.name)}`;
+                const targetExt = format === 'source' ? getExt(file.name) : format;
+                const prefix = derivePrefixFromFileName(file.name);
+
+                // eslint-disable-next-line no-await-in-loop
+                ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+
+                for (let j = 0; j < segments.length; j += 1) {
+                    const seg = segments[j];
+                    const segDuration = Math.max(0.01, seg.end - seg.start);
+                    const outputName = `${prefix}_${String(j + 1).padStart(2, '0')}.${targetExt}`;
+                    const cmd = buildCommand({
+                        input: inputName,
+                        output: outputName,
+                        start: seg.start,
+                        duration: segDuration,
+                        format
+                    });
+                    progressText.textContent = `処理中... (${i + 1}/${batchFiles.length}) Part ${j + 1}/2`;
+                    // eslint-disable-next-line no-await-in-loop
+                    await ffmpeg.run(...cmd);
+                    // eslint-disable-next-line no-await-in-loop
+                    const data = ffmpeg.FS('readFile', outputName);
+                    const blob = new Blob([data.buffer], { type: getMime(targetExt) });
+                    const url = URL.createObjectURL(blob);
+                    outputs.push({ name: outputName, url, size: data.length, data });
+                    ffmpeg.FS('unlink', outputName);
+                    const ratio = Math.round(((processed + (j + 1) / segments.length) / batchFiles.length) * 100);
+                    progressBar.style.width = `${ratio}%`;
+                }
+                ffmpeg.FS('unlink', inputName);
+                processed += 1;
+            }
+            progressText.textContent = '完了しました！';
+            renderDownloads();
+        } catch (err) {
+            console.error(err);
+            alert('一括書き出しに失敗しました。ページをリロードして再度お試しください。');
+            progressText.textContent = 'エラーが発生しました。';
+        } finally {
+            batchExportButton.disabled = false;
+            setTimeout(() => progressArea.classList.add('hidden'), 1200);
+        }
+    };
+
     const handleZipDownload = async () => {
         if (outputs.length === 0) return;
         if (!window.JSZip) {
@@ -460,6 +614,8 @@
 
     const handleFileChange = (file) => {
         if (!file) return;
+        batchFiles = [];
+        renderBatchList();
         audioFile = file;
         filenamePrefix.value = derivePrefixFromFileName(file.name);
         clearObjectUrl();
@@ -482,14 +638,25 @@
 
     const handleDrop = (event) => {
         event.preventDefault();
-        const dropped = event.dataTransfer.files[0];
-        if (dropped) {
-            handleFileChange(dropped);
+        const { files } = event.dataTransfer;
+        if (!files || files.length === 0) return;
+        if (files.length === 1) {
+            handleFileChange(files[0]);
+        } else {
+            handleBatchFiles(files);
         }
     };
 
     const init = () => {
-        fileInput.addEventListener('change', (e) => handleFileChange(e.target.files[0]));
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (!files || !files.length) return;
+            if (files.length === 1) {
+                handleFileChange(files[0]);
+            } else {
+                handleBatchFiles(files);
+            }
+        });
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', handleDrop);
 
@@ -514,6 +681,7 @@
         resetMarkers.addEventListener('click', () => setSplitPoints([]));
         exportButton.addEventListener('click', runExport);
         downloadZip.addEventListener('click', handleZipDownload);
+        batchExportButton.addEventListener('click', runBatchExport);
     };
 
     init();

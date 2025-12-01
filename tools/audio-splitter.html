@@ -107,11 +107,44 @@
                     </div>
                 </div>
                 <label class="border-2 border-dashed border-slate-600 rounded-2xl p-6 text-center cursor-pointer hover:border-sky-400 transition">
-                    <input type="file" id="audioFileInput" accept="audio/*" class="hidden">
+                    <input type="file" id="audioFileInput" accept="audio/*" multiple class="hidden">
                     <div class="text-lg text-slate-200">ここをクリックしてファイルを選択</div>
-                    <div class="text-sm text-slate-500 mt-2">ドラッグ&ドロップもできます</div>
+                    <div class="text-sm text-slate-500 mt-2">ドラッグ&ドロップもできます（複数可）</div>
                 </label>
                 <div id="fileInfo" class="hidden bg-slate-800/60 border border-slate-700 rounded-xl p-4 text-sm space-y-1"></div>
+            </div>
+        </section>
+
+        <section id="batchSection" class="glass card mt-4 hidden">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="accent w-10 h-10 rounded-2xl flex items-center justify-center text-white font-semibold">1B</div>
+                <div>
+                    <h2 class="text-xl font-semibold text-white">複数ファイルを2分割で一括処理</h2>
+                    <p class="text-slate-400 text-sm">複数ファイルをドロップ/選択すると自動で2等分のキューに追加されます。</p>
+                </div>
+            </div>
+            <div id="batchInfo" class="hidden bg-slate-800/60 border border-slate-700 rounded-xl p-3 text-sm space-y-2"></div>
+            <div class="grid md:grid-cols-3 gap-4 mt-3">
+                <div class="md:col-span-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-semibold">キュー</h3>
+                        <span id="batchSummary" class="text-sm text-slate-400"></span>
+                    </div>
+                    <div id="batchList" class="bg-slate-900/40 border border-slate-800 rounded-xl p-3 text-sm space-y-2 max-h-56 overflow-auto">
+                        <p class="text-slate-500 text-sm">ファイルを追加すると一覧が表示されます。</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm text-slate-400 block mb-1">出力フォーマット（全ファイル共通）</label>
+                        <select id="batchOutputFormat" class="input">
+                            <option value="source">元ファイルと同じ</option>
+                            <option value="mp3">MP3 (192kbps)</option>
+                            <option value="wav">WAV (16bit)</option>
+                        </select>
+                    </div>
+                    <button id="batchExportButton" class="accent text-white font-semibold w-full rounded-xl py-3 shadow-lg shadow-sky-900/50 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>キューを2分割で書き出す</button>
+                </div>
             </div>
         </section>
 
