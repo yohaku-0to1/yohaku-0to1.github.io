@@ -326,6 +326,19 @@
         return 'audio/mpeg';
     };
 
+    const derivePrefixFromFileName = (name) => {
+        if (!name) return 'segment';
+        const dot = name.lastIndexOf('.');
+        if (dot <= 0) return name;
+        return name.slice(0, dot);
+    };
+
+    const getPrefixValue = () => {
+        const inputValue = filenamePrefix.value.trim();
+        if (inputValue) return inputValue;
+        return derivePrefixFromFileName(audioFile?.name);
+    };
+
     const buildCommand = ({ input, output, start, duration, format }) => {
         const startStr = start.toFixed(3);
         const durStr = duration.toFixed(3);
@@ -378,7 +391,7 @@
             const inputName = `input_${Date.now()}.${getExt(audioFile.name)}`;
             const format = outputFormat.value;
             const targetExt = format === 'source' ? getExt(audioFile.name) : format;
-            const prefix = filenamePrefix.value.trim() || 'segment';
+            const prefix = getPrefixValue();
 
             ffmpeg.FS('writeFile', inputName, await fetchFile(audioFile));
 
@@ -431,7 +444,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${filenamePrefix.value || 'segments'}.zip`;
+            a.download = `${getPrefixValue() || 'segments'}.zip`;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -448,6 +461,7 @@
     const handleFileChange = (file) => {
         if (!file) return;
         audioFile = file;
+        filenamePrefix.value = derivePrefixFromFileName(file.name);
         clearObjectUrl();
         objectUrl = URL.createObjectURL(file);
         audioPlayer.src = objectUrl;
