@@ -60,6 +60,7 @@
                     <h2 class="text-xl font-semibold text-white mb-4">スタンプ画像</h2>
                     <p class="text-sm text-gray-400 mb-4">画像ファイルを選択、またはここにドラッグ＆ドロップしてください。</p>
                     <input type="file" id="imageUpload" accept="image/png, image/jpeg" multiple class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                    <button id="clear-all-stamps" class="btn w-full mt-3 bg-red-600 hover:bg-red-700 text-sm py-2">すべてリセット</button>
                     <div id="stamp-list" class="mt-4 grid grid-cols-3 gap-2 min-h-[74px] bg-gray-900/50 rounded-lg p-2">
                         <!-- スタンプのサムネイルがここに表示されます -->
                     </div>
@@ -153,6 +154,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
     <script src="../js/tools/line-stamp-editor.js"></script>
 </body>
 </html>

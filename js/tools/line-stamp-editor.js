@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyFontAllButton = document.getElementById('apply-font-all');
     const downloadZipButton = document.getElementById('download-zip');
     const downloadSingleButton = document.getElementById('download-single');
+    const clearAllButton = document.getElementById('clear-all-stamps');
     
     const mainImageCanvasEl = document.getElementById('main-image-canvas');
     const tabImageCanvasEl = document.getElementById('tab-image-canvas');
@@ -31,9 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let tabImageIndex = -1;
     let selfieSegmentation;
     let isApplyingChanges = false; // UI更新の無限ループを防ぐフラグ
+    const DB_NAME = 'line-stamp-editor';
+    const DB_STORE = 'session';
+    const DB_VERSION = 1;
+    const MAIN_EXPORT_SIZE = { width: 240, height: 240 };
+    const TAB_EXPORT_SIZE = { width: 96, height: 74 };
+    let dbPromise;
+    let persistTimer;
 
     // --- 初期化 ---
-    function initialize() {
+    async function initialize() {
+        dbPromise = idb.openDB(DB_NAME, DB_VERSION, {
+            upgrade(db) {
+                if (!db.objectStoreNames.contains(DB_STORE)) {
+                    db.createObjectStore(DB_STORE);
+                }
+            },
+        });
+
         fabricCanvas = new fabric.Canvas('main-canvas', {
             backgroundColor: '#374151', // 背景色を少し明るく
             preserveObjectStacking: true,
@@ -42,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeMediaPipe();
         setupEventListeners();
         setupFabricListeners();
+        await restoreSession();
     }
 
     function initializeMediaPipe() {
@@ -85,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadSingleButton.addEventListener('click', downloadSingleStamp);
         downloadZipButton.addEventListener('click', downloadAsZip);
         removeBackgroundButton.addEventListener('click', removeBackground);
+        clearAllButton.addEventListener('click', clearAllStamps);
     }
 
     function setupFabricListeners() {
@@ -108,10 +126,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    function schedulePersist() {
+        clearTimeout(persistTimer);
+        persistTimer = setTimeout(persistSession, 400);
+    }
+
+    async function persistSession() {
+        if (!dbPromise) return;
+        try {
+            const db = await dbPromise;
+            await db.put(DB_STORE, {
+                stamps,
+                mainImageIndex,
+                tabImageIndex,
+                activeStampIndex,
+            }, 'state');
+        } catch (error) {
+            console.error('Failed to persist session', error);
+        }
+    }
+
+    async function restoreSession() {
+        try {
+            const db = await dbPromise;
+            const state = await db.get(DB_STORE, 'state');
+            if (!state || !state.stamps || state.stamps.length === 0) return;
+            stamps = state.stamps;
+            mainImageIndex = state.mainImageIndex ?? -1;
+            tabImageIndex = state.tabImageIndex ?? -1;
+            activeStampIndex = -1;
+            await redrawStampList();
+            const targetIndex = (typeof state.activeStampIndex === 'number' && stamps[state.activeStampIndex]) ? state.activeStampIndex : 0;
+            setActiveStamp(targetIndex);
+        } catch (error) {
+            console.error('Failed to restore session', error);
+        }
+    }
     
     function saveState() {
         if (activeStampIndex !== -1 && stamps[activeStampIndex]) {
             stamps[activeStampIndex].fabricState = fabricCanvas.toJSON();
+            if (activeStampIndex === mainImageIndex || activeStampIndex === tabImageIndex) {
+                redrawSpecialCanvases();
+            }
+            schedulePersist();
         }
     }
 
@@ -254,6 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        schedulePersist();
+        redrawSpecialCanvases();
         loadingOverlay.classList.add('hidden');
         alert('すべてのスタンプにフォント設定を適用しました。');
     }
@@ -310,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fabricCanvas.clear();
         clearUIControls();
         redrawSpecialCanvases();
+        schedulePersist();
         appendImages(files);
     }
 
@@ -338,6 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (stamps.length === 1) {
                         setActiveStamp(0);
                     }
+                    schedulePersist();
                 };
                 img.src = event.target.result;
             };
@@ -377,6 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 fabricCanvas.setActiveObject(textObject);
             }
             // The 'selection:created' event will fire here, calling updateUIControls
+            saveState();
+            schedulePersist();
         };
 
         if (activeStamp.fabricState) {
@@ -460,9 +525,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         redrawStampList();
+        schedulePersist();
     }
 
-    function redrawStampList() {
+    async function clearAllStamps() {
+        const confirmed = confirm('アップロードした画像と編集内容をすべて削除します。よろしいですか？');
+        if (!confirmed) return;
+        
+        stamps = [];
+        activeStampIndex = -1;
+        mainImageIndex = -1;
+        tabImageIndex = -1;
+        stampListContainer.innerHTML = '';
+        fabricCanvas.clear();
+        clearUIControls();
+        redrawSpecialCanvases();
+        await persistSession();
+    }
+
+    async function redrawStampList() {
         stampListContainer.innerHTML = '';
         if (stamps.length === 0) {
             fabricCanvas.clear();
@@ -470,17 +551,29 @@ document.addEventListener('DOMContentLoaded', () => {
             redrawSpecialCanvases();
             return;
         }
-        stamps.forEach((stamp, index) => {
+        for (let index = 0; index < stamps.length; index++) {
+            const stamp = stamps[index];
             const img = new Image();
-            img.onload = () => {
-                createThumbnail(img, index);
-                if (index === activeStampIndex) {
-                    const activeItem = stampListContainer.querySelector(`[data-index="${index}"]`);
-                    if (activeItem) activeItem.classList.add('border-emerald-400');
-                }
-            };
-            img.src = stamp.originalImageSrc;
-        });
+            try {
+                const previewSrc = stamp.fabricState
+                    ? await getStampPreviewDataURL(index, 96, 74)
+                    : stamp.originalImageSrc;
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = previewSrc;
+                });
+            } catch (error) {
+                console.error('Failed to build thumbnail', error);
+                img.src = stamp.originalImageSrc;
+            }
+
+            createThumbnail(img, index);
+            if (index === activeStampIndex) {
+                const activeItem = stampListContainer.querySelector(`[data-index="${index}"]`);
+                if (activeItem) activeItem.classList.add('border-emerald-400');
+            }
+        }
         redrawSpecialCanvases();
     }
 
@@ -512,29 +605,18 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState(); // 現在の作業を保存
 
         const zip = new JSZip();
-        const tempCanvas = new fabric.StaticCanvas(null, { width: 370, height: 320 });
 
         for (let i = 0; i < stamps.length; i++) {
-            const stamp = stamps[i];
-            await new Promise(resolve => {
-                tempCanvas.loadFromJSON(stamp.fabricState, () => {
-                    const dataURL = tempCanvas.toDataURL({ format: 'png' });
-                    zip.file(`${String(i + 1).padStart(2, '0')}.png`, dataURL.split(',')[1], { base64: true });
-                    resolve();
-                });
-            });
+            const canvas = await getStampCanvasFromState(stamps[i]);
+            const dataURL = canvas.toDataURL({ format: 'png' });
+            zip.file(`${String(i + 1).padStart(2, '0')}.png`, dataURL.split(',')[1], { base64: true });
         }
 
-        // メイン・タブ画像
-        const mainImg = new Image();
-        mainImg.src = stamps[mainImageIndex].originalImageSrc;
-        await new Promise(r => mainImg.onload = r);
-        zip.file('main.png', await getFittedImageBlob(mainImg, 240, 240));
-
-        const tabImg = new Image();
-        tabImg.src = stamps[tabImageIndex].originalImageSrc;
-        await new Promise(r => tabImg.onload = r);
-        zip.file('tab.png', await getFittedImageBlob(tabImg, 96, 74));
+        // メイン・タブ画像（編集後の状態を使用）
+        const mainDataURL = await getStampPreviewDataURL(mainImageIndex, MAIN_EXPORT_SIZE.width, MAIN_EXPORT_SIZE.height);
+        const tabDataURL = await getStampPreviewDataURL(tabImageIndex, TAB_EXPORT_SIZE.width, TAB_EXPORT_SIZE.height);
+        zip.file('main.png', mainDataURL.split(',')[1], { base64: true });
+        zip.file('tab.png', tabDataURL.split(',')[1], { base64: true });
 
         const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
@@ -543,16 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         URL.revokeObjectURL(link.href);
         loadingOverlay.classList.add('hidden');
-    }
-
-    async function getFittedImageBlob(image, width, height) {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        const fit = fitImageToCanvas(image, canvas);
-        ctx.drawImage(image, fit.offset.x, fit.offset.y, fit.width, fit.height);
-        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
 
     // --- ユーティリティ ---
@@ -572,28 +644,92 @@ document.addEventListener('DOMContentLoaded', () => {
         return { width, height, offset: { x, y } };
     }
 
-    function redrawSpecialCanvases() {
-        const mainCtx = mainImageCanvasEl.getContext('2d');
-        mainCtx.clearRect(0, 0, mainImageCanvasEl.width, mainImageCanvasEl.height);
-        if (mainImageIndex !== -1) {
-            const img = new Image();
-            img.onload = () => {
-                const fit = fitImageToCanvas(img, mainImageCanvasEl);
-                mainCtx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
-            };
-            img.src = stamps[mainImageIndex].originalImageSrc;
-        }
+    async function getStampCanvasFromState(stamp) {
+        const tempCanvas = new fabric.StaticCanvas(null, { width: 370, height: 320 });
+        if (stamp.fabricState) {
+            await new Promise(resolve => {
+                tempCanvas.loadFromJSON(stamp.fabricState, () => {
+                    tempCanvas.renderAll();
+                    resolve();
+                });
+            });
+        } else {
+            await new Promise(resolve => {
+                fabric.Image.fromURL(stamp.originalImageSrc, (fabricImage) => {
+                    const canvasAspect = tempCanvas.width / tempCanvas.height;
+                    const imageAspect = fabricImage.width / fabricImage.height;
+                    let scale = (imageAspect > canvasAspect) ? tempCanvas.width / fabricImage.width : tempCanvas.height / fabricImage.height;
+                    
+                    fabricImage.scale(scale * 0.9);
+                    tempCanvas.add(fabricImage);
+                    fabricImage.center();
 
-        const tabCtx = tabImageCanvasEl.getContext('2d');
-        tabCtx.clearRect(0, 0, tabImageCanvasEl.width, tabImageCanvasEl.height);
-        if (tabImageIndex !== -1) {
-            const img = new Image();
-            img.onload = () => {
-                const fit = fitImageToCanvas(img, tabImageCanvasEl);
-                tabCtx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
-            };
-            img.src = stamps[tabImageIndex].originalImageSrc;
+                    const text = new fabric.IText('テキストを入力', {
+                        top: tempCanvas.height * 0.8,
+                        left: tempCanvas.width / 2,
+                        originX: 'center',
+                        fontSize: 40,
+                        fontFamily: "'M PLUS Rounded 1c', sans-serif",
+                        fill: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 2,
+                        paintFirst: 'stroke',
+                    });
+                    tempCanvas.add(text);
+                    tempCanvas.renderAll();
+                    resolve();
+                }, { crossOrigin: 'anonymous' });
+            });
+            stamp.fabricState = tempCanvas.toJSON();
+            schedulePersist();
         }
+        return tempCanvas;
+    }
+
+    async function getStampPreviewDataURL(index, targetWidth, targetHeight) {
+        const stamp = stamps[index];
+        const canvas = await getStampCanvasFromState(stamp);
+        const baseDataURL = canvas.toDataURL({ format: 'png' });
+        if (!targetWidth || !targetHeight) return baseDataURL;
+
+        const resizeCanvas = document.createElement('canvas');
+        resizeCanvas.width = targetWidth;
+        resizeCanvas.height = targetHeight;
+        const ctx = resizeCanvas.getContext('2d');
+        const img = await loadImage(baseDataURL);
+        const fit = fitImageToCanvas(img, resizeCanvas);
+        ctx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
+        return resizeCanvas.toDataURL('image/png');
+    }
+
+    async function redrawSpecialCanvases() {
+        await Promise.all([
+            drawStampPreview(mainImageIndex, mainImageCanvasEl),
+            drawStampPreview(tabImageIndex, tabImageCanvasEl),
+        ]);
+    }
+
+    async function drawStampPreview(stampIndex, targetCanvas) {
+        const ctx = targetCanvas.getContext('2d');
+        ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+        if (stampIndex === -1 || !stamps[stampIndex]) return;
+        try {
+            const dataURL = await getStampPreviewDataURL(stampIndex, targetCanvas.width, targetCanvas.height);
+            const img = await loadImage(dataURL);
+            const fit = fitImageToCanvas(img, targetCanvas);
+            ctx.drawImage(img, fit.offset.x, fit.offset.y, fit.width, fit.height);
+        } catch (error) {
+            console.error('Failed to draw stamp preview', error);
+        }
+    }
+
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
     }
     
     function showContextMenu(x, y, index) {
@@ -617,6 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             mainImageIndex = index;
             redrawSpecialCanvases();
+            schedulePersist();
             closeMenu();
         };
 
@@ -627,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             tabImageIndex = index;
             redrawSpecialCanvases();
+            schedulePersist();
             closeMenu();
         };
 
