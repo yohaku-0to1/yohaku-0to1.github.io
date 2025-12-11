@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const strokeWidthInput = document.getElementById("stroke-width");
   const strokeColorInput = document.getElementById("stroke-color");
   const imageScale = document.getElementById("image-scale");
+  const imageScaleNumber = document.getElementById("image-scale-number");
 
   const resetImageButton = document.getElementById("reset-image");
   const removeBackgroundButton = document.getElementById("remove-background");
@@ -111,7 +112,70 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isApplyingChanges) return;
       const imageObject = fabricCanvas.getObjects("image")[0];
       if (imageObject) {
-        imageObject.scale(parseFloat(e.target.value));
+        const value = parseFloat(e.target.value);
+        imageObject.scale(value);
+        imageScaleNumber.value = value;
+        fabricCanvas.renderAll();
+        saveState();
+      }
+    });
+
+    // 数値入力でのスケール変更
+    imageScaleNumber.addEventListener("input", (e) => {
+      if (isApplyingChanges) return;
+      const imageObject = fabricCanvas.getObjects("image")[0];
+      if (imageObject) {
+        let value = parseFloat(e.target.value);
+        // 範囲外の値を制限
+        if (value < 0.1) value = 0.1;
+        if (value > 3) value = 3;
+        imageObject.scale(value);
+        imageScale.value = value;
+        fabricCanvas.renderAll();
+        saveState();
+      }
+    });
+
+    // キーボード矢印キーで選択中のオブジェクトを1px移動
+    document.addEventListener("keydown", (e) => {
+      const activeObject = fabricCanvas.getActiveObject();
+      if (!activeObject) return;
+
+      // テキスト入力中は無視
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA")
+      ) {
+        return;
+      }
+
+      let moved = false;
+      const step = 1; // 1ピクセル移動
+
+      switch (e.key) {
+        case "ArrowUp":
+          activeObject.set("top", activeObject.top - step);
+          moved = true;
+          break;
+        case "ArrowDown":
+          activeObject.set("top", activeObject.top + step);
+          moved = true;
+          break;
+        case "ArrowLeft":
+          activeObject.set("left", activeObject.left - step);
+          moved = true;
+          break;
+        case "ArrowRight":
+          activeObject.set("left", activeObject.left + step);
+          moved = true;
+          break;
+      }
+
+      if (moved) {
+        e.preventDefault();
+        activeObject.setCoords();
         fabricCanvas.renderAll();
         saveState();
       }
@@ -145,6 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target.type === "image") {
           isApplyingChanges = true;
           imageScale.value = e.target.scaleX;
+          imageScaleNumber.value = e.target.scaleX;
           isApplyingChanges = false;
         }
       },
@@ -212,7 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Image Actions ---
   async function resetActiveStamp() {
     if (activeStampIndex === -1) return;
-    const confirmed = await showConfirmDialog("現在のスタンプへの変更をリセットしますか？");
+    const confirmed = await showConfirmDialog(
+      "現在のスタンプへの変更をリセットしますか？"
+    );
     if (confirmed) {
       stamps[activeStampIndex].fabricState = null;
       // Re-load the stamp to reset its state on the canvas
@@ -393,6 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
       strokeColorInput.value = activeObject.stroke;
     } else if (activeObject.type === "image") {
       imageScale.value = activeObject.scaleX;
+      imageScaleNumber.value = activeObject.scaleX;
     }
     isApplyingChanges = false;
   }
@@ -406,6 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
     strokeWidthInput.value = 2;
     strokeColorInput.value = "#000000";
     imageScale.value = 1;
+    imageScaleNumber.value = 1;
     isApplyingChanges = false;
   }
 
@@ -489,6 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (imageObject) {
         isApplyingChanges = true;
         imageScale.value = imageObject.scaleX;
+        imageScaleNumber.value = imageObject.scaleX;
         isApplyingChanges = false;
       }
 
