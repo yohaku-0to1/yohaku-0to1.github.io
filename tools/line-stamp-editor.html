@@ -1,160 +1,346 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LINEスタンプ用画像編集ツール</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Google Analytics Tracking Code -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1GQRC5L80E"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-1GQRC5L80E"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-1GQRC5L80E');
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-1GQRC5L80E");
     </script>
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Kiwi+Maru&family=M+PLUS+Rounded+1c:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=RocknRoll+One&family=Yusei+Magic&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Kiwi+Maru&family=M+PLUS+Rounded+1c:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=RocknRoll+One&family=Yusei+Magic&display=swap"
+      rel="stylesheet"
+    />
     <!-- Fabric.js -->
     <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
     <!-- MediaPipe Selfie Segmentation -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"
+      crossorigin="anonymous"
+    ></script>
     <style>
-        /* カスタムスタイル */
-        body { font-family: 'Noto Sans JP', sans-serif; background-color: #111827; }
-        .card { background-color: #1f2937; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-        .btn { background-color: #10b981; color: white; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.2s; }
-        .btn:hover { background-color: #059669; }
-        .btn:disabled { background-color: #4b5563; cursor: not-allowed; }
-        .form-input { background-color: #374151; border: 1px solid #4b5563; color: white; border-radius: 0.375rem; padding: 0.5rem 0.75rem; width: 100%; }
-        .form-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 2px #10b981; }
-        .form-label { margin-bottom: 0.5rem; display: block; font-weight: 500; }
-        #main-canvas { border: 2px dashed #4b5563; }
-        .stamp-item { transition: border-color 0.2s; }
+      /* カスタムスタイル */
+      body {
+        font-family: "Noto Sans JP", sans-serif;
+        background-color: #111827;
+      }
+      .card {
+        background-color: #1f2937;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .btn {
+        background-color: #10b981;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .btn:hover {
+        background-color: #059669;
+      }
+      .btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+      .form-input {
+        background-color: #374151;
+        border: 1px solid #4b5563;
+        color: white;
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        width: 100%;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px #10b981;
+      }
+      .form-label {
+        margin-bottom: 0.5rem;
+        display: block;
+        font-weight: 500;
+      }
+      #main-canvas {
+        border: 2px dashed #4b5563;
+      }
+      .stamp-item {
+        transition: border-color 0.2s;
+      }
     </style>
-</head>
-<body class="text-gray-200">
-    <div id="loading-overlay" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
-        <div class="text-white text-2xl font-bold">
-            処理中...
-        </div>
+  </head>
+  <body class="text-gray-200">
+    <div
+      id="loading-overlay"
+      class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center"
+    >
+      <div class="text-white text-2xl font-bold">処理中...</div>
     </div>
-    <div id="drag-overlay" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
-        <div class="text-white text-2xl font-bold border-4 border-dashed border-white rounded-2xl p-12">
-            画像をドロップ
+    <div
+      id="drag-overlay"
+      class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center"
+    >
+      <div
+        class="text-white text-2xl font-bold border-4 border-dashed border-white rounded-2xl p-12"
+      >
+        画像をドロップ
+      </div>
+    </div>
+    <!-- カスタム確認ダイアログ -->
+    <div
+      id="confirm-modal"
+      class="fixed inset-0 bg-black/70 z-[60] hidden items-center justify-center"
+    >
+      <div class="bg-gray-800 rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+        <p id="confirm-message" class="text-white text-lg mb-6 text-center"></p>
+        <div class="flex gap-4 justify-center">
+          <button
+            type="button"
+            id="confirm-cancel"
+            class="btn bg-gray-600 hover:bg-gray-700 px-6"
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            id="confirm-ok"
+            class="btn bg-red-600 hover:bg-red-700 px-6"
+          >
+            OK
+          </button>
         </div>
+      </div>
     </div>
     <div class="container mx-auto max-w-7xl p-4 md:p-8">
-        <h1 class="text-3xl font-bold text-center text-white mb-6">LINEスタンプ用画像編集ツール</h1>
-        <p class="text-center text-gray-400 mb-8">LINEスタンプの要件に合わせて画像を編集し、ZIPファイルでダウンロードします。</p>
+      <h1 class="text-3xl font-bold text-center text-white mb-6">
+        LINEスタンプ用画像編集ツール
+      </h1>
+      <p class="text-center text-gray-400 mb-8">
+        LINEスタンプの要件に合わせて画像を編集し、ZIPファイルでダウンロードします。
+      </p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Left: Stamp List & Upload -->
-            <div class="lg:col-span-3">
-                <div class="card">
-                    <h2 class="text-xl font-semibold text-white mb-4">スタンプ画像</h2>
-                    <p class="text-sm text-gray-400 mb-4">画像ファイルを選択、またはここにドラッグ＆ドロップしてください。</p>
-                    <input type="file" id="imageUpload" accept="image/png, image/jpeg" multiple class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
-                    <button id="clear-all-stamps" class="btn w-full mt-3 bg-red-600 hover:bg-red-700 text-sm py-2">すべてリセット</button>
-                    <div id="stamp-list" class="mt-4 grid grid-cols-3 gap-2 min-h-[74px] bg-gray-900/50 rounded-lg p-2">
-                        <!-- スタンプのサムネイルがここに表示されます -->
-                    </div>
-                </div>
-                <div class="card mt-4">
-                    <h2 class="text-xl font-semibold text-white mb-4">メイン・タブ画像</h2>
-                    <p class="text-sm text-gray-400 mb-4">下のスタンプ一覧で画像を<strong class="text-emerald-400">右クリック</strong>すると設定できます。</p>
-                    <div class="flex justify-around">
-                        <div>
-                            <p class="text-center text-sm mb-2">メイン画像</p>
-                            <canvas id="main-image-canvas" width="120" height="120" class="bg-gray-700 rounded-md"></canvas>
-                        </div>
-                        <div>
-                            <p class="text-center text-sm mb-2">タブ画像</p>
-                            <canvas id="tab-image-canvas" width="96" height="74" class="bg-gray-700 rounded-md"></canvas>
-                        </div>
-                    </div>
-                </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Left: Stamp List & Upload -->
+        <div class="lg:col-span-3">
+          <div class="card">
+            <h2 class="text-xl font-semibold text-white mb-4">スタンプ画像</h2>
+            <p class="text-sm text-gray-400 mb-4">
+              画像ファイルを選択、またはここにドラッグ＆ドロップしてください。
+            </p>
+            <input
+              type="file"
+              id="imageUpload"
+              accept="image/png, image/jpeg"
+              multiple
+              class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+            />
+            <button
+              type="button"
+              id="clear-all-stamps"
+              class="btn w-full mt-3 bg-red-600 hover:bg-red-700 text-sm py-2"
+            >
+              すべてリセット
+            </button>
+            <div
+              id="stamp-list"
+              class="mt-4 grid grid-cols-3 gap-2 min-h-[74px] bg-gray-900/50 rounded-lg p-2"
+            >
+              <!-- スタンプのサムネイルがここに表示されます -->
             </div>
-
-            <!-- Center: Main Canvas -->
-            <div class="lg:col-span-6">
-                <div class="card">
-                    <canvas id="main-canvas" width="370" height="320" class="cursor-grab"></canvas>
-                </div>
+          </div>
+          <div class="card mt-4">
+            <h2 class="text-xl font-semibold text-white mb-4">
+              メイン・タブ画像
+            </h2>
+            <p class="text-sm text-gray-400 mb-4">
+              下のスタンプ一覧で画像を<strong class="text-emerald-400"
+                >右クリック</strong
+              >すると設定できます。
+            </p>
+            <div class="flex justify-around">
+              <div>
+                <p class="text-center text-sm mb-2">メイン画像</p>
+                <canvas
+                  id="main-image-canvas"
+                  width="120"
+                  height="120"
+                  class="bg-gray-700 rounded-md"
+                ></canvas>
+              </div>
+              <div>
+                <p class="text-center text-sm mb-2">タブ画像</p>
+                <canvas
+                  id="tab-image-canvas"
+                  width="96"
+                  height="74"
+                  class="bg-gray-700 rounded-md"
+                ></canvas>
+              </div>
             </div>
-
-            <!-- Right: Settings Panel -->
-            <div class="lg:col-span-3">
-                <div class="card">
-                    <h2 class="text-xl font-semibold text-white mb-4">画像操作</h2>
-                    <div>
-                        <label for="image-scale" class="form-label">拡大・縮小</label>
-                        <input type="range" id="image-scale" min="0.1" max="3" step="0.05" value="1" class="w-full">
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                        <button id="remove-background" class="btn w-full bg-purple-600 hover:bg-purple-700 text-sm py-2">背景を透過</button>
-                        <button id="reset-image" class="btn w-full text-sm py-2">リセット</button>
-                    </div>
-                </div>
-                <div class="card mt-4">
-                    <h2 class="text-xl font-semibold text-white mb-4">テキスト設定</h2>
-                    <textarea id="text-input" rows="2" class="form-input" placeholder="スタンプのテキストを入力"></textarea>
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <label for="font-family" class="form-label">フォント</label>
-                            <select id="font-family" class="form-input">
-                                <option value="'M PLUS Rounded 1c', sans-serif">M PLUS Rounded 1c</option>
-                                <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-                                <option value="'Kiwi Maru', serif">Kiwi Maru</option>
-                                <option value="'Dela Gothic One', cursive">Dela Gothic One</option>
-                                <option value="'RocknRoll One', sans-serif">RocknRoll One</option>
-                                <option value="'Yusei Magic', sans-serif">Yusei Magic</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="font-size" class="form-label">サイズ</label>
-                            <input type="number" id="font-size" value="40" class="form-input">
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <label for="font-color" class="form-label">文字色</label>
-                        <input type="color" id="font-color" value="#FFFFFF" class="form-input h-10">
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="text-lg font-semibold text-white mb-2">縁取り</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="stroke-width" class="form-label">太さ</label>
-                                <input type="number" id="stroke-width" value="2" class="form-input">
-                            </div>
-                            <div>
-                                <label for="stroke-color" class="form-label">色</label>
-                                <input type="color" id="stroke-color" value="#000000" class="form-input h-10">
-                            </div>
-                        </div>
-                    </div>
-                    <button id="apply-font-all" class="btn w-full mt-6 text-sm py-2">全スタンプにフォントを適用</button>
-                </div>
-                <div class="card mt-4">
-                    <h2 class="text-xl font-semibold text-white mb-4">ダウンロード</h2>
-                    <div class="flex gap-2">
-                        <button id="download-single" class="btn w-full bg-blue-600 hover:bg-blue-700 text-sm py-2">この画像のみ</button>
-                        <button id="download-zip" class="btn w-full text-sm py-2">まとめてZIP</button>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-        <div class="text-center mt-8">
-            <a href="../index.html" class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+
+        <!-- Center: Main Canvas -->
+        <div class="lg:col-span-6">
+          <div class="card">
+            <canvas
+              id="main-canvas"
+              width="370"
+              height="320"
+              class="cursor-grab"
+            ></canvas>
+          </div>
         </div>
+
+        <!-- Right: Settings Panel -->
+        <div class="lg:col-span-3">
+          <div class="card">
+            <h2 class="text-xl font-semibold text-white mb-4">画像操作</h2>
+            <div>
+              <label for="image-scale" class="form-label">拡大・縮小</label>
+              <input
+                type="range"
+                id="image-scale"
+                min="0.1"
+                max="3"
+                step="0.05"
+                value="1"
+                class="w-full"
+              />
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button
+                id="remove-background"
+                class="btn w-full bg-purple-600 hover:bg-purple-700 text-sm py-2"
+              >
+                背景を透過
+              </button>
+              <button id="reset-image" class="btn w-full text-sm py-2">
+                リセット
+              </button>
+            </div>
+          </div>
+          <div class="card mt-4">
+            <h2 class="text-xl font-semibold text-white mb-4">テキスト設定</h2>
+            <textarea
+              id="text-input"
+              rows="2"
+              class="form-input"
+              placeholder="スタンプのテキストを入力"
+            ></textarea>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label for="font-family" class="form-label">フォント</label>
+                <select id="font-family" class="form-input">
+                  <option value="'M PLUS Rounded 1c', sans-serif">
+                    M PLUS Rounded 1c
+                  </option>
+                  <option value="'Noto Sans JP', sans-serif">
+                    Noto Sans JP
+                  </option>
+                  <option value="'Kiwi Maru', serif">Kiwi Maru</option>
+                  <option value="'Dela Gothic One', cursive">
+                    Dela Gothic One
+                  </option>
+                  <option value="'RocknRoll One', sans-serif">
+                    RocknRoll One
+                  </option>
+                  <option value="'Yusei Magic', sans-serif">Yusei Magic</option>
+                </select>
+              </div>
+              <div>
+                <label for="font-size" class="form-label">サイズ</label>
+                <input
+                  type="number"
+                  id="font-size"
+                  value="40"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="mt-4">
+              <label for="font-color" class="form-label">文字色</label>
+              <input
+                type="color"
+                id="font-color"
+                value="#FFFFFF"
+                class="form-input h-10"
+              />
+            </div>
+            <div class="mt-4">
+              <h3 class="text-lg font-semibold text-white mb-2">縁取り</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="stroke-width" class="form-label">太さ</label>
+                  <input
+                    type="number"
+                    id="stroke-width"
+                    value="2"
+                    class="form-input"
+                  />
+                </div>
+                <div>
+                  <label for="stroke-color" class="form-label">色</label>
+                  <input
+                    type="color"
+                    id="stroke-color"
+                    value="#000000"
+                    class="form-input h-10"
+                  />
+                </div>
+              </div>
+            </div>
+            <button id="apply-font-all" class="btn w-full mt-6 text-sm py-2">
+              全スタンプにフォントを適用
+            </button>
+          </div>
+          <div class="card mt-4">
+            <h2 class="text-xl font-semibold text-white mb-4">ダウンロード</h2>
+            <div class="flex gap-2">
+              <button
+                id="download-single"
+                class="btn w-full bg-blue-600 hover:bg-blue-700 text-sm py-2"
+              >
+                この画像のみ
+              </button>
+              <button id="download-zip" class="btn w-full text-sm py-2">
+                まとめてZIP
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-8">
+        <a
+          href="../index.html"
+          class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+          >ホームに戻る</a
+        >
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
     <script src="../js/tools/line-stamp-editor.js"></script>
-</body>
+  </body>
 </html>
