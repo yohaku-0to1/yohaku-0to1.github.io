@@ -208,8 +208,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "object:scaling": (e) => {
         if (e.target.type === "image") {
           isApplyingChanges = true;
-          imageScale.value = e.target.scaleX;
-          imageScaleNumber.value = e.target.scaleX;
+          imageScale.value = e.target.scaleX.toFixed(2);
+          imageScaleNumber.value = e.target.scaleX.toFixed(2);
           isApplyingChanges = false;
         }
       },
@@ -459,8 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
       strokeWidthInput.value = activeObject.strokeWidth;
       strokeColorInput.value = activeObject.stroke;
     } else if (activeObject.type === "image") {
-      imageScale.value = activeObject.scaleX;
-      imageScaleNumber.value = activeObject.scaleX;
+      imageScale.value = activeObject.scaleX.toFixed(2);
+      imageScaleNumber.value = activeObject.scaleX.toFixed(2);
     }
     isApplyingChanges = false;
   }
