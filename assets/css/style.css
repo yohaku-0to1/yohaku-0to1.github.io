@@ -10,6 +10,8 @@
     /* pink-600 */
     --accent-hover: #be185d;
     /* pink-700 */
+    --primary-color: #db2777;
+    --secondary-color: #8b5cf6;
 }
 
 body {
@@ -18,6 +20,13 @@ body {
     color: var(--text-primary);
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
     overflow-x: hidden;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 /* --- Aurora Background --- */
@@ -421,4 +430,15 @@ body {
     color: white;
     border-color: var(--accent-color);
     transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

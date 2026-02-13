@@ -4,6 +4,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- 要素の取得 ---
     const footerUsernameElement = document.getElementById("footer-username");
+    const footerYearElement = document.getElementById("footer-year");
     const youtubeContainer = document.getElementById("youtube-container");
     const listElement = document.getElementById("links-list");
     const toolsListElement = document.getElementById("tools-list");
@@ -18,28 +19,48 @@ document.addEventListener("DOMContentLoaded", () => {
     if (profileName) profileName.textContent = PROFILE_DATA.name;
     if (profileBio) profileBio.textContent = PROFILE_DATA.bio;
     if (footerUsernameElement) footerUsernameElement.textContent = PROFILE_DATA.name;
+    if (footerYearElement) footerYearElement.textContent = String(new Date().getFullYear());
 
     if (profileAvatar) {
+        const hideAvatar = () => {
+            profileAvatar.style.display = 'none';
+        };
+
+        const setAvatar = (url) => {
+            profileAvatar.src = url;
+            profileAvatar.style.display = '';
+        };
+
         if (PROFILE_DATA.avatarUrl) {
-            profileAvatar.src = PROFILE_DATA.avatarUrl;
+            setAvatar(PROFILE_DATA.avatarUrl);
         } else if (PROFILE_DATA.githubUsername) {
             fetch(`https://api.github.com/users/${PROFILE_DATA.githubUsername}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`GitHub API request failed: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.avatar_url) {
-                        profileAvatar.src = data.avatar_url;
+                        setAvatar(data.avatar_url);
+                    } else {
+                        hideAvatar();
                     }
                 })
-                .catch(() => { profileAvatar.style.display = 'none'; });
+                .catch(() => { hideAvatar(); });
         } else {
-            profileAvatar.style.display = 'none';
+            hideAvatar();
         }
     }
 
     // 2. YouTube動画を埋め込み (Lazy Loading)
     if (youtubeContainer && YOUTUBE_VIDEO_ID) {
-        // サムネイル画像のURL (高画質)
-        const thumbUrl = `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`;
+        const thumbnailUrls = [
+            `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`,
+            `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/hqdefault.jpg`,
+            `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/mqdefault.jpg`
+        ];
 
         // コンテナのスタイル設定
         youtubeContainer.style.position = 'relative';
@@ -50,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // HTML構造を作成
         youtubeContainer.innerHTML = `
-            <img src="${thumbUrl}" alt="YouTube Video Thumbnail" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+            <img id="youtube-thumb" src="${thumbnailUrls[0]}" alt="YouTube Video Thumbnail" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
             <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 hover:bg-opacity-20">
                 <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -59,6 +80,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
+
+        const thumbnailImage = document.getElementById('youtube-thumb');
+        if (thumbnailImage) {
+            let fallbackIndex = 0;
+            thumbnailImage.addEventListener('error', () => {
+                fallbackIndex += 1;
+                if (fallbackIndex < thumbnailUrls.length) {
+                    thumbnailImage.src = thumbnailUrls[fallbackIndex];
+                }
+            });
+        }
 
         // クリックイベントでiframeを読み込む
         youtubeContainer.addEventListener('click', () => {
@@ -71,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // 中身をクリアしてiframeを追加
             youtubeContainer.innerHTML = '';
             youtubeContainer.appendChild(iframe);
-        });
+        }, { once: true });
     }
 
     // 3. LINEスタンプ情報を生成

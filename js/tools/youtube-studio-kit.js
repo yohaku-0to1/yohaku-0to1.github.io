@@ -1,4 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+    function parseJsonSafely(rawValue, fallbackValue) {
+        if (!rawValue) return fallbackValue;
+        try {
+            return JSON.parse(rawValue);
+        } catch (error) {
+            console.warn('Invalid JSON in localStorage. Falling back to defaults.', error);
+            return fallbackValue;
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // --- Global YouTube Player Variables ---
     let player; // YouTube Player instance
     let videoId = ''; // Current YouTube video ID
@@ -936,7 +955,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Social Media Link Manager Logic ---
     function loadSocialLinks() {
         const storedLinks = localStorage.getItem('socialLinks');
-        socialLinks = storedLinks ? JSON.parse(storedLinks) : [];
+        const parsed = parseJsonSafely(storedLinks, []);
+        socialLinks = Array.isArray(parsed)
+            ? parsed.filter(link =>
+                link &&
+                typeof link.name === 'string' &&
+                typeof link.url === 'string'
+            )
+            : [];
     }
 
     function saveSocialLinks() {
@@ -946,8 +972,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSocialLinks() {
         socialLinksList.innerHTML = socialLinks.map((link, index) => `
             <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                <span class="font-semibold">${link.name}:</span>
-                <a href="${link.url}" target="_blank" class="text-blue-400 hover:underline flex-grow truncate">${link.url}</a>
+                <span class="font-semibold">${escapeHtml(link.name)}:</span>
+                <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline flex-grow truncate">${escapeHtml(link.url)}</a>
                 <button data-index="${index}" class="insert-social-link-btn bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-2 rounded transition-colors">挿入</button>
                 <button data-index="${index}" class="delete-social-link-btn text-red-400 hover:text-red-600 transition-colors">✖</button>
             </div>
@@ -977,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socialLinksList.addEventListener('click', (e) => {
         const target = e.target;
         const index = parseInt(target.dataset.index, 10);
+        if (Number.isNaN(index) || !socialLinks[index]) return;
 
         if (target.classList.contains('insert-social-link-btn')) {
             const link = socialLinks[index];
