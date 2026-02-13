@@ -1,4 +1,6 @@
 /* --- Base Styles & Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
 :root {
     --card-bg: rgba(255, 255, 255, 0.1);
     --card-border: rgba(255, 255, 255, 0.2);
@@ -430,6 +432,200 @@ input:focus-visible {
     color: white;
     border-color: var(--accent-color);
     transform: translateY(-2px);
+}
+
+/* --- Editorial Mono Theme --- */
+.editorial-mono {
+    --card-bg: rgba(18, 19, 23, 0.9);
+    --card-border: rgba(255, 255, 255, 0.14);
+    --card-shadow: rgba(0, 0, 0, 0.62);
+    --text-primary: #f5f3ef;
+    --text-secondary: #b5afa2;
+    --accent-color: #ff6b35;
+    --accent-hover: #ff8356;
+    --primary-color: #f5f3ef;
+    --secondary-color: #6f7cff;
+    position: relative;
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', 'Noto Sans JP', sans-serif;
+    background:
+        radial-gradient(1200px 900px at -8% -12%, rgba(111, 124, 255, 0.22), transparent 60%),
+        radial-gradient(900px 640px at 110% -4%, rgba(255, 107, 53, 0.18), transparent 55%),
+        linear-gradient(180deg, #09090b 0%, #111216 100%);
+}
+
+.editorial-mono::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+    opacity: 0.2;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.editorial-mono h1,
+.editorial-mono h2,
+.editorial-mono h3,
+.editorial-mono h4,
+.editorial-mono .card-header {
+    font-family: 'IBM Plex Mono', 'Space Grotesk', 'Noto Sans JP', sans-serif;
+    letter-spacing: 0.05em;
+}
+
+.editorial-mono #aurora-background {
+    opacity: 0.18;
+    filter: saturate(0.75) grayscale(0.2);
+}
+
+.editorial-mono .main-container {
+    max-width: 1240px;
+    gap: 1.25rem;
+    padding: 2rem 1rem 4rem;
+}
+
+@media (min-width: 1024px) {
+    .editorial-mono .main-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .editorial-mono #profile-section,
+    .editorial-mono #hero-section,
+    .editorial-mono #page-footer {
+        grid-column: 1 / -1;
+    }
+}
+
+.editorial-mono .card {
+    border-radius: 0.65rem;
+    border: 1px solid var(--card-border);
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.06), transparent 42%),
+        var(--card-bg);
+    box-shadow: 0 24px 60px -36px var(--card-shadow);
+}
+
+.editorial-mono .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 70px -38px rgba(0, 0, 0, 0.8);
+}
+
+.editorial-mono #links-list a,
+.editorial-mono #tools-list a {
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.editorial-mono #links-list a:hover,
+.editorial-mono #tools-list a:hover {
+    border-color: rgba(255, 107, 53, 0.68);
+    background: rgba(255, 107, 53, 0.1);
+}
+
+.editorial-mono .cta-button {
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    font-family: 'IBM Plex Mono', 'Space Grotesk', 'Noto Sans JP', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: linear-gradient(125deg, #f5f3ef 0%, #ff6b35 52%, #6f7cff 100%);
+    box-shadow: 0 20px 40px -24px rgba(255, 107, 53, 0.72);
+}
+
+.editorial-mono .cta-button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 46px -24px rgba(111, 124, 255, 0.78);
+}
+
+.editorial-mono .btn,
+.editorial-mono .pill-btn,
+.editorial-mono #send-button,
+.editorial-mono .suggestion-chip {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(140deg, rgba(255, 107, 53, 0.24), rgba(111, 124, 255, 0.22));
+    color: var(--text-primary);
+}
+
+.editorial-mono .btn:hover,
+.editorial-mono .pill-btn:hover,
+.editorial-mono #send-button:hover,
+.editorial-mono .suggestion-chip:hover {
+    border-color: rgba(255, 107, 53, 0.68);
+    filter: brightness(1.08);
+}
+
+.editorial-mono input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.editorial-mono textarea,
+.editorial-mono select {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.5rem;
+    background: rgba(5, 5, 8, 0.55);
+    color: var(--text-primary);
+}
+
+.editorial-mono input::placeholder,
+.editorial-mono textarea::placeholder {
+    color: rgba(245, 243, 239, 0.5);
+}
+
+.editorial-mono .chat-message.user .chat-bubble {
+    background: linear-gradient(120deg, rgba(255, 107, 53, 0.88), rgba(111, 124, 255, 0.72));
+}
+
+.editorial-mono .chat-message.bot .chat-bubble {
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.editorial-mono .tab-button.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.editorial-mono .hub-card,
+.editorial-mono .code-block,
+.editorial-mono .callout {
+    border-color: rgba(255, 255, 255, 0.16);
+    background-color: rgba(11, 11, 16, 0.72);
+}
+
+.editorial-mono .hub-card:hover {
+    border-color: rgba(255, 107, 53, 0.62);
+    box-shadow: 0 24px 62px -36px rgba(255, 107, 53, 0.48);
+}
+
+.editorial-mono .hub-icon {
+    color: var(--accent-color);
+}
+
+.editorial-mono .sidebar {
+    border-right-color: rgba(255, 255, 255, 0.16);
+}
+
+.editorial-mono .sidebar-link.active,
+.editorial-mono .hub-link,
+.editorial-mono .sidebar-link:hover {
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
+}
+
+.editorial-mono .animated-gradient {
+    animation: editorial-pan 18s ease-in-out infinite alternate;
+}
+
+@keyframes editorial-pan {
+    0% {
+        filter: saturate(0.9) brightness(0.9);
+        transform: scale(1);
+    }
+
+    100% {
+        filter: saturate(1.15) brightness(1.05);
+        transform: scale(1.06);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

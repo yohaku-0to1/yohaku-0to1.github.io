@@ -8,20 +8,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
         rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --border-color: #334155;
+            --bg-color: #090a0e;
+            --card-bg: #171a21;
+            --text-primary: #f5f3ef;
+            --text-secondary: #b6b1a5;
+            --accent-color: #ff6b35;
+            --accent-hover: #ff8356;
+            --border-color: rgba(255, 255, 255, 0.16);
             --success-color: #10b981;
             --danger-color: #ef4444;
-            --font-main: 'Inter', 'Noto Sans JP', sans-serif;
+            --font-main: 'Space Grotesk', 'Noto Sans JP', sans-serif;
         }
 
         * {
@@ -31,7 +31,10 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background:
+                radial-gradient(circle at 8% 12%, rgba(111, 124, 255, 0.21), transparent 30%),
+                radial-gradient(circle at 88% 0%, rgba(255, 107, 53, 0.2), transparent 28%),
+                var(--bg-color);
             color: var(--text-primary);
             font-family: var(--font-main);
             line-height: 1.6;
@@ -67,7 +70,9 @@
         h1 {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            font-family: 'IBM Plex Mono', 'Space Grotesk', 'Noto Sans JP', sans-serif;
+            letter-spacing: 0.04em;
+            background: linear-gradient(135deg, #f5f3ef, #ff6b35);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -418,7 +423,7 @@
     </style>
 </head>
 
-<body>
+<body class="editorial-mono">
 
     <header>
         <h1>アニメ制作ログメーカー</h1>
