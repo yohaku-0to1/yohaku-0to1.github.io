@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Wiki - 0と1のすきま</title>
+    <meta name="description" content="0と1のすきま プロジェクトWiki。構成、更新手順、運用メモをまとめています。">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/wiki.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="editorial-mono min-h-screen">
+    <div id="aurora-background"></div>
+
+    <main class="wiki-shell">
+        <aside class="wiki-sidebar card">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h1 class="text-xl font-bold">Project Wiki</h1>
+                <a href="../index.html" class="text-sm px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20">Home</a>
+            </div>
+            <p class="text-sm text-gray-300 mb-3">構成、運用、更新手順をまとめたドキュメント。</p>
+            <input id="wiki-search" class="wiki-search px-3 py-2 rounded-lg" type="text" placeholder="記事を検索...">
+            <div id="wiki-doc-list" class="wiki-doc-list mt-3"></div>
+            <p id="wiki-list-empty" class="wiki-empty mt-2 hidden">該当記事がありません。</p>
+        </aside>
+
+        <section class="wiki-main card">
+            <div class="wiki-main-header">
+                <div>
+                    <p class="wiki-breadcrumb">Wiki / <span id="wiki-current-id">-</span></p>
+                    <h2 id="wiki-current-title" class="text-2xl font-bold mt-1">読み込み中...</h2>
+                </div>
+                <button id="wiki-copy-link" class="text-sm px-3 py-2 rounded-lg">リンクをコピー</button>
+            </div>
+            <article id="wiki-content" class="wiki-content wiki-loading">
+                <p>記事を読み込み中...</p>
+            </article>
+            <div class="wiki-nav-actions">
+                <button id="wiki-prev-btn" class="px-3 py-2 rounded-lg text-sm">← 前の記事</button>
+                <button id="wiki-next-btn" class="px-3 py-2 rounded-lg text-sm">次の記事 →</button>
+            </div>
+        </section>
+
+        <aside class="wiki-toc-panel card">
+            <h2 class="text-lg font-bold mb-2">目次</h2>
+            <div id="wiki-toc-list" class="wiki-toc-list"></div>
+            <p id="wiki-toc-empty" class="wiki-empty">このページに見出しはありません。</p>
+        </aside>
+    </main>
+
+    <script src="../js/wiki.js" defer></script>
+    <script src="../js/tools/hub-bridge.js" defer></script>
+</body>
+
+</html>

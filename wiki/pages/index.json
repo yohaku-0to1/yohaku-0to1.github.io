@@ -1,0 +1,30 @@
+[
+  {
+    "id": "welcome",
+    "title": "Wikiへようこそ",
+    "file": "welcome.md",
+    "summary": "このWikiの目的と、基本的な使い方。",
+    "tags": ["intro", "guide"]
+  },
+  {
+    "id": "site-structure",
+    "title": "サイト構成ガイド",
+    "file": "site-structure.md",
+    "summary": "主要ディレクトリと役割の一覧。",
+    "tags": ["architecture", "folders"]
+  },
+  {
+    "id": "content-update",
+    "title": "コンテンツ更新手順",
+    "file": "content-update.md",
+    "summary": "プロフィール・リンク・ツールを更新する方法。",
+    "tags": ["content", "howto"]
+  },
+  {
+    "id": "operations",
+    "title": "運用メモ",
+    "file": "operations.md",
+    "summary": "ローカル確認、デプロイ、トラブルシュート。",
+    "tags": ["ops", "deploy"]
+  }
+]
