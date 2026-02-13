@@ -21,6 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const savePresetBtn = document.getElementById('save-preset-btn');
     const deletePresetBtn = document.getElementById('delete-preset-btn');
 
+    // style.cssの.card初期opacity対策: ツール側でもフェードインを起動
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('animate-fade-in-up');
+        }, index * 80);
+    });
+
     const OP_DEFS = {
         trim_lines: { label: 'Trim lines', params: [] },
         remove_empty_lines: { label: 'Remove empty lines', params: [] },
