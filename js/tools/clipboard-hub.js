@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const HUB_QUEUE_KEY = 'clipboard-hub-import-queue-v1';
     const hubContainer = document.getElementById('hub-container');
     const instruction = document.getElementById('instruction');
     const clearAllButton = document.getElementById('clear-all-button');
     let zIndexCounter = 10;
+    const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
 
     // --- IndexedDB Setup ---
     const db = await idb.openDB('clipboard-hub-db', 1, {
@@ -33,6 +35,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    function readHubQueue() {
+        const raw = localStorage.getItem(HUB_QUEUE_KEY);
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('Invalid Hub queue data. Queue will be cleared.', error);
+            localStorage.removeItem(HUB_QUEUE_KEY);
+            return [];
+        }
+    }
+
+    async function importQueuedItemsFromTools() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('import') !== '1') return;
+
+        const queue = readHubQueue();
+        if (queue.length === 0) return;
+
+        instruction.style.display = 'none';
+
+        for (const entry of queue) {
+            if (!entry || entry.type !== 'text' || typeof entry.content !== 'string') continue;
+            const text = entry.content.trim();
+            if (!text) continue;
+
+            if (urlRegex.test(text)) {
+                await createUrlItem(text);
+            } else {
+                await createItem({ type: 'text', content: text });
+            }
+        }
+
+        localStorage.removeItem(HUB_QUEUE_KEY);
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+
     // --- Event Handlers ---
     function handlePaste(e) {
         // イベントのターゲットがtextareaであれば、デフォルトの貼り付け動作を許可し、処理を終了
@@ -48,7 +88,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 createItem({ type: 'image', content: item.getAsFile() });
             } else if (item.type === 'text/plain') {
                 item.getAsString(async (text) => {
-                    const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
                     if (urlRegex.test(text)) {
                         await createUrlItem(text);
                     } else {
@@ -562,5 +601,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    loadAllItems();
+    await loadAllItems();
+    await importQueuedItemsFromTools();
 });

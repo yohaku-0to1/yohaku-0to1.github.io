@@ -232,6 +232,59 @@ input:focus-visible {
     transform: rotate(-5deg) scale(1.1);
 }
 
+/* --- Tools Search & Tags --- */
+.tools-controls input {
+    width: 100%;
+}
+
+.tools-tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tool-filter-chip {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.tool-filter-chip:hover {
+    border-color: rgba(255, 255, 255, 0.45);
+    color: var(--text-primary);
+}
+
+.tool-filter-chip.active {
+    border-color: var(--accent-color);
+    background: rgba(219, 39, 119, 0.2);
+    color: var(--text-primary);
+}
+
+.tool-text {
+    width: 100%;
+}
+
+.tool-tags {
+    margin-top: 0.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.tool-tag {
+    font-size: 0.72rem;
+    line-height: 1;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    padding: 0.26rem 0.5rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 /* --- Chatbot --- */
 #neon-image {
     filter: drop-shadow(0 0 20px var(--accent-color));
@@ -583,6 +636,16 @@ input:focus-visible {
 .editorial-mono .tab-button.active {
     color: var(--accent-color);
     border-bottom-color: var(--accent-color);
+}
+
+.editorial-mono .tool-filter-chip.active {
+    border-color: rgba(255, 107, 53, 0.8);
+    background: rgba(255, 107, 53, 0.17);
+}
+
+.editorial-mono .tool-tag {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .editorial-mono .hub-card,

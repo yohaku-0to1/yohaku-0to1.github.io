@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const youtubeContainer = document.getElementById("youtube-container");
     const listElement = document.getElementById("links-list");
     const toolsListElement = document.getElementById("tools-list");
+    const toolsSearchInput = document.getElementById("tools-search-input");
+    const toolsTagFilters = document.getElementById("tools-tag-filters");
+    const toolsEmptyState = document.getElementById("tools-empty-state");
     const profileAvatar = document.getElementById('profile-avatar');
     const profileName = document.getElementById('profile-name');
     const profileBio = document.getElementById('profile-bio');
@@ -133,22 +136,81 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 5. ツール一覧を生成
+    // 5. ツール一覧を生成（検索 + タグフィルタ）
     if (TOOLS_DATA && TOOLS_DATA.length > 0 && toolsListElement) {
-        TOOLS_DATA.forEach(tool => {
-            const li = document.createElement('li');
-            const toolHtml = `
-                <a href="${tool.url}" target="_blank" rel="noopener noreferrer">
-                    <span class="icon">${tool.icon}</span>
-                    <div>
-                        <p class="font-semibold">${tool.name}</p>
-                        <p class="text-sm">${tool.description}</p>
-                    </div>
-                </a>
-            `;
-            li.innerHTML = toolHtml;
-            toolsListElement.appendChild(li);
-        });
+        let activeTag = 'すべて';
+        let searchQuery = '';
+        const allTags = Array.from(new Set(TOOLS_DATA.flatMap(tool => tool.categories || []))).sort((a, b) => a.localeCompare(b, 'ja'));
+        const availableTags = ['すべて', ...allTags];
+
+        const matchesTool = (tool) => {
+            const normalizedQuery = searchQuery.toLowerCase();
+            const searchableText = [
+                tool.name,
+                tool.description,
+                ...(tool.categories || [])
+            ].join(' ').toLowerCase();
+
+            const matchesQuery = normalizedQuery === '' || searchableText.includes(normalizedQuery);
+            const matchesTag = activeTag === 'すべて' || (tool.categories || []).includes(activeTag);
+            return matchesQuery && matchesTag;
+        };
+
+        const renderTools = () => {
+            toolsListElement.innerHTML = '';
+            const filteredTools = TOOLS_DATA.filter(matchesTool);
+
+            filteredTools.forEach(tool => {
+                const li = document.createElement('li');
+                const tagsHtml = (tool.categories || [])
+                    .map(category => `<span class="tool-tag">${category}</span>`)
+                    .join('');
+                const toolHtml = `
+                    <a href="${tool.url}" target="_blank" rel="noopener noreferrer">
+                        <span class="icon">${tool.icon}</span>
+                        <div class="tool-text">
+                            <p class="font-semibold">${tool.name}</p>
+                            <p class="text-sm">${tool.description}</p>
+                            <div class="tool-tags">${tagsHtml}</div>
+                        </div>
+                    </a>
+                `;
+                li.innerHTML = toolHtml;
+                toolsListElement.appendChild(li);
+            });
+
+            if (toolsEmptyState) {
+                toolsEmptyState.classList.toggle('hidden', filteredTools.length > 0);
+            }
+        };
+
+        const renderTagFilters = () => {
+            if (!toolsTagFilters) return;
+
+            toolsTagFilters.innerHTML = '';
+            availableTags.forEach(tag => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `tool-filter-chip ${tag === activeTag ? 'active' : ''}`;
+                button.textContent = tag;
+                button.addEventListener('click', () => {
+                    activeTag = tag;
+                    renderTagFilters();
+                    renderTools();
+                });
+                toolsTagFilters.appendChild(button);
+            });
+        };
+
+        if (toolsSearchInput) {
+            toolsSearchInput.addEventListener('input', () => {
+                searchQuery = toolsSearchInput.value.trim();
+                renderTools();
+            });
+        }
+
+        renderTagFilters();
+        renderTools();
     }
 
     // 6. アニメーションの実行
