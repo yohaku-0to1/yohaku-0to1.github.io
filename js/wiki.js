@@ -48,6 +48,54 @@ document.addEventListener('DOMContentLoaded', () => {
         return text;
     }
 
+    function isTableSeparatorLine(line) {
+        return /^\s*\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$/.test(line);
+    }
+
+    function splitTableRowCells(line) {
+        let normalized = line.trim();
+        if (normalized.startsWith('|')) normalized = normalized.slice(1);
+        if (normalized.endsWith('|')) normalized = normalized.slice(0, -1);
+        return normalized.split('|').map(cell => cell.trim());
+    }
+
+    function getTableAlignments(separatorCells) {
+        return separatorCells.map((cell) => {
+            const trimmed = cell.trim();
+            const startsWithColon = trimmed.startsWith(':');
+            const endsWithColon = trimmed.endsWith(':');
+            if (startsWithColon && endsWithColon) return 'center';
+            if (endsWithColon) return 'right';
+            return 'left';
+        });
+    }
+
+    function renderTable(headerCells, rows, alignments) {
+        const totalColumns = Math.max(
+            headerCells.length,
+            ...rows.map(row => row.length),
+            alignments.length
+        );
+        const normalizedHeaders = Array.from({ length: totalColumns }, (_, index) => headerCells[index] || '');
+        const normalizedAlignments = Array.from({ length: totalColumns }, (_, index) => alignments[index] || 'left');
+
+        const thead = `<thead><tr>${normalizedHeaders.map((cell, index) => {
+            const align = normalizedAlignments[index];
+            return `<th style="text-align:${align}">${parseInline(cell)}</th>`;
+        }).join('')}</tr></thead>`;
+
+        const tbodyRows = rows.map((row) => {
+            const normalizedRow = Array.from({ length: totalColumns }, (_, index) => row[index] || '');
+            const cells = normalizedRow.map((cell, index) => {
+                const align = normalizedAlignments[index];
+                return `<td style="text-align:${align}">${parseInline(cell)}</td>`;
+            }).join('');
+            return `<tr>${cells}</tr>`;
+        }).join('');
+
+        return `<div class="wiki-table-wrap"><table>${thead}<tbody>${tbodyRows}</tbody></table></div>`;
+    }
+
     function markdownToHtml(markdown) {
         const lines = markdown.replace(/\r\n/g, '\n').split('\n');
         let html = '';
@@ -72,6 +120,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (i < lines.length) i += 1;
                 const code = escapeHtml(codeLines.join('\n'));
                 html += `<pre><code class="language-${escapeHtml(lang)}">${code}</code></pre>`;
+                continue;
+            }
+
+            if (line.includes('|') && i + 1 < lines.length && isTableSeparatorLine(lines[i + 1])) {
+                const headerCells = splitTableRowCells(line);
+                const separatorCells = splitTableRowCells(lines[i + 1]);
+                const alignments = getTableAlignments(separatorCells);
+                i += 2;
+
+                const rows = [];
+                while (i < lines.length && !/^\s*$/.test(lines[i]) && lines[i].includes('|')) {
+                    rows.push(splitTableRowCells(lines[i]));
+                    i += 1;
+                }
+
+                html += renderTable(headerCells, rows, alignments);
                 continue;
             }
 
@@ -128,7 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 !/^>\s?/.test(lines[i]) &&
                 !/^(\-|\*|\+)\s+/.test(lines[i]) &&
                 !/^\d+\.\s+/.test(lines[i]) &&
-                !/^(\-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim())
+                !/^(\-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim()) &&
+                !(lines[i].includes('|') && i + 1 < lines.length && isTableSeparatorLine(lines[i + 1]))
             ) {
                 paragraphLines.push(lines[i]);
                 i += 1;

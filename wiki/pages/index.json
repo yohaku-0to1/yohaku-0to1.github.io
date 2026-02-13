@@ -1,10 +1,10 @@
 [
   {
     "id": "anime-visual-design-system",
-    "title": "アニメ映像設計体系（構図・ライティング・カメラ）",
+    "title": "アニメ映像設計体系（構図・ライティング・カメラ・コンポジット）",
     "file": "anime-visual-design-system.md",
-    "summary": "形式別差分、設計変数、指示書テンプレ、実務チェックを統合した実践ガイド。",
-    "tags": ["anime", "composition", "lighting", "camera", "pipeline"]
+    "summary": "絵コンテ起点で、構図・カメラ・照明・コンポジット・動き設計を統合した実務ガイド。",
+    "tags": ["anime", "composition", "lighting", "camera", "composite", "pipeline"]
   },
   {
     "id": "ai-prompt-playbook",
