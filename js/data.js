@@ -9,6 +9,13 @@ const PROFILE_DATA = {
 // --- 2. Toolsデータ ---
 const TOOLS_DATA = [
     {
+        name: "Universal Workbench",
+        description: "テキスト/CSV/JSONをパイプラインで加工・変換できる汎用データ作業台。",
+        url: "tools/universal-workbench.html",
+        categories: ["汎用", "テキスト", "CSV", "JSON"],
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-6 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>`
+    },
+    {
         name: "Anime Production Logger",
         description: "アニメ制作のプロンプトやメモを記録・管理します。",
         url: "tools/anime-production-logger.html",

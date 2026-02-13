@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Workbench - 0と1のすきま</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .uw-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 1024px) {
+            .uw-grid {
+                grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+            }
+        }
+
+        .uw-textarea {
+            width: 100%;
+            min-height: 280px;
+            resize: vertical;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.84rem;
+            line-height: 1.55;
+        }
+
+        .uw-op-row {
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.5rem;
+            padding: 0.7rem;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .uw-pill {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            padding: 0.26rem 0.56rem;
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .uw-mono {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+        }
+    </style>
+</head>
+
+<body class="editorial-mono min-h-screen">
+    <div id="aurora-background"></div>
+    <main class="main-container">
+        <header class="card flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-2xl font-bold">Universal Workbench</h1>
+                <p class="text-sm text-gray-300 mt-1">AI APIなしで使える、汎用データ加工ツール（Text / CSV / JSON）</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="../index.html" class="px-4 py-2 text-sm font-semibold bg-white/10 rounded-lg hover:bg-white/20 transition-colors">ホームに戻る</a>
+                <button id="load-sample-btn" type="button" class="px-4 py-2 text-sm font-semibold rounded-lg">サンプル読込</button>
+            </div>
+        </header>
+
+        <section class="card">
+            <div class="uw-grid">
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="font-bold text-lg">Input</h2>
+                            <div class="flex gap-2">
+                                <button id="open-file-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">ファイル読込</button>
+                                <button id="clear-input-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">クリア</button>
+                            </div>
+                        </div>
+                        <textarea id="input-editor" class="uw-textarea p-3 rounded-lg" placeholder="ここにテキスト / CSV / JSON を貼り付け"></textarea>
+                        <input id="file-input" type="file" class="hidden" accept=".txt,.csv,.json,.md,text/plain,application/json,text/csv">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="font-bold text-lg">Output</h2>
+                            <div class="flex gap-2">
+                                <button id="copy-output-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">コピー</button>
+                                <button id="download-output-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">保存</button>
+                            </div>
+                        </div>
+                        <textarea id="output-editor" class="uw-textarea p-3 rounded-lg" placeholder="変換結果" readonly></textarea>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span id="input-stats" class="uw-pill">Input: 0 chars / 0 lines</span>
+                        <span id="output-stats" class="uw-pill">Output: 0 chars / 0 lines</span>
+                        <span id="process-stats" class="uw-pill">Process: -</span>
+                    </div>
+                </div>
+
+                <aside class="space-y-4">
+                    <div>
+                        <h2 class="font-bold text-lg mb-2">Pipeline</h2>
+                        <div class="flex gap-2 mb-2">
+                            <button id="add-op-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">操作を追加</button>
+                            <button id="run-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">実行</button>
+                            <button id="reset-ops-btn" type="button" class="px-3 py-1.5 text-sm rounded-lg">初期化</button>
+                        </div>
+                        <div id="operations-list" class="space-y-2"></div>
+                    </div>
+
+                    <div class="card p-4">
+                        <h3 class="font-bold mb-2">Preset</h3>
+                        <div class="space-y-2">
+                            <select id="preset-select" class="w-full px-3 py-2 rounded-lg">
+                                <option value="">保存済みプリセットを選択</option>
+                            </select>
+                            <div class="flex gap-2">
+                                <button id="save-preset-btn" type="button" class="flex-1 px-3 py-1.5 text-sm rounded-lg">保存</button>
+                                <button id="delete-preset-btn" type="button" class="flex-1 px-3 py-1.5 text-sm rounded-lg">削除</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4">
+                        <h3 class="font-bold mb-2">Quick Templates</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button type="button" data-template="clean-text" class="uw-template-btn px-3 py-1.5 text-left text-sm rounded-lg">Clean Text（整形）</button>
+                            <button type="button" data-template="csv-to-json" class="uw-template-btn px-3 py-1.5 text-left text-sm rounded-lg">CSV → JSON</button>
+                            <button type="button" data-template="json-to-csv" class="uw-template-btn px-3 py-1.5 text-left text-sm rounded-lg">JSON → CSV</button>
+                            <button type="button" data-template="extract-links" class="uw-template-btn px-3 py-1.5 text-left text-sm rounded-lg">URL抽出</button>
+                        </div>
+                    </div>
+
+                    <div class="uw-mono text-gray-400">
+                        Shortcuts:
+                        <div>`Ctrl/Cmd + Enter`: 実行</div>
+                        <div>`Ctrl/Cmd + Shift + C`: 出力コピー</div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/tools/universal-workbench.js" defer></script>
+    <script src="../js/tools/hub-bridge.js" defer></script>
+</body>
+
+</html>
