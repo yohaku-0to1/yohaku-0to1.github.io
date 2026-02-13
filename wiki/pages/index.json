@@ -1,30 +1,58 @@
 [
   {
+    "id": "ai-prompt-playbook",
+    "title": "AIプロンプト手法プレイブック",
+    "file": "ai-prompt-playbook.md",
+    "summary": "意図を崩さず品質を上げるための基本フレームと改善手順。",
+    "tags": ["prompt", "ai", "writing"]
+  },
+  {
+    "id": "anime-composition-reference",
+    "title": "アニメ構図リファレンス",
+    "file": "anime-composition-reference.md",
+    "summary": "ショットサイズ、視線、余白、心理効果を実制作向けに整理。",
+    "tags": ["anime", "composition", "camera"]
+  },
+  {
+    "id": "cinematic-lighting-color",
+    "title": "シネマティック照明・色設計メモ",
+    "file": "cinematic-lighting-color.md",
+    "summary": "光と色で感情を制御するための実践ルール。",
+    "tags": ["lighting", "color", "direction"]
+  },
+  {
+    "id": "storyboard-beats",
+    "title": "絵コンテのビート設計",
+    "file": "storyboard-beats.md",
+    "summary": "尺の中で情報と感情を通すカット配分の考え方。",
+    "tags": ["storyboard", "editing", "anime"]
+  },
+  {
     "id": "welcome",
     "title": "Wikiへようこそ",
     "file": "welcome.md",
     "summary": "このWikiの目的と、基本的な使い方。",
-    "tags": ["intro", "guide"]
+    "tags": ["intro", "guide", "wiki"]
   },
   {
     "id": "site-structure",
     "title": "サイト構成ガイド",
     "file": "site-structure.md",
     "summary": "主要ディレクトリと役割の一覧。",
-    "tags": ["architecture", "folders"]
+    "tags": ["project", "architecture", "folders"]
   },
   {
     "id": "content-update",
     "title": "コンテンツ更新手順",
     "file": "content-update.md",
     "summary": "プロフィール・リンク・ツールを更新する方法。",
-    "tags": ["content", "howto"]
+    "tags": ["project", "content", "howto"]
   },
   {
     "id": "operations",
     "title": "運用メモ",
     "file": "operations.md",
     "summary": "ローカル確認、デプロイ、トラブルシュート。",
-    "tags": ["ops", "deploy"]
+    "tags": ["project", "ops", "deploy"]
   }
 ]
