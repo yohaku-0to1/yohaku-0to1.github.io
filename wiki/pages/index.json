@@ -1,5 +1,12 @@
 [
   {
+    "id": "anime-visual-design-system",
+    "title": "アニメ映像設計体系（構図・ライティング・カメラ）",
+    "file": "anime-visual-design-system.md",
+    "summary": "形式別差分、設計変数、指示書テンプレ、実務チェックを統合した実践ガイド。",
+    "tags": ["anime", "composition", "lighting", "camera", "pipeline"]
+  },
+  {
     "id": "ai-prompt-playbook",
     "title": "AIプロンプト手法プレイブック",
     "file": "ai-prompt-playbook.md",
