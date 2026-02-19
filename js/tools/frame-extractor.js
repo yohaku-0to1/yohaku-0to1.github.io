@@ -160,10 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
         setupWorker();
 
         const fps = parseFloat(fpsInput.value);
-        const startTime = parseFloat(startTimeInput.value);
+        let startTime = parseFloat(startTimeInput.value);
         let endTime = parseFloat(endTimeInput.value);
         const imageFormat = formatInput.value;
         const imageExtension = imageFormat === 'image/jpeg' ? 'jpg' : 'png';
+
+        if (!Number.isFinite(fps) || fps <= 0) {
+            alert('FPSは1以上の数値で指定してください。');
+            isExtracting = false;
+            return;
+        }
+
+        if (!Number.isFinite(startTime) || startTime < 0) {
+            startTime = 0;
+        }
+
+        if (!Number.isFinite(endTime)) {
+            endTime = videoPlayer.duration;
+        }
 
         if (endTime <= 0 || endTime > videoPlayer.duration) {
             endTime = videoPlayer.duration;
@@ -192,13 +206,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx = canvas.getContext('2d', { willReadFrequently: true });
 
         const interval = 1 / fps;
-        let currentTime = startTime;
-        let frameCount = 1;
-        totalFrames = Math.floor((endTime - startTime) / interval);
+        const captureTimes = [];
+        const baseFrameCount = Math.floor((endTime - startTime) / interval);
+        for (let i = 0; i <= baseFrameCount; i++) {
+            captureTimes.push(Math.min(startTime + i * interval, endTime));
+        }
+
+        const lastCaptureTime = captureTimes[captureTimes.length - 1];
+        if (captureTimes.length === 0 || Math.abs(endTime - lastCaptureTime) > 1e-6) {
+            captureTimes.push(endTime);
+        }
+
+        let frameIndex = 0;
+        totalFrames = captureTimes.length;
         progressText.innerText = `フレーム 0 / ${totalFrames}`;
 
         async function captureFrame() {
-            if (!isExtracting || currentTime > endTime) {
+            if (!isExtracting || frameIndex >= totalFrames) {
                 if (isExtracting) { // 正常終了時のみ
                     worker.postMessage({ type: 'finish' });
                 }
@@ -206,11 +230,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            videoPlayer.currentTime = currentTime;
+            const targetTime = captureTimes[frameIndex];
+            if (Math.abs(videoPlayer.currentTime - targetTime) > 1e-6) {
+                videoPlayer.currentTime = targetTime;
 
-            await new Promise(resolve => {
-                videoPlayer.addEventListener('seeked', () => resolve(), { once: true });
-            });
+                await new Promise(resolve => {
+                    videoPlayer.addEventListener('seeked', () => resolve(), { once: true });
+                });
+            }
 
             if (!isExtracting) return;
 
@@ -219,11 +246,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             worker.postMessage({
                 type: 'frame',
-                payload: { imageData, frameNumber: frameCount }
+                payload: { imageData, frameNumber: frameIndex + 1 }
             }, [imageData.data.buffer]); // imageDataを転送
 
-            frameCount++;
-            currentTime += interval;
+            frameIndex++;
 
             requestAnimationFrame(captureFrame);
         }
